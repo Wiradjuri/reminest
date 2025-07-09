@@ -1,49 +1,70 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:sqlite3/sqlite3.dart';
+import 'package:path/path.dart' as p;
+import 'dart:io';
 import '../models/journal_entry.dart';
+import 'encryption_service.dart';
 
 class DatabaseService {
-  static Database? _database;
+  static late Database db;
 
-  static Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDB('journal.db');
-    return _database!;
-  }
+  static Future<void> initDB() async {
+    final dbPath = p.join(Directory.current.path, 'journal_entries.db');
+    db = sqlite3.open(dbPath);
 
-  static Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
-
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
-  }
-
-  static Future _createDB(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE entries (
+    db.execute('''
+      CREATE TABLE IF NOT EXISTS entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
         body TEXT,
         imagePath TEXT,
         createdAt TEXT,
         reviewDate TEXT,
-        isReviewed INTEGER
+        isReviewed INTEGER DEFAULT 0
       )
     ''');
   }
 
-  static Future<int> insertEntry(JournalEntry entry) async {
-    final db = await database;
-    return await db.insert('entries', entry.toMap());
+  static Future<void> insertEntry(JournalEntry entry) async {
+    try {
+      db.execute('''
+        INSERT INTO entries (title, body, imagePath, createdAt, reviewDate, isReviewed)
+        VALUES (?, ?, ?, ?, ?, ?)
+      ''', [
+        EncryptionService.encryptText(entry.title),
+        EncryptionService.encryptText(entry.body),
+        entry.imagePath,
+        entry.createdAt.toIso8601String(),
+        entry.reviewDate.toIso8601String(),
+        entry.isReviewed ? 1 : 0,
+      ]);
+    } catch (e) {
+      print('Error inserting entry: $e');
+    }
   }
 
   static Future<List<JournalEntry>> getEntries() async {
-    final db = await database;
-    final result = await db.query('entries', orderBy: 'createdAt DESC');
-    return result.map((json) => JournalEntry.fromMap(json)).toList();
+    final List<JournalEntry> entries = [];
+    final ResultSet result = db.select('SELECT * FROM entries');
+    for (final row in result) {
+      entries.add(JournalEntry(
+        id: row['id'] as int,
+        title: EncryptionService.decryptText(row['title'] as String),
+        body: EncryptionService.decryptText(row['body'] as String),
+        imagePath: row['imagePath'] as String?,
+        createdAt: DateTime.parse(row['createdAt'] as String),
+        reviewDate: DateTime.parse(row['reviewDate'] as String),
+        isReviewed: (row['isReviewed'] as int) == 1,
+      ));
+    }
+    return entries;
+  }
+
+  static Future<void> clearDatabase() async {
+    try {
+      db.execute('DELETE FROM entries');
+      print('Database cleared.');
+    } catch (e) {
+      print('Error clearing database: $e');
+    }
   }
 }

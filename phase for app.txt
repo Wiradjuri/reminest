@@ -1,8 +1,8 @@
 | Phase   | Duration | Milestone                            |
 | ------- | -------- | ------------------------------------ |
-| Phase 0 | 3 days   | Environment ready, wireframes        |
-| Phase 1 | 3 weeks  | PC MVP journaling & vault functional |
-| Phase 2 | 2 weeks  | Encryption & PIN                     |
+| Phase 0 | 3 days   | Environment ready, wireframes        | Done
+| Phase 1 | 3 weeks  | PC MVP journaling & vault functional |Done
+| Phase 2 | 2 weeks  | Encryption & PIN                     |Done
 | Phase 3 | 3 weeks  | Reflection tools & exports           |
 | Phase 4 | 4 weeks  | Android/iOS expansion                |
 | Phase 5 | 5 weeks  | Cloud sync & premium prep            |
