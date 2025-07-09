@@ -28,8 +28,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     }
 
     await KeyService.savePasswordHash(_passwordController.text);
-    final keyBytes =
-        KeyService.generateKeyFromPassword(_passwordController.text);
+    await KeyService.setPasswordSetFlag();
+
+    final keyBytes = KeyService.generateKeyFromPassword(_passwordController.text);
     EncryptionService.initializeKey(keyBytes);
 
     Navigator.pushReplacement(

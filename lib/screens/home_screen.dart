@@ -2,6 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/database_service.dart';
 import '../models/journal_entry.dart';
+import 'set_vault_pin_screen.dart';
+import 'enter_vault_pin_screen.dart';
+import '../services/key_service.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -21,7 +24,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> fetchEntries() async {
-    entries = await DatabaseService.getEntries();
+    final allEntries = await DatabaseService.getEntries();
+    final now = DateTime.now();
+
+    entries = allEntries.where((entry) =>
+      entry.reviewDate.isBefore(now) || entry.reviewDate.isAtSameMomentAs(now)
+    ).toList();
+
     filteredEntries = List.from(entries);
     setState(() {});
   }
@@ -36,25 +45,23 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _exportEntries() async {
-    final userProfile = Platform.environment['USERPROFILE'] ?? 'C:\\';
-    final documentsPath = '$userProfile\\Documents';
-    final path = '$documentsPath\\mental_health_vault_export.txt';
-    final file = File(path);
-
-    StringBuffer buffer = StringBuffer();
-    for (var entry in entries) {
-      buffer.writeln('Title: ${entry.title}');
-      buffer.writeln('Date: ${entry.createdAt}');
-      buffer.writeln('Review Date: ${entry.reviewDate}');
-      buffer.writeln('Body: ${entry.body}');
-      buffer.writeln('-----------------------------');
-    }
-
-    await file.writeAsString(buffer.toString());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Exported to $path')),
+  Future<void> _confirmDeleteEntry(JournalEntry entry) async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Delete Entry'),
+        content: Text('Are you sure you want to delete this entry?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete')),
+        ],
+      ),
     );
+
+    if (confirm) {
+      await DatabaseService.deleteEntry(entry.id!);
+      fetchEntries();
+    }
   }
 
   @override
@@ -63,73 +70,116 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Widget _buildEntryCard(JournalEntry entry) {
+    return AnimatedOpacity(
+      duration: Duration(milliseconds: 500),
+      opacity: 1,
+      child: Card(
+        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: ListTile(
+          onLongPress: () => _confirmDeleteEntry(entry),
+          leading: entry.imagePath != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(entry.imagePath!),
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              : Icon(Icons.note, color: Color(0xFF5B2C6F)),
+          title: Text(entry.title),
+          subtitle: Text(entry.body.length > 50
+              ? entry.body.substring(0, 50) + '...'
+              : entry.body),
+          trailing: Text(
+              '${entry.createdAt.day}/${entry.createdAt.month}/${entry.createdAt.year}'),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mental Health Vault'),
+        title: Text('Personal Journal Vault'),
         actions: [
           IconButton(
-            icon: Icon(Icons.file_download),
-            onPressed: _exportEntries,
-          ),
-          IconButton(
             icon: Icon(Icons.lock),
-            onPressed: () {
-              Navigator.pushNamed(context, '/vault');
+            onPressed: () async {
+              bool hasPin = await KeyService.hasVaultPin();
+              if (hasPin) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => EnterVaultPinScreen()),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => SetVaultPinScreen()),
+                );
+              }
             },
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(50),
-          child: Padding(
-            padding: EdgeInsets.all(8),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search entries...',
-                fillColor: Colors.white,
-                filled: true,
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Text(
+                  "Personal Journal Vault",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-              ),
+                SizedBox(height: 8),
+                Text(
+                  "A secure, private space to store your thoughts and reflections, encrypted and protected for your peace of mind.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search entries...',
+                    fillColor: Colors.white,
+                    filled: true,
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
+          Expanded(
+            child: filteredEntries.isEmpty
+                ? Center(child: Text('No entries found.'))
+                : ListView.builder(
+                    itemCount: filteredEntries.length,
+                    itemBuilder: (context, index) {
+                      final entry = filteredEntries[index];
+                      return _buildEntryCard(entry);
+                    },
+                  ),
+          ),
+        ],
       ),
-      body: filteredEntries.isEmpty
-          ? Center(child: Text('No entries found.'))
-          : ListView.builder(
-              itemCount: filteredEntries.length,
-              itemBuilder: (context, index) {
-                final entry = filteredEntries[index];
-                return ListTile(
-                  leading: entry.imagePath != null
-                      ? Image.file(
-                          File(entry.imagePath!),
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        )
-                      : Icon(Icons.note),
-                  title: Text(entry.title),
-                  subtitle: Text(entry.body.length > 50
-                      ? entry.body.substring(0, 50) + '...'
-                      : entry.body),
-                  trailing: Text(
-                      '${entry.createdAt.day}/${entry.createdAt.month}/${entry.createdAt.year}'),
-                );
-              },
-            ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF5B2C6F),
         onPressed: () async {
           await Navigator.pushNamed(context, '/add');
-          fetchEntries(); // Refresh after adding
+          fetchEntries();
         },
-        child: Icon(Icons.add),
+        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }

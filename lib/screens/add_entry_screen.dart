@@ -24,7 +24,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     }
   }
 
-  Future<void> _saveEntry() async {
+  Future<void> _saveEntry(bool storeInVault) async {
     if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Title and body cannot be empty.')),
@@ -37,12 +37,38 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       body: _bodyController.text,
       imagePath: _selectedImage?.path,
       createdAt: DateTime.now(),
-      reviewDate: _reviewDate,
+      reviewDate: storeInVault ? _reviewDate : DateTime.now(),
     );
 
     await DatabaseService.insertEntry(entry);
-
     Navigator.pop(context);
+  }
+
+  void _promptVaultChoice() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('Store in Vault?'),
+        content: Text(
+            'Would you like to store this entry in your vault for future review, or keep it available immediately?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _saveEntry(false);
+            },
+            child: Text('Keep Available'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _saveEntry(true);
+            },
+            child: Text('Store in Vault'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -53,53 +79,73 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         padding: EdgeInsets.all(16),
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
                 controller: _titleController,
-                decoration: InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(
+                  labelText: 'Title',
+                  hintText: 'Enter a title for your entry',
+                ),
               ),
               SizedBox(height: 10),
               TextField(
                 controller: _bodyController,
-                decoration: InputDecoration(labelText: 'Body'),
+                decoration: InputDecoration(
+                  labelText: 'Body',
+                  hintText: 'Write your thoughts here...',
+                ),
                 maxLines: 6,
               ),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Text('Review on: '),
-                  TextButton(
-                    onPressed: () async {
-                      final pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: _reviewDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(Duration(days: 365)),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          _reviewDate = pickedDate;
-                        });
-                      }
-                    },
-                    child: Text(
-                        '${_reviewDate.day}/${_reviewDate.month}/${_reviewDate.year}'),
-                  ),
-                ],
+              SizedBox(height: 20),
+              Text(
+                'Review Date',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 5),
+              Text(
+                'Choose when you can unlock this entry.',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: _reviewDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(Duration(days: 365)),
+                  );
+                  if (pickedDate != null) {
+                    setState(() {
+                      _reviewDate = pickedDate;
+                    });
+                  }
+                },
+                child: Text(
+                  '${_reviewDate.day}/${_reviewDate.month}/${_reviewDate.year}',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+              SizedBox(height: 20),
               _selectedImage != null
-                  ? Image.file(_selectedImage!, height: 150)
+                  ? Image.file(
+                      _selectedImage!,
+                      height: 150,
+                      fit: BoxFit.cover,
+                    )
                   : Text('No image selected.'),
+              SizedBox(height: 10),
               ElevatedButton.icon(
                 onPressed: _pickImage,
                 icon: Icon(Icons.photo),
                 label: Text('Add Photo'),
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveEntry,
-                child: Text('Save Entry'),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _promptVaultChoice,
+                  child: Text('Save Entry'),
+                ),
               ),
             ],
           ),

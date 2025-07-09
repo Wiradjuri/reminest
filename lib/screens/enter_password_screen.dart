@@ -17,7 +17,6 @@ class _EnterPasswordScreenState extends State<EnterPasswordScreen> {
   void _verifyPassword() async {
     final password = _passwordController.text.trim();
 
-    // Master PIN reset
     if (password == "SuperSecretAdminPin") {
       await KeyService.clearPassword();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -52,7 +51,7 @@ class _EnterPasswordScreenState extends State<EnterPasswordScreen> {
       builder: (_) => AlertDialog(
         title: Text("Reset Vault?"),
         content: Text(
-          "Resetting will permanently erase all data in your vault. Proceed?",
+          "Resetting will permanently erase all data in your vault for security. Proceed?",
         ),
         actions: [
           TextButton(

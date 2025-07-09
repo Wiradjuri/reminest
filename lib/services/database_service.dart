@@ -26,6 +26,8 @@ class DatabaseService {
 
   static Future<void> insertEntry(JournalEntry entry) async {
     try {
+      print('[DB] Inserting: ${entry.title}, reviewDate: ${entry.reviewDate.toIso8601String()}');
+
       db.execute('''
         INSERT INTO entries (title, body, imagePath, createdAt, reviewDate, isReviewed)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -44,19 +46,39 @@ class DatabaseService {
 
   static Future<List<JournalEntry>> getEntries() async {
     final List<JournalEntry> entries = [];
-    final ResultSet result = db.select('SELECT * FROM entries');
-    for (final row in result) {
-      entries.add(JournalEntry(
-        id: row['id'] as int,
-        title: EncryptionService.decryptText(row['title'] as String),
-        body: EncryptionService.decryptText(row['body'] as String),
-        imagePath: row['imagePath'] as String?,
-        createdAt: DateTime.parse(row['createdAt'] as String),
-        reviewDate: DateTime.parse(row['reviewDate'] as String),
-        isReviewed: (row['isReviewed'] as int) == 1,
-      ));
+    try {
+      final ResultSet result = db.select('SELECT * FROM entries');
+      for (final row in result) {
+        try {
+          final title = EncryptionService.decryptText(row['title'] as String);
+          final body = EncryptionService.decryptText(row['body'] as String);
+
+          entries.add(JournalEntry(
+            id: row['id'] as int,
+            title: title,
+            body: body,
+            imagePath: row['imagePath'] as String?,
+            createdAt: DateTime.parse(row['createdAt'] as String),
+            reviewDate: DateTime.parse(row['reviewDate'] as String),
+            isReviewed: (row['isReviewed'] as int) == 1,
+          ));
+        } catch (e) {
+          print('Skipping corrupted entry with id ${row['id']}: $e');
+        }
+      }
+    } catch (e) {
+      print('Error fetching entries: $e');
     }
     return entries;
+  }
+
+  static Future<void> deleteEntry(int id) async {
+    try {
+      db.execute('DELETE FROM entries WHERE id = ?', [id]);
+      print('Entry with id $id deleted.');
+    } catch (e) {
+      print('Error deleting entry: $e');
+    }
   }
 
   static Future<void> clearDatabase() async {
