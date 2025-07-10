@@ -1,0 +1,9 @@
+Settings
+Theme dropdown: dark, light, system
+
+Save password option: with explanation
+
+Export entries: triggers backup_service to generate a file
+
+Update checker: checks for new version using update_checker_service
+

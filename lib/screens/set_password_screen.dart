@@ -12,6 +12,13 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
 
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
   void _setPassword() async {
     if (_passwordController.text != _confirmController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -30,8 +37,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     await KeyService.savePasswordHash(_passwordController.text);
     await KeyService.setPasswordSetFlag();
 
-    final keyBytes =
-        KeyService.generateKeyFromPassword(_passwordController.text);
+    final keyBytes = KeyService.generateKeyFromPassword(_passwordController.text);
     EncryptionService.initializeKey(keyBytes);
 
     Navigator.pushReplacement(
@@ -43,74 +49,71 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      backgroundColor: Color(0xFF1E1E1E), // VS Code dark background
+
       appBar: AppBar(
         title: Text('Set Vault Password'),
-        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+        backgroundColor: Color(0xFF9B59B6), // Sunset purple
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _passwordController,
+              obscureText: true,
+              style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                labelText: 'Enter Password',
-                hintText: 'At least 6 characters',
-                hintStyle: TextStyle(color: Color(0xFF888888)),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+                hintText: 'Enter new password',
+                hintStyle: TextStyle(color: Colors.grey[600]), // faint placeholder
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF9B59B6)),
                 ),
               ),
-              obscureText: true,
-              onSubmitted: (_) => _setPassword(), // Enter submits
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 20),
             TextField(
               controller: _confirmController,
+              obscureText: true,
+              style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                labelText: 'Confirm Password',
-                hintText: 'Re-enter your password',
-                hintStyle: TextStyle(color: Color(0xFF888888)),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+                hintText: 'Confirm password',
+                hintStyle: TextStyle(color: Colors.grey[600]),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF9B59B6)),
                 ),
               ),
-              obscureText: true,
-              onSubmitted: (_) => _setPassword(), // Enter submits
             ),
-            SizedBox(height: 24),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.blueAccent, width: 2),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blueAccent.withOpacity(0.5),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
+            SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                  backgroundColor: Color(0xFF007BFF), // Blue
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shadowColor: Colors.redAccent, // Red glow
+                  elevation: 12,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  elevation: 0,
+                  padding: EdgeInsets.symmetric(vertical: 14),
                 ),
-                onPressed: _setPassword,
-                child: Text('Set Password'),
+                onPressed: (_passwordController.text.isEmpty || _confirmController.text.isEmpty)
+                    ? null
+                    : _setPassword,
+                child: Text(
+                  'Set Password',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

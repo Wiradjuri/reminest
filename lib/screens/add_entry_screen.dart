@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import '../models/journal_entry.dart';
-import '../services/database_service.dart';
+import 'package:Reminest/models/journal_entry.dart';
+import 'package:Reminest/services/database_service.dart';
 
 class AddEntryScreen extends StatefulWidget {
   @override
@@ -15,6 +15,14 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   DateTime _reviewDate = DateTime.now().add(Duration(days: 7));
   File? _selectedImage;
   bool _storeInVault = false;
+  bool _isSaving = false;
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _bodyController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
@@ -31,6 +39,19 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       initialDate: _reviewDate,
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(Duration(days: 365 * 5)),
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: Color(0xFF9B59B6),
+              onPrimary: Colors.white,
+              surface: Color(0xFF2E2E2E),
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -40,6 +61,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   }
 
   Future<void> _saveEntry() async {
+    if (_isSaving) return;
     if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Title and body cannot be empty.')),
@@ -47,70 +69,153 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       return;
     }
 
+    setState(() => _isSaving = true);
+
+    String? imagePath;
+    if (_selectedImage != null && await _selectedImage!.exists()) {
+      imagePath = _selectedImage!.path;
+    }
+
     final entry = JournalEntry(
       title: _titleController.text,
       body: _bodyController.text,
-      imagePath: _selectedImage?.path,
+      reviewDate: _reviewDate,
+      imagePath: imagePath,
+      isInVault: _storeInVault,
       createdAt: DateTime.now(),
-      reviewDate: _storeInVault ? _reviewDate : DateTime.now(),
     );
 
-    await DatabaseService.insertEntry(entry);
-    Navigator.pop(context);
+    try {
+      await DatabaseService.addEntry(entry);
+      if (mounted) Navigator.pop(context);
+    } catch (e, stack) {
+      debugPrint('Failed to save entry: $e\n$stack');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save entry: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE6E6FA),
+      backgroundColor: Color(0xFF1E1E1E), // VS Code dark
       appBar: AppBar(
         title: Text('Add Entry'),
+        backgroundColor: Color(0xFF9B59B6), // Sunset purple
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title', filled: true, fillColor: Colors.white),
-            ),
-            SizedBox(height: 12),
-            TextField(
-              controller: _bodyController,
-              decoration: InputDecoration(labelText: 'Body', filled: true, fillColor: Colors.white),
-              maxLines: 5,
-            ),
-            SizedBox(height: 12),
-            SwitchListTile(
-              title: Text('Store in Vault'),
-              value: _storeInVault,
-              onChanged: (val) {
-                setState(() {
-                  _storeInVault = val;
-                  if (!_storeInVault) {
-                    _reviewDate = DateTime.now();
-                  }
-                });
-              },
-            ),
-            if (_storeInVault)
-              ListTile(
-                title: Text("Unlock Date: ${_reviewDate.day}/${_reviewDate.month}/${_reviewDate.year}"),
-                trailing: Icon(Icons.calendar_today, color: Color(0xFF5B2C6F)),
-                onTap: () => _selectDate(context),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: _titleController,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Title',
+                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF9B59B6)),
+                  ),
+                ),
               ),
-            SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _pickImage,
-              icon: Icon(Icons.image),
-              label: Text('Pick Image'),
-            ),
-            SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _saveEntry,
-              child: Text('Save Entry'),
-            ),
-          ],
+              SizedBox(height: 16),
+              TextField(
+                controller: _bodyController,
+                style: TextStyle(color: Colors.white),
+                maxLines: 10,
+                decoration: InputDecoration(
+                  hintText: 'Write your thoughts...',
+                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF9B59B6)),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Text(
+                    'Review Date: ${_reviewDate.toLocal().toString().split(' ')[0]}',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Spacer(),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF007BFF),
+                      foregroundColor: Colors.white,
+                      shadowColor: Colors.redAccent,
+                      elevation: 10,
+                    ),
+                    onPressed: () => _selectDate(context),
+                    child: Text('Change Date'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _storeInVault,
+                    activeColor: Color(0xFF9B59B6),
+                    checkColor: Colors.white,
+                    onChanged: (value) {
+                      setState(() {
+                        _storeInVault = value ?? false;
+                      });
+                    },
+                  ),
+                  Text('Store in Vault', style: TextStyle(color: Colors.white)),
+                  Spacer(),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF007BFF),
+                      foregroundColor: Colors.white,
+                      shadowColor: Colors.redAccent,
+                      elevation: 10,
+                    ),
+                    onPressed: _pickImage,
+                    child: Text('Attach Photo'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF007BFF),
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.redAccent,
+                    elevation: 12,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: _isSaving ? null : _saveEntry,
+                  child: Text(
+                    _isSaving ? 'Saving...' : 'Save Entry',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

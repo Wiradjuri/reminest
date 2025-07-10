@@ -5,88 +5,107 @@ import '../models/journal_entry.dart';
 import 'encryption_service.dart';
 
 class DatabaseService {
-  static late Database db;
+  static Database? _db;
 
+  /// Initializes the database and creates the `entries` table if it doesn't exist.
   static Future<void> initDB() async {
-    final dbPath = p.join(Directory.current.path, 'journal_entries.db');
-    db = sqlite3.open(dbPath);
-
-    db.execute('''
-      CREATE TABLE IF NOT EXISTS entries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT,
-        body TEXT,
-        imagePath TEXT,
-        createdAt TEXT,
-        reviewDate TEXT,
-        isReviewed INTEGER DEFAULT 0
-      )
-    ''');
-  }
-
-  static Future<void> insertEntry(JournalEntry entry) async {
     try {
-      print('[DB] Inserting: ${entry.title}, reviewDate: ${entry.reviewDate.toIso8601String()}');
-
-      db.execute('''
-        INSERT INTO entries (title, body, imagePath, createdAt, reviewDate, isReviewed)
-        VALUES (?, ?, ?, ?, ?, ?)
-      ''', [
-        EncryptionService.encryptText(entry.title),
-        EncryptionService.encryptText(entry.body),
-        entry.imagePath,
-        entry.createdAt.toIso8601String(),
-        entry.reviewDate.toIso8601String(),
-        entry.isReviewed ? 1 : 0,
-      ]);
+      final dbPath = p.join(Directory.current.path, 'journal_entries.db');
+      _db = sqlite3.open(dbPath);
+      _db!.execute('''
+        CREATE TABLE IF NOT EXISTS entries (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT,
+          body TEXT,
+          imagePath TEXT,
+          createdAt TEXT,
+          reviewDate TEXT,
+          isReviewed INTEGER DEFAULT 0,
+          isInVault INTEGER DEFAULT 0
+        )
+      ''');
+      print("[DatabaseService] Database initialized at $dbPath");
     } catch (e) {
-      print('Error inserting entry: $e');
+      print("[DatabaseService] Error initializing database: $e");
     }
   }
 
-  static Future<List<JournalEntry>> getEntries() async {
-    final List<JournalEntry> entries = [];
+  /// Adds a new journal entry to the database.
+  static Future<void> addEntry(JournalEntry entry) async {
+    if (_db == null) await initDB();
     try {
-      final ResultSet result = db.select('SELECT * FROM entries');
+      _db!.execute(
+        '''
+        INSERT INTO entries (title, body, imagePath, createdAt, reviewDate, isReviewed, isInVault)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''',
+        [
+          EncryptionService.encryptText(entry.title),
+          EncryptionService.encryptText(entry.body),
+          entry.imagePath,
+          entry.createdAt.toIso8601String(),
+          entry.reviewDate.toIso8601String(),
+          entry.isReviewed ? 1 : 0,
+          entry.isInVault ? 1 : 0,
+        ],
+      );
+      print("[DatabaseService] Entry added: ${entry.title}");
+    } catch (e) {
+      print("[DatabaseService] Error adding entry: $e");
+    }
+  }
+
+  /// Fetches all journal entries from the database.
+  static Future<List<JournalEntry>> getEntries() async {
+    if (_db == null) await initDB();
+    final entries = <JournalEntry>[];
+    try {
+      final result = _db!.select('SELECT * FROM entries');
       for (final row in result) {
         try {
-          final title = EncryptionService.decryptText(row['title'] as String);
-          final body = EncryptionService.decryptText(row['body'] as String);
-
           entries.add(JournalEntry(
             id: row['id'] as int,
-            title: title,
-            body: body,
+            title: EncryptionService.decryptText(row['title'] as String),
+            body: EncryptionService.decryptText(row['body'] as String),
             imagePath: row['imagePath'] as String?,
             createdAt: DateTime.parse(row['createdAt'] as String),
             reviewDate: DateTime.parse(row['reviewDate'] as String),
-            isReviewed: (row['isReviewed'] as int) == 1,
+            isReviewed: row['isReviewed'] == 1,
+            isInVault: row['isInVault'] == 1,
           ));
         } catch (e) {
-          print('Skipping corrupted entry with id ${row['id']}: $e');
+          print("[DatabaseService] Skipping corrupted entry: $e");
         }
       }
+      print("[DatabaseService] Fetched ${entries.length} entries");
     } catch (e) {
-      print('Error fetching entries: $e');
+      print("[DatabaseService] Error fetching entries: $e");
     }
     return entries;
   }
 
+  /// Deletes a journal entry by its ID.
   static Future<void> deleteEntry(int id) async {
+    if (_db == null) await initDB();
     try {
-      db.execute('DELETE FROM entries WHERE id = ?', [id]);
-      print('Entry with id $id deleted.');
+      _db!.execute('DELETE FROM entries WHERE id = ?', [id]);
+      print("[DatabaseService] Entry deleted: ID $id");
     } catch (e) {
-      print('Error deleting entry: $e');
+      print("[DatabaseService] Error deleting entry: $e");
     }
   }
 
-  static Future<void> clearDatabase() async {
+  /// Clears all data from the `entries` table.
+  static Future<void> clearAllData() async {
+    if (_db == null) await initDB();
     try {
-      db.execute('DELETE FROM entries');
-      print('Database cleared.');
+      _db!.execute('DELETE FROM entries');
+      print("[DatabaseService] All data cleared");
     } catch (e) {
-      print('Error clearing database: $e');
+      print("[DatabaseService] Error clearing all data: $e");
     }
   }
+
+  /// Clears the entire database (alias for `clearAllData`).
+  static Future<void> clearDatabase() async => clearAllData();
 }

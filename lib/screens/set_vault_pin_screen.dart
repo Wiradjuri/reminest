@@ -11,6 +11,13 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
   final _pinController = TextEditingController();
   final _confirmController = TextEditingController();
 
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
   void _setPin() async {
     if (_pinController.text != _confirmController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -37,76 +44,74 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      backgroundColor: Color(0xFF1E1E1E), // VS Code dark background
+
       appBar: AppBar(
         title: Text('Set Vault PIN'),
-        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+        backgroundColor: Color(0xFF9B59B6), // Sunset purple
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _pinController,
-              decoration: InputDecoration(
-                labelText: 'Enter 4-digit PIN',
-                hintText: '****',
-                hintStyle: TextStyle(color: Color(0xFF888888)),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-              ),
               obscureText: true,
               keyboardType: TextInputType.number,
-              onSubmitted: (_) => _setPin(), // Enable Enter key submission
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Enter 4-digit PIN',
+                hintStyle: TextStyle(color: Colors.grey[600]),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF9B59B6)),
+                ),
+              ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 20),
             TextField(
               controller: _confirmController,
-              decoration: InputDecoration(
-                labelText: 'Confirm PIN',
-                hintText: 'Re-enter your PIN',
-                hintStyle: TextStyle(color: Color(0xFF888888)),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-              ),
               obscureText: true,
               keyboardType: TextInputType.number,
-              onSubmitted: (_) => _setPin(), // Enable Enter key submission
-            ),
-            SizedBox(height: 24),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.blueAccent, width: 2),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blueAccent.withOpacity(0.5),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
-                ],
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Confirm PIN',
+                hintStyle: TextStyle(color: Colors.grey[600]),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF9B59B6)),
+                ),
               ),
+            ),
+            SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                  backgroundColor: Color(0xFF007BFF), // Blue
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shadowColor: Colors.redAccent, // Red glow
+                  elevation: 12,
+                  padding: EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  elevation: 0,
                 ),
-                onPressed: _setPin,
-                child: Text('Set PIN'),
+                onPressed: (_pinController.text.isEmpty ||
+                        _confirmController.text.isEmpty)
+                    ? null
+                    : _setPin,
+                child: Text(
+                  'Set PIN',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

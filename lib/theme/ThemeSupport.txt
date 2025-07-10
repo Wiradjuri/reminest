@@ -1,0 +1,4 @@
+Store theme mode in UserSettings model and persist using SharedPreferences.
+
+AppTheme provides light, dark, and system themes.
+

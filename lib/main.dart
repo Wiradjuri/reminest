@@ -1,93 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
-import 'screens/set_password_screen.dart';
-import 'screens/enter_password_screen.dart';
-import 'screens/vault_screen.dart';
-import 'screens/add_entry_screen.dart';
-import 'screens/settings_screen.dart'; // future screen
-import 'services/key_service.dart';
-import 'services/database_service.dart';
-import 'services/encryption_service.dart';
+import 'screens/about_us_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/login_screen.dart';
+import 'widgets/top_nav_bar.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await DatabaseService.initDB();
-
-  bool hasPassword = await KeyService.hasPassword();
-  bool hasSetPassword = await KeyService.hasSetPassword();
-  List<int>? rememberedKey = await KeyService.getRememberedKey();
-
-  Widget homeWidget;
-
-  if (rememberedKey != null) {
-    EncryptionService.initializeKey(rememberedKey);
-    homeWidget = HomeScreen();
-  } else if (hasPassword && hasSetPassword) {
-    homeWidget = EnterPasswordScreen();
-  } else {
-    homeWidget = SetPasswordScreen();
-  }
-
-  ThemeMode themeMode = await loadThemeMode();
-
-  runApp(ReminesetApp(home: homeWidget, themeMode: themeMode));
+void main() {
+  runApp(ReminestApp());
 }
 
-Future<ThemeMode> loadThemeMode() async {
-  final prefs = await SharedPreferences.getInstance();
-  final theme = prefs.getString('themeMode') ?? 'system';
-  switch (theme) {
-    case 'light':
-      return ThemeMode.light;
-    case 'dark':
-      return ThemeMode.dark;
-    default:
-      return ThemeMode.system;
-  }
-}
-
-class ReminesetApp extends StatelessWidget {
-  final Widget home;
-  final ThemeMode themeMode;
-  const ReminesetApp({required this.home, required this.themeMode, Key? key}) : super(key: key);
-
+class ReminestApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Reminest',
-      debugShowCheckedModeBanner: false,
-      themeMode: themeMode,
       theme: ThemeData(
-        primaryColor: Color(0xFF5B2C6F),
-        scaffoldBackgroundColor: Color(0xFFE6E6FA),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Color(0xFF5B2C6F),
-          foregroundColor: Colors.white,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF5B2C6F),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
+        brightness: Brightness.dark,
+        primaryColor: Color(0xFF9B59B6),
+        scaffoldBackgroundColor: Color(0xFF1E1E1E),
+      ),
+      debugShowCheckedModeBanner: false,
+      home: MainScaffold(),
+    );
+  }
+}
+
+class MainScaffold extends StatefulWidget {
+  @override
+  _MainScaffoldState createState() => _MainScaffoldState();
+}
+
+class _MainScaffoldState extends State<MainScaffold> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _screens = [
+    HomeScreen(),
+    AboutUsScreen(),
+    SettingsScreen(),
+    LoginScreen(),
+  ];
+
+  void _onTabSelected(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(56),
+        child: TopNavBar(
+          selectedIndex: _selectedIndex,
+          onTabSelected: _onTabSelected,
         ),
       ),
-      darkTheme: ThemeData.dark().copyWith(
-        appBarTheme: AppBarTheme(
-          backgroundColor: Color(0xFF121212),
-          foregroundColor: Colors.white,
-        ),
-      ),
-      home: home,
-      routes: {
-        '/home': (context) => HomeScreen(),
-        '/vault': (context) => VaultScreen(),
-        '/add': (context) => AddEntryScreen(),
-        '/settings': (context) => SettingsScreen(), // Future settings screen
-      },
+      body: _screens[_selectedIndex],
     );
   }
 }
