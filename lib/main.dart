@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/home_screen.dart';
 import 'screens/set_password_screen.dart';
 import 'screens/enter_password_screen.dart';
 import 'screens/vault_screen.dart';
 import 'screens/add_entry_screen.dart';
+import 'screens/settings_screen.dart'; // future screen
 import 'services/key_service.dart';
 import 'services/database_service.dart';
 import 'services/encryption_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DatabaseService.initDB();
 
@@ -28,21 +29,38 @@ void main() async {
     homeWidget = SetPasswordScreen();
   }
 
-  runApp(MentalHealthVaultApp(home: homeWidget));
+  ThemeMode themeMode = await loadThemeMode();
+
+  runApp(ReminesetApp(home: homeWidget, themeMode: themeMode));
 }
 
-class MentalHealthVaultApp extends StatelessWidget {
+Future<ThemeMode> loadThemeMode() async {
+  final prefs = await SharedPreferences.getInstance();
+  final theme = prefs.getString('themeMode') ?? 'system';
+  switch (theme) {
+    case 'light':
+      return ThemeMode.light;
+    case 'dark':
+      return ThemeMode.dark;
+    default:
+      return ThemeMode.system;
+  }
+}
+
+class ReminesetApp extends StatelessWidget {
   final Widget home;
-  const MentalHealthVaultApp({required this.home, Key? key}) : super(key: key);
+  final ThemeMode themeMode;
+  const ReminesetApp({required this.home, required this.themeMode, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Personal Journal Vault',
+      title: 'Reminest',
       debugShowCheckedModeBanner: false,
+      themeMode: themeMode,
       theme: ThemeData(
         primaryColor: Color(0xFF5B2C6F),
-        scaffoldBackgroundColor: Color(0xFFF5F5FA),
+        scaffoldBackgroundColor: Color(0xFFE6E6FA),
         appBarTheme: AppBarTheme(
           backgroundColor: Color(0xFF5B2C6F),
           foregroundColor: Colors.white,
@@ -57,11 +75,18 @@ class MentalHealthVaultApp extends StatelessWidget {
           ),
         ),
       ),
+      darkTheme: ThemeData.dark().copyWith(
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0xFF121212),
+          foregroundColor: Colors.white,
+        ),
+      ),
       home: home,
       routes: {
         '/home': (context) => HomeScreen(),
         '/vault': (context) => VaultScreen(),
         '/add': (context) => AddEntryScreen(),
+        '/settings': (context) => SettingsScreen(), // Future settings screen
       },
     );
   }

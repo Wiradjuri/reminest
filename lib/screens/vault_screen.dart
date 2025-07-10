@@ -20,79 +20,74 @@ class _VaultScreenState extends State<VaultScreen> {
   Future<void> fetchVaultEntries() async {
     final allEntries = await DatabaseService.getEntries();
     final now = DateTime.now();
-
     vaultEntries = allEntries.where((entry) => entry.reviewDate.isAfter(now)).toList();
     setState(() {});
   }
 
-  void _showEntryDialog(JournalEntry entry) {
-    showDialog(
+  Future<void> _confirmDeleteEntry(JournalEntry entry) async {
+    bool confirm = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(entry.title),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (entry.imagePath != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    File(entry.imagePath!),
-                    width: 250,
-                    height: 250,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              SizedBox(height: 12),
-              Text(entry.body),
-            ],
-          ),
-        ),
+        title: Text('Delete Entry'),
+        content: Text('Are you sure you want to delete this entry?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Close'),
-          )
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete')),
         ],
       ),
     );
+    if (confirm) {
+      await DatabaseService.deleteEntry(entry.id!);
+      fetchVaultEntries();
+    }
   }
 
   Widget _buildVaultEntryCard(JournalEntry entry) {
     final now = DateTime.now();
     final isUnlocked = entry.reviewDate.isBefore(now) || entry.reviewDate.isAtSameMomentAs(now);
 
-    return AnimatedOpacity(
-      duration: Duration(milliseconds: 500),
-      opacity: 1,
-      child: Card(
-        color: Colors.white.withOpacity(0.9),
-        shadowColor: Colors.grey.withOpacity(0.3),
-        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: ListTile(
-          leading: Icon(
-            isUnlocked ? Icons.lock_open : Icons.lock_outline,
-            color: isUnlocked ? Color(0xFF5B2C6F) : Colors.grey,
-          ),
-          title: Text(
-            entry.title,
-            style: TextStyle(color: Color(0xFF333333)),
-          ),
-          subtitle: Text(
-            isUnlocked
-                ? 'Unlocked and ready for review'
-                : 'Locked until ${entry.reviewDate.day}/${entry.reviewDate.month}/${entry.reviewDate.year}',
-            style: TextStyle(color: Color(0xFF555555)),
-          ),
-          trailing: Text(
-            '${entry.createdAt.day}/${entry.createdAt.month}/${entry.createdAt.year}',
-            style: TextStyle(color: Color(0xFF555555)),
-          ),
-          onTap: isUnlocked ? () => _showEntryDialog(entry) : null,
+    return Card(
+      color: Colors.white.withOpacity(0.9),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: isUnlocked ? Colors.green : Colors.blueAccent, width: 2),
+      ),
+      child: ListTile(
+        leading: Icon(isUnlocked ? Icons.lock_open : Icons.lock_outline,
+            color: isUnlocked ? Colors.green : Colors.blueAccent),
+        title: Text(entry.title),
+        subtitle: Text(isUnlocked
+            ? 'Unlocked for review'
+            : 'Locked until ${entry.reviewDate.day}/${entry.reviewDate.month}/${entry.reviewDate.year}'),
+        trailing: IconButton(
+          icon: Icon(Icons.delete, color: Colors.redAccent),
+          onPressed: () => _confirmDeleteEntry(entry),
         ),
+        onTap: isUnlocked
+            ? () => showDialog(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: Text(entry.title),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          if (entry.imagePath != null)
+                            Image.file(File(entry.imagePath!), height: 200),
+                          SizedBox(height: 12),
+                          Text(entry.body),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('Close'),
+                      ),
+                    ],
+                  ),
+                )
+            : null,
       ),
     );
   }
@@ -100,19 +95,12 @@ class _VaultScreenState extends State<VaultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      backgroundColor: Color(0xFFE6E6FA),
       appBar: AppBar(
         title: Text('Vault'),
-        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
-        foregroundColor: Colors.white,
       ),
       body: vaultEntries.isEmpty
-          ? Center(
-              child: Text(
-                'No entries currently in the vault.',
-                style: TextStyle(fontSize: 16, color: Color(0xFF555555)),
-              ),
-            )
+          ? Center(child: Text('No entries currently in the vault.'))
           : ListView.builder(
               itemCount: vaultEntries.length,
               itemBuilder: (context, index) {

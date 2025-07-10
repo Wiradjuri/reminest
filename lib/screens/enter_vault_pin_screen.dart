@@ -83,16 +83,34 @@ class _EnterVaultPinScreenState extends State<EnterVaultPinScreen> {
               ),
               obscureText: true,
               keyboardType: TextInputType.number,
+              onSubmitted: (_) => _verifyPin(), // Enter key submits
             ),
             SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF5B2C6F), // Deep Purple
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueAccent, width: 2),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.5),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
-              onPressed: _verifyPin,
-              child: Text('Unlock Vault'),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: _verifyPin,
+                child: Text('Unlock Vault'),
+              ),
             ),
             TextButton(
               onPressed: _forgotPin,

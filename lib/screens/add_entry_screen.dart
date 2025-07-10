@@ -14,6 +14,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   final _bodyController = TextEditingController();
   DateTime _reviewDate = DateTime.now().add(Duration(days: 7));
   File? _selectedImage;
+  bool _storeInVault = false;
 
   Future<void> _pickImage() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
@@ -24,7 +25,21 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     }
   }
 
-  Future<void> _saveEntry(bool storeInVault) async {
+  Future<void> _selectDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _reviewDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(Duration(days: 365 * 5)),
+    );
+    if (picked != null) {
+      setState(() {
+        _reviewDate = picked;
+      });
+    }
+  }
+
+  Future<void> _saveEntry() async {
     if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Title and body cannot be empty.')),
@@ -37,148 +52,65 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       body: _bodyController.text,
       imagePath: _selectedImage?.path,
       createdAt: DateTime.now(),
-      reviewDate: storeInVault ? _reviewDate : DateTime.now(),
+      reviewDate: _storeInVault ? _reviewDate : DateTime.now(),
     );
 
     await DatabaseService.insertEntry(entry);
     Navigator.pop(context);
   }
 
-  void _promptVaultChoice() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text('Store in Vault?'),
-        content: Text(
-            'Would you like to store this entry in your vault for future review, or keep it available immediately?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _saveEntry(false);
-            },
-            child: Text('Keep Available'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _saveEntry(true);
-            },
-            child: Text('Store in Vault'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      backgroundColor: Color(0xFFE6E6FA),
       appBar: AppBar(
-        title: Text('Add Journal Entry'),
-        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
-        foregroundColor: Colors.white,
+        title: Text('Add Entry'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Title',
-                  hintText: 'Enter a title for your entry',
-                  hintStyle: TextStyle(color: Color(0xFF888888)), // Light Gray
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.9),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: _bodyController,
-                decoration: InputDecoration(
-                  labelText: 'Body',
-                  hintText: 'Write your thoughts here...',
-                  hintStyle: TextStyle(color: Color(0xFF888888)), // Light Gray
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.9),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                maxLines: 6,
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Review Date',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5B2C6F)),
-              ),
-              SizedBox(height: 5),
-              Text(
-                'Choose when you can unlock this entry.',
-                style: TextStyle(fontSize: 12, color: Color(0xFF333333)), // Dark Gray
-              ),
-              TextButton(
-                onPressed: () async {
-                  final pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: _reviewDate,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(Duration(days: 365)),
-                  );
-                  if (pickedDate != null) {
-                    setState(() {
-                      _reviewDate = pickedDate;
-                    });
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(labelText: 'Title', filled: true, fillColor: Colors.white),
+            ),
+            SizedBox(height: 12),
+            TextField(
+              controller: _bodyController,
+              decoration: InputDecoration(labelText: 'Body', filled: true, fillColor: Colors.white),
+              maxLines: 5,
+            ),
+            SizedBox(height: 12),
+            SwitchListTile(
+              title: Text('Store in Vault'),
+              value: _storeInVault,
+              onChanged: (val) {
+                setState(() {
+                  _storeInVault = val;
+                  if (!_storeInVault) {
+                    _reviewDate = DateTime.now();
                   }
-                },
-                child: Text(
-                  '${_reviewDate.day}/${_reviewDate.month}/${_reviewDate.year}',
-                  style: TextStyle(fontSize: 16, color: Color(0xFF5B2C6F)),
-                ),
+                });
+              },
+            ),
+            if (_storeInVault)
+              ListTile(
+                title: Text("Unlock Date: ${_reviewDate.day}/${_reviewDate.month}/${_reviewDate.year}"),
+                trailing: Icon(Icons.calendar_today, color: Color(0xFF5B2C6F)),
+                onTap: () => _selectDate(context),
               ),
-              SizedBox(height: 20),
-              _selectedImage != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        _selectedImage!,
-                        height: 150,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : Text('No image selected.'),
-              SizedBox(height: 10),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF5B2C6F), // Deep Purple
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: _pickImage,
-                icon: Icon(Icons.photo),
-                label: Text('Add Photo'),
-              ),
-              SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF5B2C6F), // Deep Purple
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: _promptVaultChoice,
-                  child: Text('Save Entry'),
-                ),
-              ),
-            ],
-          ),
+            SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: _pickImage,
+              icon: Icon(Icons.image),
+              label: Text('Pick Image'),
+            ),
+            SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _saveEntry,
+              child: Text('Save Entry'),
+            ),
+          ],
         ),
       ),
     );

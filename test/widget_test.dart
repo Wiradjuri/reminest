@@ -1,30 +1,29 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:mental_health_vault/main.dart';
+import 'package:Reminest/services/key_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('Password hash store and verify', () async {
+    await KeyService.clearPassword();
+    await KeyService.savePasswordHash("testpassword");
+    final result = await KeyService.verifyPassword("testpassword");
+    expect(result, true);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    final failResult = await KeyService.verifyPassword("wrongpassword");
+    expect(failResult, false);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('Vault PIN store and verify', () async {
+    await KeyService.clearVaultPin();
+    await KeyService.saveVaultPin("1234");
+    final result = await KeyService.verifyVaultPin("1234");
+    expect(result, true);
+
+    final failResult = await KeyService.verifyVaultPin("5678");
+    expect(failResult, false);
   });
 }

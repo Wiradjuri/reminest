@@ -30,7 +30,8 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     await KeyService.savePasswordHash(_passwordController.text);
     await KeyService.setPasswordSetFlag();
 
-    final keyBytes = KeyService.generateKeyFromPassword(_passwordController.text);
+    final keyBytes =
+        KeyService.generateKeyFromPassword(_passwordController.text);
     EncryptionService.initializeKey(keyBytes);
 
     Navigator.pushReplacement(
@@ -66,6 +67,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 ),
               ),
               obscureText: true,
+              onSubmitted: (_) => _setPassword(), // Enter submits
             ),
             SizedBox(height: 16),
             TextField(
@@ -82,16 +84,34 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 ),
               ),
               obscureText: true,
+              onSubmitted: (_) => _setPassword(), // Enter submits
             ),
             SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF5B2C6F), // Deep Purple
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueAccent, width: 2),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.5),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
-              onPressed: _setPassword,
-              child: Text('Set Password'),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: _setPassword,
+                child: Text('Set Password'),
+              ),
             ),
           ],
         ),

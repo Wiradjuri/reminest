@@ -1,80 +1,86 @@
-import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class KeyService {
-  static const _keyHashKey = 'encryption_key_hash';
-  static const _savedKey = 'saved_key';
-  static const _hasSetPasswordKey = 'has_set_password';
-  static const _vaultPinKey = 'vault_pin_hash';
-
-  static List<int> generateKeyFromPassword(String password) {
-    return sha256.convert(utf8.encode(password)).bytes;
-  }
+  static const _passwordKey = 'vault_password_hash';
+  static const _rememberedKeyKey = 'vault_remembered_key';
+  static const _passwordSetKey = 'vault_password_set';
+  static const _vaultPinKey = 'vault_pin';
 
   static Future<void> savePasswordHash(String password) async {
     final prefs = await SharedPreferences.getInstance();
     final hash = sha256.convert(utf8.encode(password)).toString();
-    await prefs.setString(_keyHashKey, hash);
+    await prefs.setString(_passwordKey, hash);
+    print("[KeyService] Password hash saved.");
   }
 
   static Future<bool> verifyPassword(String password) async {
     final prefs = await SharedPreferences.getInstance();
-    final storedHash = prefs.getString(_keyHashKey);
+    final storedHash = prefs.getString(_passwordKey);
     final hash = sha256.convert(utf8.encode(password)).toString();
     return storedHash == hash;
   }
 
   static Future<bool> hasPassword() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(_keyHashKey);
+    return prefs.containsKey(_passwordKey);
   }
 
-  static Future<void> clearPassword() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyHashKey);
-    await prefs.remove(_savedKey);
-    await prefs.remove(_hasSetPasswordKey);
-    await prefs.remove(_vaultPinKey);
+  static List<int> generateKeyFromPassword(String password) {
+    final hash = sha256.convert(utf8.encode(password)).bytes;
+    return hash.sublist(0, 32);
   }
 
   static Future<void> saveRememberedKey(List<int> keyBytes) async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString(_savedKey, base64Encode(keyBytes));
+    await prefs.setString(_rememberedKeyKey, base64Encode(keyBytes));
+    print("[KeyService] Remembered key saved.");
   }
 
   static Future<List<int>?> getRememberedKey() async {
     final prefs = await SharedPreferences.getInstance();
-    final keyString = prefs.getString(_savedKey);
-    if (keyString != null) {
-      return base64Decode(keyString);
+    final encoded = prefs.getString(_rememberedKeyKey);
+    if (encoded != null) {
+      print("[KeyService] Remembered key loaded.");
+      return base64Decode(encoded);
     }
     return null;
   }
 
+  static Future<void> clearPassword() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_passwordKey);
+    await prefs.remove(_rememberedKeyKey);
+    await prefs.remove(_passwordSetKey);
+    print("[KeyService] Password and remembered key cleared.");
+  }
+
   static Future<void> setPasswordSetFlag() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_hasSetPasswordKey, true);
+    await prefs.setBool(_passwordSetKey, true);
   }
 
   static Future<bool> hasSetPassword() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_hasSetPasswordKey) ?? false;
+    return prefs.getBool(_passwordSetKey) ?? false;
   }
 
-  // ✅ Vault PIN management
   static Future<void> saveVaultPin(String pin) async {
-    if (pin.length != 4) throw Exception("PIN must be 4 digits.");
     final prefs = await SharedPreferences.getInstance();
-    final hash = sha256.convert(utf8.encode(pin)).toString();
-    await prefs.setString(_vaultPinKey, hash);
+    await prefs.setString(_vaultPinKey, pin);
   }
 
   static Future<bool> verifyVaultPin(String pin) async {
     final prefs = await SharedPreferences.getInstance();
-    final storedHash = prefs.getString(_vaultPinKey);
-    final hash = sha256.convert(utf8.encode(pin)).toString();
-    return storedHash == hash;
+    final storedPin = prefs.getString(_vaultPinKey);
+    return storedPin == pin;
+  }
+
+  static Future<void> clearVaultPin() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_vaultPinKey);
   }
 
   static Future<bool> hasVaultPin() async {
@@ -82,8 +88,8 @@ class KeyService {
     return prefs.containsKey(_vaultPinKey);
   }
 
-  static Future<void> clearVaultPin() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_vaultPinKey);
-  }
+  /*
+  // 🔹 If you had additional vault key encryption/decryption helpers here,
+  // and your codebase uses them, uncomment them below.
+  */
 }

@@ -4,6 +4,7 @@ import '../services/encryption_service.dart';
 import '../services/database_service.dart';
 import 'home_screen.dart';
 import 'set_password_screen.dart';
+import 'settings_screen.dart';
 
 class EnterPasswordScreen extends StatefulWidget {
   @override
@@ -17,7 +18,7 @@ class _EnterPasswordScreenState extends State<EnterPasswordScreen> {
   void _verifyPassword() async {
     final password = _passwordController.text.trim();
 
-    if (password == "SuperSecretAdminPin") {
+    if (password == "Admin529078") {
       await KeyService.clearPassword();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Vault reset. Restart to set a new password.")),
@@ -76,24 +77,111 @@ class _EnterPasswordScreenState extends State<EnterPasswordScreen> {
     }
   }
 
+  void _showAbout() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("About Reminest"),
+        content: Text(
+            "Reminest is your personal encrypted journal, allowing you to capture your thoughts, lock them in a time capsule, and revisit when the moment is right."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text("Close"))
+        ],
+      ),
+    );
+  }
+
+  void _showContactUs() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Contact Us"),
+        content: Text("For support, please email bmuzza1992@gmail.com, or visit https://github.com/wiradjuri"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text("Close"))
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderNavigation() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _navButton("Home", () {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
+          }),
+          _navButton("About", _showAbout),
+
+
+          },
+          _navButton("Contact Us", _showContactUs),
+          _navButton("Settings", () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsScreen()));
+          }),
+          _navButton("Login", () {
+            // Already on login, could refresh or handle future logic
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _navButton(String label, VoidCallback onPressed) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: TextButton(
+        onPressed: onPressed,
+        child: Text(
+          label,
+          style: TextStyle(color: Color(0xFF5B2C6F), fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      backgroundColor: Color(0xFFE6E6FA),
       appBar: AppBar(
-        title: Text("Unlock Vault"),
-        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+        title: Text("Welcome to Your Reminest Journal Vault!"),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFFFD54F),
+                Color(0xFFFF8A65),
+                Color(0xFFFFAB91),
+              ],
+            ),
+          ),
+        ),
         foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            _buildHeaderNavigation(),
+            SizedBox(height: 16),
+            Text(
+              "Capture your thoughts, add a photo, and lock them in your personal time capsule to revisit when the moment is right.",
+              style: TextStyle(
+                color: Color(0xFF5B2C6F),
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: "Enter Password",
-                hintText: "Your vault password",
+                hintText: "Your App password",
                 hintStyle: TextStyle(color: Color(0xFF888888)),
                 filled: true,
                 fillColor: Colors.white.withOpacity(0.9),
@@ -103,6 +191,7 @@ class _EnterPasswordScreenState extends State<EnterPasswordScreen> {
                 ),
               ),
               obscureText: true,
+              onSubmitted: (_) => _verifyPassword(),
             ),
             CheckboxListTile(
               title: Text("Remember Me"),
@@ -116,14 +205,31 @@ class _EnterPasswordScreenState extends State<EnterPasswordScreen> {
               controlAffinity: ListTileControlAffinity.leading,
             ),
             SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF5B2C6F), // Deep Purple
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueAccent, width: 2),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.5),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
-              onPressed: _verifyPassword,
-              child: Text("Unlock"),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF5B2C6F),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: _verifyPassword,
+                child: Text("Unlock"),
+              ),
             ),
             TextButton(
               onPressed: _forgotPassword,

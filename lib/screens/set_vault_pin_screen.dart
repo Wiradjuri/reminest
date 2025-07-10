@@ -18,7 +18,8 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
       );
       return;
     }
-    if (_pinController.text.length != 4 || !_pinController.text.contains(RegExp(r'^\d{4}$'))) {
+    if (_pinController.text.length != 4 ||
+        !_pinController.text.contains(RegExp(r'^\d{4}$'))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('PIN must be exactly 4 digits.')),
       );
@@ -61,6 +62,7 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
               ),
               obscureText: true,
               keyboardType: TextInputType.number,
+              onSubmitted: (_) => _setPin(), // Enable Enter key submission
             ),
             SizedBox(height: 16),
             TextField(
@@ -78,16 +80,34 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
               ),
               obscureText: true,
               keyboardType: TextInputType.number,
+              onSubmitted: (_) => _setPin(), // Enable Enter key submission
             ),
             SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF5B2C6F), // Deep Purple
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueAccent, width: 2),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.5),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
-              onPressed: _setPin,
-              child: Text('Set PIN'),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: _setPin,
+                child: Text('Set PIN'),
+              ),
             ),
           ],
         ),

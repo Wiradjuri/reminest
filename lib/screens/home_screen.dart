@@ -28,8 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final now = DateTime.now();
 
     entries = allEntries.where((entry) =>
-      entry.reviewDate.isBefore(now) || entry.reviewDate.isAtSameMomentAs(now)
-    ).toList();
+        entry.reviewDate.isBefore(now) || entry.reviewDate.isAtSameMomentAs(now)).toList();
 
     filteredEntries = List.from(entries);
     setState(() {});
@@ -64,48 +63,75 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
+  void _showEntryInfo(JournalEntry entry) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(entry.title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Created: ${entry.createdAt.day}/${entry.createdAt.month}/${entry.createdAt.year}"),
+            SizedBox(height: 8),
+            Text("Unlocks: ${entry.reviewDate.day}/${entry.reviewDate.month}/${entry.reviewDate.year}"),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Close"),
+          )
+        ],
+      ),
+    );
   }
 
   Widget _buildEntryCard(JournalEntry entry) {
-    return AnimatedOpacity(
-      duration: Duration(milliseconds: 500),
-      opacity: 1,
-      child: Card(
-        color: Colors.white.withOpacity(0.9),
-        shadowColor: Colors.grey.withOpacity(0.3),
-        margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        elevation: 3,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: ListTile(
-          onLongPress: () => _confirmDeleteEntry(entry),
-          leading: entry.imagePath != null
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    File(entry.imagePath!),
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              : Icon(Icons.note, color: Color(0xFF5B2C6F)), // Deep purple color
-          title: Text(
-            entry.title,
-            style: TextStyle(color: Color(0xFF333333)),
-          ),
-          subtitle: Text(
-            entry.body.length > 50 ? entry.body.substring(0, 50) + '...' : entry.body,
-            style: TextStyle(color: Color(0xFF555555)),
-          ),
-          trailing: Text(
-            '${entry.createdAt.day}/${entry.createdAt.month}/${entry.createdAt.year}',
-            style: TextStyle(color: Color(0xFF555555)),
-          ),
+    return Card(
+      color: Colors.white.withOpacity(0.9),
+      shadowColor: Colors.grey.withOpacity(0.3),
+      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.green, width: 2),
+      ),
+      child: ListTile(
+        leading: entry.imagePath != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(entry.imagePath!),
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : Icon(Icons.note, color: Color(0xFF5B2C6F)),
+        title: Text(
+          entry.title,
+          style: TextStyle(color: Color(0xFF333333)),
         ),
+        subtitle: Text(
+          entry.body.length > 50 ? "${entry.body.substring(0, 50)}..." : entry.body,
+          style: TextStyle(color: Color(0xFF555555)),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.info_outline, color: Color(0xFF5B2C6F)),
+              tooltip: "Entry Info",
+              onPressed: () => _showEntryInfo(entry),
+            ),
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.redAccent),
+              tooltip: "Delete Entry",
+              onPressed: () => _confirmDeleteEntry(entry),
+            ),
+          ],
+        ),
+        onTap: () => _showEntryInfo(entry),
       ),
     );
   }
@@ -113,14 +139,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      backgroundColor: Color(0xFFE6E6FA),
       appBar: AppBar(
         title: Text('Reminest'),
-        backgroundColor: Color(0xFF5B2C6F), // Deep purple
+        backgroundColor: Color(0xFF5B2C6F),
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: Icon(Icons.lock),
+            tooltip: "Open Vault",
             onPressed: () async {
               bool hasPin = await KeyService.hasVaultPin();
               if (hasPin) {
@@ -154,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  "A secure, private space to store your thoughts and reflections, encrypted and protected for your peace of mind.",
+                  "Encrypted personal journal. Entries here are viewable now; others remain locked in the Vault.",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: Color(0xFF555555)),
                 ),
@@ -190,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFF5B2C6F), // Deep purple
+        backgroundColor: Color(0xFF5B2C6F),
         foregroundColor: Colors.white,
         tooltip: 'Add Entry',
         onPressed: () async {
