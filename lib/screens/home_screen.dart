@@ -75,6 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
       duration: Duration(milliseconds: 500),
       opacity: 1,
       child: Card(
+        color: Colors.white.withOpacity(0.9),
+        shadowColor: Colors.grey.withOpacity(0.3),
         margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -90,13 +92,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     fit: BoxFit.cover,
                   ),
                 )
-              : Icon(Icons.note, color: Color(0xFF5B2C6F)),
-          title: Text(entry.title),
-          subtitle: Text(entry.body.length > 50
-              ? entry.body.substring(0, 50) + '...'
-              : entry.body),
+              : Icon(Icons.note, color: Color(0xFF5B2C6F)), // Deep purple color
+          title: Text(
+            entry.title,
+            style: TextStyle(color: Color(0xFF333333)),
+          ),
+          subtitle: Text(
+            entry.body.length > 50 ? entry.body.substring(0, 50) + '...' : entry.body,
+            style: TextStyle(color: Color(0xFF555555)),
+          ),
           trailing: Text(
-              '${entry.createdAt.day}/${entry.createdAt.month}/${entry.createdAt.year}'),
+            '${entry.createdAt.day}/${entry.createdAt.month}/${entry.createdAt.year}',
+            style: TextStyle(color: Color(0xFF555555)),
+          ),
         ),
       ),
     );
@@ -105,8 +113,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFE6E6FA), // Lavender background
       appBar: AppBar(
-        title: Text('Personal Journal Vault'),
+        title: Text('Reminest'),
+        backgroundColor: Color(0xFF5B2C6F), // Deep purple
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: Icon(Icons.lock),
@@ -134,23 +145,28 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               children: [
                 Text(
-                  "Personal Journal Vault",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  "Reminest",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF5B2C6F),
+                  ),
                 ),
                 SizedBox(height: 8),
                 Text(
                   "A secure, private space to store your thoughts and reflections, encrypted and protected for your peace of mind.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF555555)),
                 ),
                 SizedBox(height: 16),
                 TextField(
                   controller: searchController,
                   decoration: InputDecoration(
                     hintText: 'Search entries...',
-                    fillColor: Colors.white,
+                    hintStyle: TextStyle(color: Color(0xFF888888)),
+                    fillColor: Colors.white.withOpacity(0.9),
                     filled: true,
-                    prefixIcon: Icon(Icons.search),
+                    prefixIcon: Icon(Icons.search, color: Color(0xFF5B2C6F)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide.none,
@@ -174,12 +190,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFF5B2C6F),
+        backgroundColor: Color(0xFF5B2C6F), // Deep purple
+        foregroundColor: Colors.white,
+        tooltip: 'Add Entry',
         onPressed: () async {
           await Navigator.pushNamed(context, '/add');
           fetchEntries();
         },
-        child: Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, size: 30),
       ),
     );
   }

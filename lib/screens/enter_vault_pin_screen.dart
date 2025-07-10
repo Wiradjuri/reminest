@@ -3,7 +3,6 @@ import '../services/key_service.dart';
 import 'vault_screen.dart';
 import 'set_vault_pin_screen.dart';
 
-
 class EnterVaultPinScreen extends StatefulWidget {
   @override
   State<EnterVaultPinScreen> createState() => _EnterVaultPinScreenState();
@@ -59,25 +58,48 @@ class _EnterVaultPinScreenState extends State<EnterVaultPinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Enter Vault PIN')),
+      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      appBar: AppBar(
+        title: Text('Enter Vault PIN'),
+        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _pinController,
-              decoration: InputDecoration(labelText: 'Enter 4-digit PIN'),
+              decoration: InputDecoration(
+                labelText: 'Enter 4-digit PIN',
+                hintText: '****',
+                hintStyle: TextStyle(color: Color(0xFF888888)),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
               obscureText: true,
               keyboardType: TextInputType.number,
             ),
             SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+              ),
               onPressed: _verifyPin,
               child: Text('Unlock Vault'),
             ),
             TextButton(
               onPressed: _forgotPin,
-              child: Text('Forgot PIN?'),
+              child: Text(
+                'Forgot PIN?',
+                style: TextStyle(color: Color(0xFF5B2C6F)),
+              ),
             ),
           ],
         ),

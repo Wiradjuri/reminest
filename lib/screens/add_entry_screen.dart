@@ -74,7 +74,12 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Add Journal Entry')),
+      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      appBar: AppBar(
+        title: Text('Add Journal Entry'),
+        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: SingleChildScrollView(
@@ -86,6 +91,13 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                 decoration: InputDecoration(
                   labelText: 'Title',
                   hintText: 'Enter a title for your entry',
+                  hintStyle: TextStyle(color: Color(0xFF888888)), // Light Gray
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.9),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
               SizedBox(height: 10),
@@ -94,18 +106,25 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                 decoration: InputDecoration(
                   labelText: 'Body',
                   hintText: 'Write your thoughts here...',
+                  hintStyle: TextStyle(color: Color(0xFF888888)), // Light Gray
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.9),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
                 maxLines: 6,
               ),
               SizedBox(height: 20),
               Text(
                 'Review Date',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF5B2C6F)),
               ),
               SizedBox(height: 5),
               Text(
                 'Choose when you can unlock this entry.',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 12, color: Color(0xFF333333)), // Dark Gray
               ),
               TextButton(
                 onPressed: () async {
@@ -123,19 +142,26 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                 },
                 child: Text(
                   '${_reviewDate.day}/${_reviewDate.month}/${_reviewDate.year}',
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16, color: Color(0xFF5B2C6F)),
                 ),
               ),
               SizedBox(height: 20),
               _selectedImage != null
-                  ? Image.file(
-                      _selectedImage!,
-                      height: 150,
-                      fit: BoxFit.cover,
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        _selectedImage!,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
                     )
                   : Text('No image selected.'),
               SizedBox(height: 10),
               ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: _pickImage,
                 icon: Icon(Icons.photo),
                 label: Text('Add Photo'),
@@ -143,6 +169,10 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
               SizedBox(height: 20),
               Center(
                 child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                    foregroundColor: Colors.white,
+                  ),
                   onPressed: _promptVaultChoice,
                   child: Text('Save Entry'),
                 ),

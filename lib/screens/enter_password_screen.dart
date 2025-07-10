@@ -79,14 +79,29 @@ class _EnterPasswordScreenState extends State<EnterPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Unlock Vault")),
+      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      appBar: AppBar(
+        title: Text("Unlock Vault"),
+        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(labelText: "Enter Password"),
+              decoration: InputDecoration(
+                labelText: "Enter Password",
+                hintText: "Your vault password",
+                hintStyle: TextStyle(color: Color(0xFF888888)),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
               obscureText: true,
             ),
             CheckboxListTile(
@@ -97,15 +112,25 @@ class _EnterPasswordScreenState extends State<EnterPasswordScreen> {
                   _rememberMe = val ?? false;
                 });
               },
+              activeColor: Color(0xFF5B2C6F),
+              controlAffinity: ListTileControlAffinity.leading,
             ),
             SizedBox(height: 20),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+              ),
               onPressed: _verifyPassword,
               child: Text("Unlock"),
             ),
             TextButton(
               onPressed: _forgotPassword,
-              child: Text("Forgot Password?"),
+              child: Text(
+                "Forgot Password?",
+                style: TextStyle(color: Color(0xFF5B2C6F)),
+              ),
             ),
           ],
         ),

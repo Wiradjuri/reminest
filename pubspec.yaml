@@ -1,5 +1,5 @@
-name: mental_health_vault
-description: "A new Flutter project."
+name: Reminest
+description: "Reminest - A secure, encrypted personal journal vault."
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -27,3 +27,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+  - lib/services/assets/icons/Reminest.png
+  - lib/services/assets/icons/Reminest.ico

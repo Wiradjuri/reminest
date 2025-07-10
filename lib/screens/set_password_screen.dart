@@ -42,23 +42,54 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Set Vault Password')),
+      backgroundColor: Color(0xFFE6E6FA), // Lavender background
+      appBar: AppBar(
+        title: Text('Set Vault Password'),
+        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Enter Password'),
+              decoration: InputDecoration(
+                labelText: 'Enter Password',
+                hintText: 'At least 6 characters',
+                hintStyle: TextStyle(color: Color(0xFF888888)),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
               obscureText: true,
             ),
+            SizedBox(height: 16),
             TextField(
               controller: _confirmController,
-              decoration: InputDecoration(labelText: 'Confirm Password'),
+              decoration: InputDecoration(
+                labelText: 'Confirm Password',
+                hintText: 'Re-enter your password',
+                hintStyle: TextStyle(color: Color(0xFF888888)),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
               obscureText: true,
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 24),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+              ),
               onPressed: _setPassword,
               child: Text('Set Password'),
             ),

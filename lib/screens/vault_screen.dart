@@ -50,7 +50,10 @@ class _VaultScreenState extends State<VaultScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Close'))
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Close'),
+          )
         ],
       ),
     );
@@ -64,6 +67,8 @@ class _VaultScreenState extends State<VaultScreen> {
       duration: Duration(milliseconds: 500),
       opacity: 1,
       child: Card(
+        color: Colors.white.withOpacity(0.9),
+        shadowColor: Colors.grey.withOpacity(0.3),
         margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -72,12 +77,20 @@ class _VaultScreenState extends State<VaultScreen> {
             isUnlocked ? Icons.lock_open : Icons.lock_outline,
             color: isUnlocked ? Color(0xFF5B2C6F) : Colors.grey,
           ),
-          title: Text(entry.title),
-          subtitle: isUnlocked
-              ? Text('Unlocked and ready for review')
-              : Text('Locked until ${entry.reviewDate.day}/${entry.reviewDate.month}/${entry.reviewDate.year}'),
+          title: Text(
+            entry.title,
+            style: TextStyle(color: Color(0xFF333333)),
+          ),
+          subtitle: Text(
+            isUnlocked
+                ? 'Unlocked and ready for review'
+                : 'Locked until ${entry.reviewDate.day}/${entry.reviewDate.month}/${entry.reviewDate.year}',
+            style: TextStyle(color: Color(0xFF555555)),
+          ),
           trailing: Text(
-              '${entry.createdAt.day}/${entry.createdAt.month}/${entry.createdAt.year}'),
+            '${entry.createdAt.day}/${entry.createdAt.month}/${entry.createdAt.year}',
+            style: TextStyle(color: Color(0xFF555555)),
+          ),
           onTap: isUnlocked ? () => _showEntryDialog(entry) : null,
         ),
       ),
@@ -87,11 +100,19 @@ class _VaultScreenState extends State<VaultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFE6E6FA), // Lavender background
       appBar: AppBar(
         title: Text('Vault'),
+        backgroundColor: Color(0xFF5B2C6F), // Deep Purple
+        foregroundColor: Colors.white,
       ),
       body: vaultEntries.isEmpty
-          ? Center(child: Text('No entries currently in the vault.'))
+          ? Center(
+              child: Text(
+                'No entries currently in the vault.',
+                style: TextStyle(fontSize: 16, color: Color(0xFF555555)),
+              ),
+            )
           : ListView.builder(
               itemCount: vaultEntries.length,
               itemBuilder: (context, index) {
