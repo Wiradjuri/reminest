@@ -203,8 +203,8 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   void initState() {
     super.initState();
-    // Start with Journal tab (index 3) when authenticated
-    _selectedIndex = 3; // Journal page after authentication
+    // Start with Home tab (index 0) when authenticated
+    _selectedIndex = 0; // Home page after authentication
   }
 
   List<Widget> get _screens {
