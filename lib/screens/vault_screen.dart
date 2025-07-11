@@ -34,23 +34,25 @@ class _VaultScreenState extends State<VaultScreen> {
   }
 
   Future<void> _confirmDeleteEntry(JournalEntry entry) async {
+    final theme = Theme.of(context);
+    
     bool? confirm = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF2E2E2E),
-        title: const Text('Delete Entry', style: TextStyle(color: Colors.white)),
-        content: const Text(
+        backgroundColor: theme.dialogBackgroundColor,
+        title: Text('Delete Entry', style: TextStyle(color: theme.textTheme.titleLarge?.color)),
+        content: Text(
           'Are you sure you want to delete this entry?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: theme.textTheme.bodyMedium?.color),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: TextStyle(color: Colors.grey[300])),
+            child: Text('Cancel', style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete', style: TextStyle(color: Color(0xFFFF4C4C))),
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -69,20 +71,22 @@ class _VaultScreenState extends State<VaultScreen> {
   }
 
   Widget _buildVaultEntryCard(JournalEntry entry) {
+    final theme = Theme.of(context);
+    
     return Card(
-      color: const Color(0xFF2E2E2E),
+      color: theme.cardColor,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ListTile(
         title: Text(
           entry.title,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: theme.textTheme.titleMedium?.color, fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
           'Unlocks on: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-          style: const TextStyle(color: Colors.grey[300]),
+          style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7)),
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.delete, color: Color(0xFFFF4C4C)),
+          icon: const Icon(Icons.delete, color: Colors.red),
           onPressed: () => _confirmDeleteEntry(entry),
         ),
       ),
@@ -91,12 +95,14 @@ class _VaultScreenState extends State<VaultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E), // VS Code dark background
+      backgroundColor: theme.scaffoldBackgroundColor,
 
       appBar: AppBar(
         title: const Text('Vault'),
-        backgroundColor: const Color(0xFF9B59B6), // Sunset purple
+        backgroundColor: theme.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -109,22 +115,22 @@ class _VaultScreenState extends State<VaultScreen> {
       ),
 
       body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF9B59B6)),
+          ? Center(
+              child: CircularProgressIndicator(color: theme.primaryColor),
             )
           : vaultEntries.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                      Text(
                         'No locked entries in your vault.',
-                        style: TextStyle(color: Colors.grey[300], fontSize: 16),
+                        style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7), fontSize: 16),
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF007BFF), // Blue
+                          backgroundColor: theme.primaryColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           shape: RoundedRectangleBorder(

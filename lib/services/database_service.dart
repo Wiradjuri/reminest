@@ -108,4 +108,9 @@ class DatabaseService {
 
   /// Clears the entire database (alias for `clearAllData`).
   static Future<void> clearDatabase() async => clearAllData();
+
+  /// Instance method to fetch all journal entries from the database.
+  Future<List<JournalEntry>> getAllEntries() async {
+    return await getEntries();
+  }
 }

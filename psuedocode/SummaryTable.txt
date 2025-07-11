@@ -1,0 +1,7 @@
+Summary Table
+Directory	Purpose	Example Files/Classes
+assets/icons/	App images & icons	logo.png, vault.png
+models/	Data models & serialization	journal_entry.dart, user.dart
+screens/	App UI pages	home_screen.dart, vault_screen.dart
+services/	Logic: storage, crypto, export	database_service.dart, key_service.dart
+theme/	App-wide styles	theme.dart

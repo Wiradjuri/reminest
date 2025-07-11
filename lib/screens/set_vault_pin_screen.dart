@@ -43,12 +43,14 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      backgroundColor: Color(0xFF1E1E1E), // VS Code dark background
+      backgroundColor: theme.scaffoldBackgroundColor,
 
       appBar: AppBar(
         title: Text('Set Vault PIN'),
-        backgroundColor: Color(0xFF9B59B6), // Sunset purple
+        backgroundColor: theme.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -61,15 +63,15 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
               controller: _pinController,
               obscureText: true,
               keyboardType: TextInputType.number,
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
               decoration: InputDecoration(
                 hintText: 'Enter 4-digit PIN',
-                hintStyle: TextStyle(color: Colors.grey[600]),
+                hintStyle: TextStyle(color: theme.hintColor),
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),
+                  borderSide: BorderSide(color: theme.dividerColor),
                 ),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF9B59B6)),
+                  borderSide: BorderSide(color: theme.primaryColor),
                 ),
               ),
             ),
@@ -78,15 +80,15 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
               controller: _confirmController,
               obscureText: true,
               keyboardType: TextInputType.number,
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
               decoration: InputDecoration(
                 hintText: 'Confirm PIN',
-                hintStyle: TextStyle(color: Colors.grey[600]),
+                hintStyle: TextStyle(color: theme.hintColor),
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey),
+                  borderSide: BorderSide(color: theme.dividerColor),
                 ),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF9B59B6)),
+                  borderSide: BorderSide(color: theme.primaryColor),
                 ),
               ),
             ),
@@ -95,10 +97,9 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF007BFF), // Blue
+                  backgroundColor: theme.primaryColor,
                   foregroundColor: Colors.white,
-                  shadowColor: Colors.redAccent, // Red glow
-                  elevation: 12,
+                  elevation: 6,
                   padding: EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),

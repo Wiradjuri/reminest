@@ -1,0 +1,26 @@
+Purpose:
+Defines data structures and serialization for entries, users, and more.
+
+Example:
+
+cpp
+Copy
+Edit
+models/
+  journal_entry.dart
+    // class JournalEntry {
+    //   String title;
+    //   String body;
+    //   DateTime? reviewDate;
+    //   String? imagePath;
+    //   bool isInVault;
+    //   DateTime createdAt;
+    //   // fromMap/toMap, etc
+    // }
+    
+  user.dart
+    // class User {
+    //   String id;
+    //   String name;
+    //   ...
+    // }

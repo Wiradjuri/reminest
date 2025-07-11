@@ -15,8 +15,10 @@ class TopNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Container(
-      color: Color(0xFF222222),
+      color: theme.primaryColor.withOpacity(0.1),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: List.generate(titles.length, (index) {
@@ -24,8 +26,8 @@ class TopNavBar extends StatelessWidget {
             onPressed: () => onTabSelected(index),
             style: TextButton.styleFrom(
               foregroundColor: selectedIndex == index
-                  ? Color(0xFF9B59B6)
-                  : Colors.white,
+                  ? theme.primaryColor
+                  : theme.textTheme.bodyMedium?.color,
               textStyle: TextStyle(
                 fontWeight: selectedIndex == index ? FontWeight.bold : FontWeight.normal,
                 fontSize: 18,

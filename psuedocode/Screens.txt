@@ -1,0 +1,30 @@
+3. screens/
+Purpose:
+All user-facing pages.
+
+Example:
+
+pgsql
+Copy
+Edit
+screens/
+  home_screen.dart
+    // Shows homepage blurb, app logo, quick navigation
+
+  about_us_screen.dart
+    // "About Reminest", dev photo, mission statement
+
+  settings_screen.dart
+    // Theme selection, export, check for updates
+
+  login_screen.dart
+    // Password login UI
+
+  journal_entries_screen.dart
+    // List of journal entries, FAB to add, open vault
+
+  vault_screen.dart
+    // PIN-protected, shows vault-only entries
+
+  set_password_screen.dart
+    // Shown only on first app run, prompt to set password

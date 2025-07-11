@@ -1,0 +1,24 @@
+4. services/
+Purpose:
+App/business logic, persistence, crypto, etc.
+
+Example:
+
+less
+Copy
+Edit
+services/
+  database_service.dart
+    // Handles read/write for JournalEntry, User, etc
+
+  key_service.dart
+    // Manages app password, vault PIN, secure storage
+
+  encryption_service.dart
+    // Handles encrypt/decrypt journal entry data
+
+  update_service.dart
+    // Checks GitHub for updates, prompts user
+
+  export_service.dart
+    // Exports entries to file, triggers file picker
