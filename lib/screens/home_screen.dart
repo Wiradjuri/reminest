@@ -5,8 +5,9 @@ import '../screens/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
+  final bool isAuthenticated; // Add flag to indicate if already authenticated
   
-  HomeScreen({this.onLoginSuccess});
+  HomeScreen({this.onLoginSuccess, this.isAuthenticated = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -18,6 +19,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _checkPasswordStatus();
+  }
+
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Refresh password status when widget updates
     _checkPasswordStatus();
   }
 
@@ -203,8 +211,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 30),
                 
-                // Begin Setup Button (only show if no password is set)
-                if (!_hasPassword) ...[
+                // Begin Setup Button (only show if no password is set AND not authenticated)
+                if (!_hasPassword && !widget.isAuthenticated) ...[
                   Container(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -236,8 +244,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
                 
-                // Login Button (only show if password is already set)
-                if (_hasPassword) ...[
+                // Login Button (only show if password is already set AND not authenticated)
+                if (_hasPassword && !widget.isAuthenticated) ...[
                   Container(
                     width: double.infinity,
                     child: ElevatedButton.icon(

@@ -95,6 +95,33 @@ class DatabaseService {
     }
   }
 
+  /// Updates an existing journal entry in the database.
+  static Future<void> updateEntry(JournalEntry entry) async {
+    if (_db == null) await initDB();
+    try {
+      _db!.execute(
+        '''
+        UPDATE entries 
+        SET title = ?, body = ?, imagePath = ?, reviewDate = ?, isReviewed = ?, isInVault = ?
+        WHERE id = ?
+        ''',
+        [
+          EncryptionService.encryptText(entry.title),
+          EncryptionService.encryptText(entry.body),
+          entry.imagePath,
+          entry.reviewDate.toIso8601String(),
+          entry.isReviewed ? 1 : 0,
+          entry.isInVault ? 1 : 0,
+          entry.id,
+        ],
+      );
+      print("[DatabaseService] Entry updated: ${entry.title}");
+    } catch (e) {
+      print("[DatabaseService] Error updating entry: $e");
+      throw e;
+    }
+  }
+
   /// Clears all data from the `entries` table.
   static Future<void> clearAllData() async {
     if (_db == null) await initDB();

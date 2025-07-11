@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/journal_entry.dart';
 import '../services/database_service.dart';
 import 'add_entry_screen.dart';
+import 'edit_entry_screen.dart';
 
 class JournalScreen extends StatefulWidget {
   @override
@@ -60,16 +61,38 @@ class _JournalScreenState extends State<JournalScreen> {
             ),
           ],
         ),
-        trailing: IconButton(
-          icon: Icon(Icons.delete, color: Colors.red),
-          onPressed: () => _deleteEntry(entry),
-          tooltip: 'Delete entry',
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.edit, color: theme.primaryColor),
+              onPressed: () => _editEntry(entry),
+              tooltip: 'Edit entry',
+            ),
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _deleteEntry(entry),
+              tooltip: 'Delete entry',
+            ),
+          ],
         ),
         onTap: () {
           // TODO: Navigate to entry detail screen
         },
       ),
     );
+  }
+
+  Future<void> _editEntry(JournalEntry entry) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditEntryScreen(entry: entry),
+      ),
+    );
+    if (result == true) {
+      _loadEntries(); // Refresh entries if the entry was updated
+    }
   }
 
   Future<void> _deleteEntry(JournalEntry entry) async {

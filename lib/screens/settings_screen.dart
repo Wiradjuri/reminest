@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
 import '../services/database_service.dart';
@@ -153,11 +154,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return;
       }
       final exportData = {
+        'app_name': 'Reminest',
         'version': '1.0.0',
         'export_date': DateTime.now().toIso8601String(),
         'total_entries': entries.length,
         'warning': 'This file contains unencrypted personal journal data. Store securely!',
-        'entries': entries.map((entry) => entry.toMap()).toList(),
+        'entries': entries.map((entry) => {
+          'id': entry.id,
+          'title': entry.title,
+          'body': entry.body,
+          'created_at': entry.createdAt.toIso8601String(),
+          'review_date': entry.reviewDate.toIso8601String(),
+          'is_reviewed': entry.isReviewed,
+          'is_in_vault': entry.isInVault,
+          'image_path': entry.imagePath,
+        }).toList(),
       };
       
       final jsonData = jsonEncode(exportData);
@@ -166,8 +177,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
       
       setState(() {
         _exporting = false;
-        _exportStatus = "Backup exported to: ${file.path}"; // Show file path
+        _exportStatus = "✅ Backup exported successfully!\nLocation: ${file.path}";
       });
+      
+      // Show success dialog with option to open file location
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Export Successful"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Your journal has been exported successfully!"),
+              SizedBox(height: 12),
+              Text("Exported ${entries.length} entries"),
+              SizedBox(height: 8),
+              Text("File location:", style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 4),
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  file.path,
+                  style: TextStyle(fontSize: 12, fontFamily: 'monospace'),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("OK"),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
       setState(() {
         _exporting = false;
@@ -178,40 +226,97 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _checkForUpdates() async {
     setState(() {
-      _updateStatus = null;
+      _updateStatus = "Checking for updates...";
     });
     
     try {
-      // Check GitHub releases API for latest version
       const currentVersion = '1.0.0'; // This should match pubspec.yaml version
-      const repoUrl = 'https://api.github.com/repos/Wiradjuri/mental_health_vault/releases/latest';
+      const repoUrl = 'https://api.github.com/repos/Wiradjuri/Reminest/releases/latest';
       
-      // For now, simulate the check since we don't have HTTP package
-      // In a real implementation, you would:
-      // 1. Make HTTP request to GitHub API
-      // 2. Parse JSON response
-      // 3. Compare version numbers
-      // 4. Show update available if newer version exists
+      // Make HTTP request to GitHub API
+      final response = await http.get(Uri.parse(repoUrl));
       
-      await Future.delayed(Duration(seconds: 2));
-      
-      // Simulate version check result
-      final hasUpdate = false; // This would be determined by actual version comparison
-      
-      if (hasUpdate) {
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final latestVersion = data['tag_name'].toString().replaceFirst('v', ''); // Remove 'v' prefix if present
+        final downloadUrl = data['html_url']; // GitHub release page URL
+        
+        // Compare versions (simple string comparison, in production use proper version comparison)
+        final hasUpdate = _compareVersions(currentVersion, latestVersion) < 0;
+        
+        if (hasUpdate) {
+          setState(() {
+            _updateStatus = "Update available: v$latestVersion";
+          });
+          
+          // Show update dialog
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text("Update Available"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("A new version of Reminest is available!"),
+                  SizedBox(height: 12),
+                  Text("Current version: v$currentVersion"),
+                  Text("Latest version: v$latestVersion", style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 12),
+                  Text("Would you like to download the update?"),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text("Later"),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    await launchUrl(Uri.parse(downloadUrl), mode: LaunchMode.externalApplication);
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  child: Text("Download Update"),
+                ),
+              ],
+            ),
+          );
+        } else {
+          setState(() {
+            _updateStatus = "You're using the latest version! v$currentVersion";
+          });
+        }
+      } else if (response.statusCode == 404) {
         setState(() {
-          _updateStatus = "Update available! Please check the app store.";
+          _updateStatus = "Repository not found. Updates will be available when the app is published.";
         });
       } else {
         setState(() {
-          _updateStatus = "You're running the latest version (v$currentVersion).";
+          _updateStatus = "Failed to check for updates (Error ${response.statusCode})";
         });
       }
     } catch (e) {
       setState(() {
-        _updateStatus = "Failed to check for updates: ${e.toString()}";
+        _updateStatus = "Update check failed: ${e.toString()}";
       });
     }
+  }
+  
+  // Simple version comparison (returns -1 if current < latest, 0 if equal, 1 if current > latest)
+  int _compareVersions(String current, String latest) {
+    List<int> currentParts = current.split('.').map(int.parse).toList();
+    List<int> latestParts = latest.split('.').map(int.parse).toList();
+    
+    // Pad with zeros if needed
+    while (currentParts.length < 3) currentParts.add(0);
+    while (latestParts.length < 3) latestParts.add(0);
+    
+    for (int i = 0; i < 3; i++) {
+      if (currentParts[i] < latestParts[i]) return -1;
+      if (currentParts[i] > latestParts[i]) return 1;
+    }
+    return 0;
   }
 
   Future<void> _openGitHubRepo() async {
@@ -316,39 +421,75 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Show the password to the user
         showDialog(
           context: context,
+          barrierDismissible: false, // Force user to click Done
           builder: (context) => AlertDialog(
-            title: Text("Password Restored"),
+            title: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green),
+                SizedBox(width: 8),
+                Text("Password Restored"),
+              ],
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("Your password is:"),
-                SizedBox(height: 12),
+                Text("Your password has been recovered from local storage:"),
+                SizedBox(height: 16),
                 Container(
-                  padding: EdgeInsets.all(12),
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.blue.withOpacity(0.3)),
                   ),
-                  child: SelectableText(
-                    password,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                  child: Column(
+                    children: [
+                      Text("Your Password:", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                      SizedBox(height: 4),
+                      SelectableText(
+                        password,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.blue.shade800,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 12),
-                Text(
-                  "⚠️ Write this down and store it securely!",
-                  style: TextStyle(color: Colors.orange, fontSize: 12),
+                SizedBox(height: 16),
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.orange, size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "Write this down and store it securely! This password protects all your journal entries.",
+                          style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
             actions: [
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () => Navigator.pop(context),
-                child: Text("Done"),
+                child: Text("I've Saved It"),
               ),
             ],
           ),
@@ -371,12 +512,94 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _showResetVaultPinConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Reset Vault PIN"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  border: Border.all(color: Colors.red.shade200),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.warning, color: Colors.red, size: 24),
+                        SizedBox(width: 8),
+                        Text(
+                          "CRITICAL WARNING",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "This action is IRREVERSIBLE!",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+              Text("Resetting your vault PIN will:"),
+              SizedBox(height: 8),
+              Text("• Permanently delete ALL vault entries"),
+              Text("• Make all vault data completely inaccessible"),
+              Text("• Require setting up a new PIN to use the vault again"),
+              SizedBox(height: 12),
+              Text("Your regular journal entries will remain safe."),
+              SizedBox(height: 12),
+              Text(
+                "Vault PINs cannot be recovered by design for maximum security.",
+                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _resetVaultPinOnly();
+              },
+              child: Text("RESET VAULT PIN"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showResetAllDataConfirmation() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Clear All Data & Reset Vault PIN"),
+          title: Text("Restore to Fresh Install State"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,16 +612,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               SizedBox(height: 12),
-              Text("This will:"),
+              Text("This will restore the app to its initial state:"),
               SizedBox(height: 8),
               Text("• Permanently delete ALL journal entries"),
               Text("• Permanently delete your vault PIN"),
-              Text("• Clear all app data"),
-              SizedBox(height: 8),
-              Text("• Your login password will remain intact"),
+              Text("• Clear all app data and settings"),
+              Text("• Remove your login password"),
               SizedBox(height: 12),
+              Text("The app will be exactly as when first installed."),
+              SizedBox(height: 8),
               Text(
-                "The vault PIN cannot be recovered once deleted!",
+                "All data will be permanently lost!",
                 style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
               ),
             ],
@@ -417,7 +641,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(context).pop();
                 await _resetAllData();
               },
-              child: Text("CLEAR ALL DATA"),
+              child: Text("RESET TO FRESH STATE"),
             ),
           ],
         );
@@ -448,7 +672,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("All data cleared. Vault PIN has been reset. Your login password remains intact."),
+          content: Text("App has been restored to fresh install state. All data has been permanently removed."),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 3),
         ),
@@ -457,6 +681,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error during reset: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _resetVaultPinOnly() async {
+    try {
+      // Clear vault PIN (non-recoverable)
+      await KeyService.clearVaultPin();
+      
+      // Clear only vault entries from database
+      final databaseService = DatabaseService();
+      final allEntries = await databaseService.getAllEntries();
+      final vaultEntries = allEntries.where((entry) => entry.isInVault).toList();
+      
+      // Delete only vault entries
+      for (final entry in vaultEntries) {
+        if (entry.id != null) {
+          await DatabaseService.deleteEntry(entry.id!);
+        }
+      }
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Vault PIN reset successfully. All vault entries have been permanently deleted."),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error resetting vault PIN: $e"),
           backgroundColor: Colors.red,
         ),
       );
@@ -581,13 +840,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             Divider(height: 16, color: theme.dividerTheme.color),
 
+            // Reset Vault PIN Only Section
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text("Reset Vault PIN Only", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
+              trailing: ElevatedButton(
+                onPressed: _showResetVaultPinConfirmation,
+                child: Text("Reset PIN"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              subtitle: Text(
+                "⚠️ All VAULT entries will be permanently lost (PIN is not recoverable)",
+                style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
+              ),
+            ),
+            Divider(height: 16, color: theme.dividerTheme.color),
+
             // Clear Data and Reset Vault PIN Section
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text("Clear Data & Reset Vault PIN", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
+              title: Text("Restore to Fresh Install State", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
               trailing: ElevatedButton(
                 onPressed: _showResetAllDataConfirmation,
-                child: Text("Reset All"),
+                child: Text("Reset to Fresh"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
@@ -596,7 +876,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               subtitle: Text(
-                "⚠️ Permanently erases ALL data (vault PIN cannot be recovered)",
+                "⚠️ Resets app to initial state - ALL data will be permanently lost",
                 style: TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),

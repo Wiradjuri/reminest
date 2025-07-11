@@ -148,6 +148,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (widget.onLoginSuccess != null) {
       print("[LoginScreen] Calling onLoginSuccess callback");
       widget.onLoginSuccess!();
+      // Pop the LoginScreen so the AuthenticationWrapper can show the MainScaffold
+      Navigator.pop(context);
     } else {
       print("[LoginScreen] WARNING: No onLoginSuccess callback provided");
     }

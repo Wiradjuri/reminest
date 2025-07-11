@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/key_service.dart';
 import '../services/encryption_service.dart';
-import 'home_screen.dart';
+import 'set_vault_pin_screen.dart';
 
 class SetPasswordScreen extends StatefulWidget {
   @override
@@ -57,7 +57,15 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
       EncryptionService.initializeKey(keyBytes);
 
       if (mounted) {
-        Navigator.pop(context, true); // Return true to indicate successful setup
+        // Navigate to vault PIN setup (mandatory)
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SetVaultPinScreen()),
+        );
+        // If vault PIN setup was successful, return success to HomeScreen
+        if (result == true) {
+          Navigator.pop(context, true);
+        }
       }
     } catch (e) {
       if (mounted) {

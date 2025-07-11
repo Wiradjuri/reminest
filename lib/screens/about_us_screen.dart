@@ -41,16 +41,38 @@ class AboutUsScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 24),
                 
-                // Profile photo placeholder
-                CircleAvatar(
-                  radius: 54,
-                  backgroundColor: theme.brightness == Brightness.dark 
-                      ? Colors.white24 
-                      : Colors.grey.shade300,
-                  child: Icon(
-                    Icons.person,
-                    size: 60,
-                    color: theme.primaryColor,
+                // Profile photo with your Developer.png image
+                Container(
+                  width: 108,
+                  height: 108,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.primaryColor,
+                      width: 3,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'lib/assets/icons/Developer.png',
+                      width: 108,
+                      height: 108,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Fallback to icon if image fails to load
+                        return CircleAvatar(
+                          radius: 54,
+                          backgroundColor: theme.brightness == Brightness.dark 
+                              ? Colors.white24 
+                              : Colors.grey.shade300,
+                          child: Icon(
+                            Icons.person,
+                            size: 60,
+                            color: theme.primaryColor,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 SizedBox(height: 20),

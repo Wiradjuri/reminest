@@ -131,14 +131,17 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
   Future<void> _checkAuthenticationStatus() async {
     // Check if a password exists to determine if setup is needed
     final hasPassword = await KeyService.hasPassword();
+    final hasVaultPin = await KeyService.hasVaultPin();
+    
     setState(() {
       _isAuthenticated = false; // Always start unauthenticated (user must login)
       _isLoading = false;
     });
     
     // If no password exists, we know the user needs to do setup
+    // If password exists but no vault PIN, setup is incomplete
     // If password exists, user needs to login
-    print("[AuthenticationWrapper] Password exists: $hasPassword");
+    print("[AuthenticationWrapper] Password exists: $hasPassword, Vault PIN exists: $hasVaultPin");
   }
 
   void _onLoginSuccess() {
@@ -210,7 +213,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   List<Widget> get _screens {
     // MainScaffold only shows when authenticated, so always show authenticated screens
     return [
-      HomeScreen(onLoginSuccess: widget.onLoginSuccess),
+      HomeScreen(onLoginSuccess: widget.onLoginSuccess, isAuthenticated: true),
       AboutUsScreen(),
       SettingsScreen(themeNotifier: themeNotifier, onReset: widget.onLogout),
       JournalScreen(),

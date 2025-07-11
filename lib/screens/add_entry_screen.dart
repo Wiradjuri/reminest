@@ -5,6 +5,10 @@ import '../models/journal_entry.dart';
 import '../services/database_service.dart';
 
 class AddEntryScreen extends StatefulWidget {
+  final bool forceVault;
+
+  const AddEntryScreen({Key? key, this.forceVault = false}) : super(key: key);
+
   @override
   State<AddEntryScreen> createState() => _AddEntryScreenState();
 }
@@ -16,6 +20,14 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   File? _selectedImage;
   bool _storeInVault = false;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.forceVault) {
+      _storeInVault = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -74,7 +86,12 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     }
 
     // Show confirmation dialog with options
-    await _showSaveOptionsDialog();
+    if (widget.forceVault) {
+      // If forced to vault, save directly to vault
+      await _performSave(storeInVault: true, lockUntilDate: _lockUntilDate);
+    } else {
+      await _showSaveOptionsDialog();
+    }
   }
 
   Future<void> _showSaveOptionsDialog() async {
@@ -145,7 +162,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Create New Entry'),
+        title: Text(widget.forceVault ? 'Create New Vault Entry' : 'Create New Entry'),
         backgroundColor: theme.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,

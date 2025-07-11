@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/database_service.dart';
 import '../models/journal_entry.dart';
+import 'add_entry_screen.dart';
 
 class VaultScreen extends StatefulWidget {
   @override
@@ -21,9 +22,9 @@ class _VaultScreenState extends State<VaultScreen> {
   Future<void> fetchVaultEntries() async {
     setState(() => _isLoading = true);
     try {
-      final allEntries = await DatabaseService.getEntries();
-      final now = DateTime.now();
-      vaultEntries = allEntries.where((entry) => entry.reviewDate.isAfter(now)).toList();
+      final databaseService = DatabaseService();
+      final allEntries = await databaseService.getAllEntries();
+      vaultEntries = allEntries.where((entry) => entry.isInVault).toList();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load vault entries: $e')),
@@ -34,7 +35,7 @@ class _VaultScreenState extends State<VaultScreen> {
   }
 
   Future<void> _confirmDeleteEntry(JournalEntry entry) async {
-    final theme = Theme.of(context);
+     final theme = Theme.of(context);
     
     bool? confirm = await showDialog(
       context: context,
@@ -81,13 +82,29 @@ class _VaultScreenState extends State<VaultScreen> {
           entry.title,
           style: TextStyle(color: theme.textTheme.titleMedium?.color, fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          'Unlocks on: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-          style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7)),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              entry.body.length > 100 ? '${entry.body.substring(0, 100)}...' : entry.body,
+              style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Created: ${entry.createdAt.toLocal().toString().split(' ')[0]}',
+              style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
+            ),
+            if (entry.reviewDate.isAfter(DateTime.now()))
+              Text(
+                'Locked until: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
+                style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+          ],
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
           onPressed: () => _confirmDeleteEntry(entry),
+          tooltip: 'Delete entry (vault entries cannot be edited)',
         ),
       ),
     );
@@ -155,6 +172,22 @@ class _VaultScreenState extends State<VaultScreen> {
                     return _buildVaultEntryCard(entry);
                   },
                 ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AddEntryScreen(forceVault: true),
+            ),
+          );
+          if (result == true) {
+            fetchVaultEntries(); // Refresh vault entries if a new one was added
+          }
+        },
+        backgroundColor: theme.primaryColor,
+        child: Icon(Icons.add, color: Colors.white),
+        tooltip: 'Add new vault entry',
+      ),
     );
   }
 }
