@@ -32,3 +32,4 @@ flutter:
   assets:
     - lib/assets/icons/Reminest.png
     - lib/assets/icons/Reminest.ico
+    - lib/assets/icons/Developer.png

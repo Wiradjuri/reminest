@@ -140,26 +140,25 @@ class _VaultScreenState extends State<VaultScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'No locked entries in your vault.',
-                        style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7), fontSize: 16),
+                      Icon(
+                        Icons.lock_outlined,
+                        size: 64,
+                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
                       ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                      SizedBox(height: 16),
+                      Text(
+                        'No vault entries yet.',
+                        style: TextStyle(
+                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                          fontSize: 16,
                         ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          'Go Back',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Create your first secure entry.',
+                        style: TextStyle(
+                          color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                          fontSize: 14,
                         ),
                       ),
                     ],

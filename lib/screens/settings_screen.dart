@@ -387,6 +387,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Text("This will recover your password from local storage."),
               SizedBox(height: 12),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.security, color: Colors.orange, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "For security, you'll need to verify your vault PIN to access your stored password.",
+                        style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 12),
               Text("✅ Your journal entries will remain intact"),
               Text("✅ Your vault PIN will remain intact"),
               Text("✅ Only your login password will be restored"),
@@ -415,6 +436,187 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _restorePassword() async {
+    try {
+      // First check if we have a password stored at all
+      final password = await KeyService.getStoredPassword();
+      if (password == null) {
+        // Check if this is because of a fresh install reset
+        final prefs = await SharedPreferences.getInstance();
+        final hasBeenReset = prefs.getBool('fresh_install_reset') ?? false;
+        
+        String message;
+        if (hasBeenReset) {
+          message = "Cannot restore password: You previously used 'Restore to Fresh Install State' which permanently removed all stored passwords for security reasons.";
+        } else {
+          message = "No password found in local storage. Either no password was set or it has been cleared.";
+        }
+        
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(Icons.error, color: Colors.red),
+                SizedBox(width: 8),
+                Text("Password Not Found"),
+              ],
+            ),
+            content: Text(message),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("OK"),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      // If password exists, require vault PIN for additional security
+      await _showVaultPinVerificationForPasswordRestore();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error restoring password: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _showVaultPinVerificationForPasswordRestore() async {
+    final pinController = TextEditingController();
+    bool isVerifying = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.security, color: Colors.orange),
+              SizedBox(width: 8),
+              Text("Security Verification"),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("For security reasons, please enter your vault PIN to restore your password:"),
+              SizedBox(height: 16),
+              TextField(
+                controller: pinController,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                decoration: InputDecoration(
+                  labelText: "Vault PIN",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                  counterText: "", // Hide counter
+                ),
+                enabled: !isVerifying,
+              ),
+              SizedBox(height: 12),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "This ensures only you can access your stored password.",
+                        style: TextStyle(color: Colors.blue.shade800, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isVerifying ? null : () {
+                pinController.dispose();
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: isVerifying ? null : () async {
+                if (pinController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Please enter your vault PIN")),
+                  );
+                  return;
+                }
+
+                setState(() => isVerifying = true);
+                
+                try {
+                  final isValid = await KeyService.verifyVaultPin(pinController.text);
+                  if (isValid) {
+                    pinController.dispose();
+                    Navigator.pop(context);
+                    await _showPasswordToUser();
+                  } else {
+                    setState(() => isVerifying = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Invalid vault PIN. Please try again."),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    pinController.clear();
+                  }
+                } catch (e) {
+                  setState(() => isVerifying = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Error verifying PIN: $e"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: isVerifying
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Text("Verifying..."),
+                    ],
+                  )
+                : Text("Verify & Restore"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showPasswordToUser() async {
     try {
       final password = await KeyService.getStoredPassword();
       if (password != null) {
@@ -617,13 +819,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text("• Permanently delete ALL journal entries"),
               Text("• Permanently delete your vault PIN"),
               Text("• Clear all app data and settings"),
-              Text("• Remove your login password"),
+              Text("• Remove your login password (for security)"),
               SizedBox(height: 12),
               Text("The app will be exactly as when first installed."),
               SizedBox(height: 8),
-              Text(
-                "All data will be permanently lost!",
-                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "All data will be permanently lost! You will NOT be able to restore your password after this action.",
+                        style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red.shade800),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -657,24 +875,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Clear all database entries
       await DatabaseService.clearAllData();
       
-      // Clear SharedPreferences (except theme and password)
+      // Clear SharedPreferences completely (including password for security)
       final prefs = await SharedPreferences.getInstance();
-      final themeMode = prefs.getString('theme_mode'); // Save theme preference
-      final password = prefs.getString('app_password'); // Save password
+      final themeMode = prefs.getString('theme_mode'); // Save theme preference only
       await prefs.clear();
+      
+      // Set flag to indicate fresh install reset was performed
+      await prefs.setBool('fresh_install_reset', true);
+      
+      // Restore only the theme preference (password is intentionally cleared for security)
       if (themeMode != null) {
-        await prefs.setString('theme_mode', themeMode); // Restore theme
-      }
-      if (password != null) {
-        await prefs.setString('app_password', password); // Restore password
+        await prefs.setString('theme_mode', themeMode);
       }
       
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("App has been restored to fresh install state. All data has been permanently removed."),
+          content: Text("App has been restored to fresh install state. All data, including passwords, has been permanently removed for security."),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 3),
+          duration: Duration(seconds: 4),
         ),
       );
     } catch (e) {
