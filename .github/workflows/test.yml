@@ -1,0 +1,17 @@
+name: Publish Dart/Flutter Package
+
+on:
+  release:
+    types: [published]  # Trigger on GitHub release creation
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: k-paxian/dart-package-publisher@v1.6
+        with:
+          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
+          flutter: true
+          dryRunOnly: true
