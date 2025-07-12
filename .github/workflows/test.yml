@@ -1,17 +1,20 @@
-name: Publish Dart/Flutter Package
+name: Dart/Flutter Tests
 
 on:
-  release:
-    types: [published]  # Trigger on GitHub release creation
+  push:
+    branches: [inital]        # or [main] or ['*'] for all branches
+  pull_request:
+    branches: [inital]
 
 jobs:
-  publish:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: k-paxian/dart-package-publisher@v1.6
+      - uses: subosito/flutter-action@v2
         with:
-          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
-          flutter: true
-          dryRunOnly: true
+          flutter-version: '3.22.0'    # Or your preferred version
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Run tests
+        run: flutter test
