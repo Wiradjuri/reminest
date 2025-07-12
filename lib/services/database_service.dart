@@ -63,16 +63,18 @@ class DatabaseService {
       final result = _db!.select('SELECT * FROM entries');
       for (final row in result) {
         try {
-          entries.add(JournalEntry(
-            id: row['id'] as int,
-            title: EncryptionService.decryptText(row['title'] as String),
-            body: EncryptionService.decryptText(row['body'] as String),
-            imagePath: row['imagePath'] as String?,
-            createdAt: DateTime.parse(row['createdAt'] as String),
-            reviewDate: DateTime.parse(row['reviewDate'] as String),
-            isReviewed: row['isReviewed'] == 1,
-            isInVault: row['isInVault'] == 1,
-          ));
+          entries.add(
+            JournalEntry(
+              id: row['id'] as int,
+              title: EncryptionService.decryptText(row['title'] as String),
+              body: EncryptionService.decryptText(row['body'] as String),
+              imagePath: row['imagePath'] as String?,
+              createdAt: DateTime.parse(row['createdAt'] as String),
+              reviewDate: DateTime.parse(row['reviewDate'] as String),
+              isReviewed: row['isReviewed'] == 1,
+              isInVault: row['isInVault'] == 1,
+            ),
+          );
         } catch (e) {
           print("[DatabaseService] Skipping corrupted entry: $e");
         }
@@ -88,7 +90,8 @@ class DatabaseService {
   static Future<void> updateEntry(JournalEntry entry) async {
     if (_db == null) await initDB();
     try {
-      _db!.execute('''
+      _db!.execute(
+        '''
         UPDATE entries SET
           title = ?,
           body = ?,
@@ -96,14 +99,16 @@ class DatabaseService {
           imagePath = ?,
           isInVault = ?
         WHERE id = ?
-      ''', [
-        EncryptionService.encryptText(entry.title),
-        EncryptionService.encryptText(entry.body),
-        entry.reviewDate.toIso8601String(),
-        entry.imagePath,
-        entry.isInVault ? 1 : 0,
-        entry.id,
-      ]);
+      ''',
+        [
+          EncryptionService.encryptText(entry.title),
+          EncryptionService.encryptText(entry.body),
+          entry.reviewDate.toIso8601String(),
+          entry.imagePath,
+          entry.isInVault ? 1 : 0,
+          entry.id,
+        ],
+      );
       print("[DatabaseService] Entry updated: ID ${entry.id}");
     } catch (e) {
       print("[DatabaseService] Error updating entry: $e");

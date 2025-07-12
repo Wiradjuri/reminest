@@ -22,7 +22,7 @@ class _VaultScreenState extends State<VaultScreen> {
     setState(() => _isLoading = true);
     try {
       final allEntries = await PlatformDatabaseService.getAllEntries();
-      
+
       setState(() {
         // Show ALL vault entries regardless of unlock status
         vaultEntries = allEntries.where((entry) => entry.isInVault).toList();
@@ -40,12 +40,15 @@ class _VaultScreenState extends State<VaultScreen> {
 
   Future<void> _confirmDeleteEntry(JournalEntry entry) async {
     final theme = Theme.of(context);
-    
+
     bool? confirm = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: theme.dialogBackgroundColor,
-        title: Text('Delete Vault Entry', style: TextStyle(color: theme.textTheme.titleLarge?.color)),
+        title: Text(
+          'Delete Vault Entry',
+          style: TextStyle(color: theme.textTheme.titleLarge?.color),
+        ),
         content: Text(
           'Are you sure you want to permanently delete this vault entry?\n\n"${entry.title}"\n\nThis action cannot be undone.',
           style: TextStyle(color: theme.textTheme.bodyMedium?.color),
@@ -53,7 +56,12 @@ class _VaultScreenState extends State<VaultScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7))),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+              ),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -68,9 +76,9 @@ class _VaultScreenState extends State<VaultScreen> {
         await PlatformDatabaseService.deleteEntry(entry.id!);
         fetchVaultEntries();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete entry: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to delete entry: $e')));
       }
     }
   }
@@ -78,8 +86,10 @@ class _VaultScreenState extends State<VaultScreen> {
   Widget _buildVaultEntryCard(JournalEntry entry) {
     final theme = Theme.of(context);
     final now = DateTime.now();
-    final isUnlocked = entry.reviewDate.isBefore(now) || entry.reviewDate.isAtSameMomentAs(now);
-    
+    final isUnlocked =
+        entry.reviewDate.isBefore(now) ||
+        entry.reviewDate.isAtSameMomentAs(now);
+
     return Card(
       color: theme.cardColor,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -91,7 +101,7 @@ class _VaultScreenState extends State<VaultScreen> {
         title: Text(
           entry.title,
           style: TextStyle(
-            color: theme.textTheme.titleMedium?.color, 
+            color: theme.textTheme.titleMedium?.color,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -101,7 +111,9 @@ class _VaultScreenState extends State<VaultScreen> {
             // Show content only if unlocked
             if (isUnlocked)
               Text(
-                entry.body.length > 100 ? '${entry.body.substring(0, 100)}...' : entry.body,
+                entry.body.length > 100
+                    ? '${entry.body.substring(0, 100)}...'
+                    : entry.body,
                 style: TextStyle(color: theme.textTheme.bodyMedium?.color),
               )
             else
@@ -132,17 +144,28 @@ class _VaultScreenState extends State<VaultScreen> {
             SizedBox(height: 4),
             Text(
               'Created: ${entry.createdAt.toLocal().toString().split(' ')[0]}',
-              style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
+              style: TextStyle(
+                color: theme.textTheme.bodySmall?.color,
+                fontSize: 12,
+              ),
             ),
             if (isUnlocked)
               Text(
                 'Unlocked: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.green,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               )
             else
               Text(
                 'Unlocks: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.orange,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
           ],
         ),
@@ -165,25 +188,29 @@ class _VaultScreenState extends State<VaultScreen> {
             ),
           ],
         ),
-        onTap: isUnlocked ? () {
-          // Show full entry details when tapped (only if unlocked)
-          _showEntryDetails(entry);
-        } : () {
-          // Show locked message when tapped
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('This entry is locked until ${entry.reviewDate.toLocal().toString().split(' ')[0]}'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        },
+        onTap: isUnlocked
+            ? () {
+                // Show full entry details when tapped (only if unlocked)
+                _showEntryDetails(entry);
+              }
+            : () {
+                // Show locked message when tapped
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'This entry is locked until ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
+                    ),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              },
       ),
     );
   }
 
   void _showEntryDetails(JournalEntry entry) {
     final theme = Theme.of(context);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -204,17 +231,27 @@ class _VaultScreenState extends State<VaultScreen> {
               SizedBox(height: 16),
               Text(
                 'Created: ${entry.createdAt.toLocal().toString().split(' ')[0]}',
-                style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
+                style: TextStyle(
+                  color: theme.textTheme.bodySmall?.color,
+                  fontSize: 12,
+                ),
               ),
               Text(
                 'Unlocked: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.green,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               if (entry.imagePath != null) ...[
                 SizedBox(height: 16),
                 Text(
                   'Attachment: ${entry.imagePath!.split('/').last}',
-                  style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
+                  style: TextStyle(
+                    color: theme.textTheme.bodySmall?.color,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ],
@@ -233,7 +270,7 @@ class _VaultScreenState extends State<VaultScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
 
@@ -252,65 +289,73 @@ class _VaultScreenState extends State<VaultScreen> {
       ),
 
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(color: theme.primaryColor),
-            )
+          ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
           : vaultEntries.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.security,
-                        size: 64,
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'No vault entries',
-                        style: TextStyle(
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7), 
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Create entries and store them in the vault with time-locked access. Entries will automatically unlock on their scheduled date.',
-                        style: TextStyle(
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5), 
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          'Go Back',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.security,
+                    size: 64,
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
                   ),
-                )
-              : ListView.builder(
-                  itemCount: vaultEntries.length,
-                  itemBuilder: (context, index) {
-                    final entry = vaultEntries[index];
-                    return _buildVaultEntryCard(entry);
-                  },
-                ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No vault entries',
+                    style: TextStyle(
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.7,
+                      ),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Create entries and store them in the vault with time-locked access. Entries will automatically unlock on their scheduled date.',
+                    style: TextStyle(
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.5,
+                      ),
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      'Go Back',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              itemCount: vaultEntries.length,
+              itemBuilder: (context, index) {
+                final entry = vaultEntries[index];
+                return _buildVaultEntryCard(entry);
+              },
+            ),
     );
   }
 }

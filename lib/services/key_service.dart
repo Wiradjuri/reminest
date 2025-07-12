@@ -12,7 +12,7 @@ class KeyService {
   static const _passwordSetKey = 'app_password_set';
   static const _vaultPinKey = 'vault_pin_hash'; // Non-recoverable vault PIN
   static const _vaultPinSaltKey = 'vault_pin_salt';
-  
+
   // Note: We completely remove the remembered key functionality for security
   // Users must enter their password every time for maximum security
 
@@ -38,7 +38,7 @@ class KeyService {
       final prefs = await SharedPreferences.getInstance();
       // Store password in a simple encoded form (not for security, just obfuscation)
       final encodedPassword = base64Encode(utf8.encode(password));
-      
+
       await prefs.setString(_passwordKey, encodedPassword);
       await prefs.setBool(_passwordSetKey, true);
       print("[KeyService] App password saved (recoverable).");
@@ -84,7 +84,8 @@ class KeyService {
   static Future<bool> hasPassword() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return prefs.containsKey(_passwordKey) && prefs.getBool(_passwordSetKey) == true;
+      return prefs.containsKey(_passwordKey) &&
+          prefs.getBool(_passwordSetKey) == true;
     } catch (e) {
       print("[KeyService] Error checking password existence: $e");
       return false;
@@ -107,7 +108,9 @@ class KeyService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_passwordKey);
       await prefs.remove(_passwordSetKey);
-      print("[KeyService] All password data cleared - encrypted data is now inaccessible.");
+      print(
+        "[KeyService] All password data cleared - encrypted data is now inaccessible.",
+      );
     } catch (e) {
       print("[KeyService] Error clearing password data: $e");
     }
@@ -144,7 +147,7 @@ class KeyService {
       final prefs = await SharedPreferences.getInstance();
       final salt = _generateSalt();
       final hashedPin = _hashPasswordWithSalt(pin, salt);
-      
+
       await prefs.setString(_vaultPinKey, hashedPin);
       await prefs.setString(_vaultPinSaltKey, salt);
       print("[KeyService] Vault PIN saved securely.");
@@ -159,11 +162,11 @@ class KeyService {
       final prefs = await SharedPreferences.getInstance();
       final storedHash = prefs.getString(_vaultPinKey);
       final storedSalt = prefs.getString(_vaultPinSaltKey);
-      
+
       if (storedHash == null || storedSalt == null) {
         return false;
       }
-      
+
       final inputHash = _hashPasswordWithSalt(pin, storedSalt);
       return storedHash == inputHash;
     } catch (e) {

@@ -3,13 +3,16 @@ import '../services/password_service.dart';
 import 'set_password_screen.dart';
 import 'login_screen.dart';
 
-
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
   final bool isAuthenticated;
   final VoidCallback? onNavigateToJournal;
-  
-  HomeScreen({this.onLoginSuccess, this.isAuthenticated = false, this.onNavigateToJournal});
+
+  HomeScreen({
+    this.onLoginSuccess,
+    this.isAuthenticated = false,
+    this.onNavigateToJournal,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -35,14 +38,16 @@ class _HomeScreenState extends State<HomeScreen> {
     print("[HomeScreen] _beginSetup called");
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => SetPasswordScreen(
-        onPasswordSet: () {
-          if (widget.onLoginSuccess != null) {
-            print("[HomeScreen] Calling onLoginSuccess callback from setup");
-            widget.onLoginSuccess!();
-          }
-        },
-      )),
+      MaterialPageRoute(
+        builder: (_) => SetPasswordScreen(
+          onPasswordSet: () {
+            if (widget.onLoginSuccess != null) {
+              print("[HomeScreen] Calling onLoginSuccess callback from setup");
+              widget.onLoginSuccess!();
+            }
+          },
+        ),
+      ),
     );
     print("[HomeScreen] Setup result: $result");
     // The callback handles authentication, no need for additional logic here
@@ -52,17 +57,20 @@ class _HomeScreenState extends State<HomeScreen> {
     print("[HomeScreen] _login called, passing onLoginSuccess callback");
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => LoginScreen(onLoginSuccess: widget.onLoginSuccess)),
+      MaterialPageRoute(
+        builder: (_) => LoginScreen(onLoginSuccess: widget.onLoginSuccess),
+      ),
     );
     print("[HomeScreen] Login navigation returned with result: $result");
     // If login was successful, the callback would have been called
     // and the AuthenticationWrapper should handle the navigation
   }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isWideScreen = MediaQuery.of(context).size.width > 800;
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: isWideScreen ? _buildWideLayout(theme) : _buildNarrowLayout(theme),
@@ -90,10 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   // Right side - Main content
-                  Expanded(
-                    flex: 2,
-                    child: _buildMainContent(theme),
-                  ),
+                  Expanded(flex: 2, child: _buildMainContent(theme)),
                 ],
               ),
             ),
@@ -123,8 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMainContent(ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark 
-            ? Colors.white10 
+        color: theme.brightness == Brightness.dark
+            ? Colors.white10
             : Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
         border: theme.brightness == Brightness.light
@@ -138,13 +143,13 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             "Welcome to Reminest",
             style: TextStyle(
-              fontSize: 28, 
-              fontWeight: FontWeight.bold, 
-              color: theme.textTheme.titleLarge?.color
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: theme.textTheme.titleLarge?.color,
             ),
           ),
           SizedBox(height: 20),
-          
+
           // Welcome back message (only show when authenticated)
           if (widget.isAuthenticated) ...[
             Container(
@@ -157,7 +162,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_outline, color: theme.primaryColor, size: 24),
+                  Icon(
+                    Icons.check_circle_outline,
+                    color: theme.primaryColor,
+                    size: 24,
+                  ),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -174,17 +183,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: 20),
           ],
-          
+
           // Action buttons positioned between title and app icon
           _buildActionButtons(theme),
           SizedBox(height: 20),
-          
+
           // App logo - enlarged and centered
-          Image.asset(
-            'lib/assets/icons/Reminest.png',
-            height: 200,
-            width: 200,
-          ),
+          Image.asset('lib/assets/icons/Reminest.png', height: 200, width: 200),
           SizedBox(height: 20),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 32),
@@ -192,8 +197,8 @@ class _HomeScreenState extends State<HomeScreen> {
               "Your private, secure mental health journal.\nReflect, grow, and heal in your own safe space.",
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16, 
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8)
+                fontSize: 16,
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
               ),
             ),
           ),
@@ -248,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 SizedBox(height: 30),
-                
+
                 // Login Button (only show if password is already set AND not authenticated)
                 if (_hasPassword && !widget.isAuthenticated) ...[
                   Container(
@@ -258,7 +263,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icon(Icons.login, size: 20),
                       label: Text(
                         "Login",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.primaryColor,
@@ -292,18 +300,43 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSupportTable(ThemeData theme) {
     final mentalHealthSupportNumbers = [
       ["Service", "Phone", "Availability", "Description"],
-      ["Lifeline Australia", "13 11 14", "24/7", "Crisis support & suicide prevention"],
-      ["Beyond Blue", "1300 22 4636", "24/7", "Depression, anxiety & mental wellbeing"],
+      [
+        "Lifeline Australia",
+        "13 11 14",
+        "24/7",
+        "Crisis support & suicide prevention",
+      ],
+      [
+        "Beyond Blue",
+        "1300 22 4636",
+        "24/7",
+        "Depression, anxiety & mental wellbeing",
+      ],
       ["Kids Helpline", "1800 55 1800", "24/7", "Counselling for ages 5–25"],
-      ["headspace", "1800 650 890", "Business hours", "Mental health for ages 12–25"],
-      ["13YARN", "13 92 76", "24/7", "Safe support for Aboriginal & Torres Strait Islander peoples"],
-      ["MensLine Australia", "1300 78 99 78", "24/7", "Support for men's emotional wellbeing"],
+      [
+        "headspace",
+        "1800 650 890",
+        "Business hours",
+        "Mental health for ages 12–25",
+      ],
+      [
+        "13YARN",
+        "13 92 76",
+        "24/7",
+        "Safe support for Aboriginal & Torres Strait Islander peoples",
+      ],
+      [
+        "MensLine Australia",
+        "1300 78 99 78",
+        "24/7",
+        "Support for men's emotional wellbeing",
+      ],
     ];
 
     return Container(
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark 
-            ? Colors.white10 
+        color: theme.brightness == Brightness.dark
+            ? Colors.white10
             : Colors.grey.shade50,
         borderRadius: BorderRadius.circular(12),
         border: theme.brightness == Brightness.light
@@ -335,19 +368,21 @@ class _HomeScreenState extends State<HomeScreen> {
             child: SingleChildScrollView(
               child: Container(
                 decoration: BoxDecoration(
-                  color: theme.brightness == Brightness.dark 
-                      ? Colors.white12 
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.white12
                       : Colors.white,
                   borderRadius: BorderRadius.circular(8),
                   border: theme.brightness == Brightness.light
                       ? Border.all(color: Colors.grey.shade300)
                       : null,
                   boxShadow: theme.brightness == Brightness.light
-                      ? [BoxShadow(
-                          color: Colors.grey.shade200,
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        )]
+                      ? [
+                          BoxShadow(
+                            color: Colors.grey.shade200,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ]
                       : null,
                 ),
                 child: SingleChildScrollView(
@@ -357,37 +392,50 @@ class _HomeScreenState extends State<HomeScreen> {
                       theme.primaryColor.withOpacity(0.1),
                     ),
                     dataRowMaxHeight: 56,
-                    columns: mentalHealthSupportNumbers[0].map((header) => DataColumn(
-                      label: Text(
-                        header,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: theme.primaryColor,
-                          fontSize: 14,
-                        ),
-                      ),
-                    )).toList(),
-                    rows: mentalHealthSupportNumbers.skip(1).map((row) => DataRow(
-                      cells: row.asMap().entries.map((entry) {
-                        int index = entry.key;
-                        String value = entry.value;
-                        return DataCell(
-                          Container(
-                            constraints: BoxConstraints(maxWidth: index == 3 ? 200 : 150),
-                            child: Text(
-                              value,
+                    columns: mentalHealthSupportNumbers[0]
+                        .map(
+                          (header) => DataColumn(
+                            label: Text(
+                              header,
                               style: TextStyle(
-                                color: theme.textTheme.bodyMedium?.color,
-                                fontSize: index == 1 ? 14 : 12,
-                                fontWeight: index == 1 ? FontWeight.w600 : FontWeight.normal,
+                                fontWeight: FontWeight.bold,
+                                color: theme.primaryColor,
+                                fontSize: 14,
                               ),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
                             ),
                           ),
-                        );
-                      }).toList(),
-                    )).toList(),
+                        )
+                        .toList(),
+                    rows: mentalHealthSupportNumbers
+                        .skip(1)
+                        .map(
+                          (row) => DataRow(
+                            cells: row.asMap().entries.map((entry) {
+                              int index = entry.key;
+                              String value = entry.value;
+                              return DataCell(
+                                Container(
+                                  constraints: BoxConstraints(
+                                    maxWidth: index == 3 ? 200 : 150,
+                                  ),
+                                  child: Text(
+                                    value,
+                                    style: TextStyle(
+                                      color: theme.textTheme.bodyMedium?.color,
+                                      fontSize: index == 1 ? 14 : 12,
+                                      fontWeight: index == 1
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        )
+                        .toList(),
                   ),
                 ),
               ),
@@ -462,7 +510,7 @@ class _HomeScreenState extends State<HomeScreen> {
             textAlign: TextAlign.center,
           ),
         ],
-        
+
         // Open Journal Button (only show when authenticated)
         if (widget.isAuthenticated) ...[
           Container(
@@ -499,4 +547,5 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
 // This is the HomeScreen widget. It serves as the landing page for the Reminest app, providing a welcoming message and mental health support resources in an integrated table format.

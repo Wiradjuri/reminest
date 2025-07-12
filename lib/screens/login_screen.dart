@@ -43,16 +43,19 @@ class _LoginScreenState extends State<LoginScreen> {
   void _beginSetup() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => SetPasswordScreen(
-        onPasswordSet: () {
-          // Automatically log in after password setup
-          if (widget.onLoginSuccess != null) {
-            widget.onLoginSuccess!();
-          }
-        },
-      )),
+      MaterialPageRoute(
+        builder: (_) => SetPasswordScreen(
+          onPasswordSet: () {
+            // Automatically log in after password setup
+            if (widget.onLoginSuccess != null) {
+              widget.onLoginSuccess!();
+            }
+          },
+        ),
+      ),
     );
   }
+
   void _handleForgotPassword() async {
     showDialog(
       context: context,
@@ -85,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() { 
+    setState(() {
       _error = '';
       _isLoading = true;
     });
@@ -104,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
       print("[LoginScreen] Password verification result: $correct");
       if (correct) {
         print("[LoginScreen] Password correct, calling _navigateToJournal()");
-        
+
         // Initialize encryption service with the password
         try {
           final encryptionKey = KeyService.generateKeyFromPassword(input);
@@ -112,13 +115,15 @@ class _LoginScreenState extends State<LoginScreen> {
           print("[LoginScreen] Encryption service initialized successfully");
         } catch (e) {
           print("[LoginScreen] Error initializing encryption service: $e");
-          setState(() => _error = "Failed to initialize encryption. Please try again.");
+          setState(
+            () => _error = "Failed to initialize encryption. Please try again.",
+          );
           return;
         }
-        
+
         // For maximum security, no "remember me" functionality
         // Users must enter password every time
-        
+
         // Navigate to journal
         _navigateToJournal();
       } else {
@@ -131,21 +136,23 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = false);
     }
   }
-/// Navigate to journal screen after successful login
-void _navigateToJournal() {
-  print("[LoginScreen] _navigateToJournal called");
-  if (widget.onLoginSuccess != null) {
-    print("[LoginScreen] Calling onLoginSuccess callback");
-    widget.onLoginSuccess!();
-    print("[LoginScreen] onLoginSuccess callback completed");
-    // Pop the login screen so the authenticated MainScaffold can be shown
-    print("[LoginScreen] Popping login screen to reveal authenticated interface");
-    Navigator.pop(context);
-  } else {
-    print("[LoginScreen] WARNING: No onLoginSuccess callback provided");
-  }
-}
 
+  /// Navigate to journal screen after successful login
+  void _navigateToJournal() {
+    print("[LoginScreen] _navigateToJournal called");
+    if (widget.onLoginSuccess != null) {
+      print("[LoginScreen] Calling onLoginSuccess callback");
+      widget.onLoginSuccess!();
+      print("[LoginScreen] onLoginSuccess callback completed");
+      // Pop the login screen so the authenticated MainScaffold can be shown
+      print(
+        "[LoginScreen] Popping login screen to reveal authenticated interface",
+      );
+      Navigator.pop(context);
+    } else {
+      print("[LoginScreen] WARNING: No onLoginSuccess callback provided");
+    }
+  }
 
   /// Handle vault access
   void _openVault() async {
@@ -204,11 +211,15 @@ void _navigateToJournal() {
                   border: OutlineInputBorder(),
                   counterText: "",
                 ),
-                onSubmitted: (_) => verifyVaultPin(pinController.text, setDialogState),
+                onSubmitted: (_) =>
+                    verifyVaultPin(pinController.text, setDialogState),
               ),
               if (pinError.isNotEmpty) ...[
                 SizedBox(height: 8),
-                Text(pinError, style: TextStyle(color: Colors.red, fontSize: 12)),
+                Text(
+                  pinError,
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                ),
               ],
             ],
           ),
@@ -218,7 +229,8 @@ void _navigateToJournal() {
               child: Text("Cancel"),
             ),
             ElevatedButton(
-              onPressed: () => verifyVaultPin(pinController.text, setDialogState),
+              onPressed: () =>
+                  verifyVaultPin(pinController.text, setDialogState),
               child: Text("Open Vault"),
             ),
           ],
@@ -242,7 +254,7 @@ void _navigateToJournal() {
             icon: Icon(Icons.lock),
             tooltip: "Access Vault",
             onPressed: _openVault,
-          )
+          ),
         ],
       ),
       body: Center(
@@ -259,7 +271,7 @@ void _navigateToJournal() {
                   color: theme.shadowColor.withOpacity(0.1),
                   blurRadius: 20,
                   offset: Offset(0, 8),
-                )
+                ),
               ],
             ),
             child: Column(
@@ -267,13 +279,9 @@ void _navigateToJournal() {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Logo/Icon
-                Icon(
-                  Icons.lock_outline,
-                  size: 64,
-                  color: theme.primaryColor,
-                ),
+                Icon(Icons.lock_outline, size: 64, color: theme.primaryColor),
                 SizedBox(height: 16),
-                
+
                 // Title
                 Text(
                   _hasPassword ? "Unlock Your Journal" : "Welcome to Reminest",
@@ -284,19 +292,19 @@ void _navigateToJournal() {
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 8),
-                
+
                 // Subtitle
                 Text(
-                  _hasPassword 
-                    ? "Enter your password to access your journal entries"
-                    : "Let's get you set up to start journaling securely",
+                  _hasPassword
+                      ? "Enter your password to access your journal entries"
+                      : "Let's get you set up to start journaling securely",
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 32),
-                
+
                 // Password field (only show if password is set)
                 if (_hasPassword) ...[
                   TextField(
@@ -311,14 +319,16 @@ void _navigateToJournal() {
                       ),
                       prefixIcon: Icon(Icons.key),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                        icon: Icon(
+                          _obscure ? Icons.visibility : Icons.visibility_off,
+                        ),
                         onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                     ),
                     onSubmitted: (_) => _isLoading ? null : _submit(),
                   ),
                   SizedBox(height: 16),
-                  
+
                   // Forgot password link (only show if password is set)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -329,11 +339,11 @@ void _navigateToJournal() {
                           "Forgot password?",
                           style: TextStyle(color: theme.primaryColor),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ],
-                
+
                 // Error message
                 if (_error.isNotEmpty) ...[
                   SizedBox(height: 8),
@@ -359,7 +369,7 @@ void _navigateToJournal() {
                   ),
                 ],
                 SizedBox(height: 24),
-                
+
                 // Login button
                 SizedBox(
                   height: 48,
@@ -382,7 +392,9 @@ void _navigateToJournal() {
                                 height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               ),
                               SizedBox(width: 12),
@@ -391,17 +403,20 @@ void _navigateToJournal() {
                           )
                         : Text(
                             _hasPassword ? "Unlock Journal" : "Begin Setup",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                   ),
                 ),
                 SizedBox(height: 16),
-                
+
                 // Help text
                 Text(
-                  _hasPassword 
-                    ? "Your journal is encrypted and secure. Only you can access it with your password."
-                    : "Set up your secure password to start journaling. Your entries will be encrypted and private.",
+                  _hasPassword
+                      ? "Your journal is encrypted and secure. Only you can access it with your password."
+                      : "Set up your secure password to start journaling. Your entries will be encrypted and private.",
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
                   ),
@@ -418,9 +433,9 @@ void _navigateToJournal() {
 
 class _PasswordRecoveryDialog extends StatefulWidget {
   final VoidCallback onSuccessfulRecovery;
-  
+
   _PasswordRecoveryDialog({required this.onSuccessfulRecovery});
-  
+
   @override
   _PasswordRecoveryDialogState createState() => _PasswordRecoveryDialogState();
 }
@@ -436,7 +451,7 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return AlertDialog(
       backgroundColor: theme.dialogBackgroundColor,
       title: Text(
@@ -536,7 +551,10 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
                     SizedBox(height: 8),
                     Text(
                       "This will permanently delete all your journal entries and vault data. This action cannot be undone.",
-                      style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -592,7 +610,7 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
 
   void _recoverWithPasskey() async {
     final passkey = _passkeyController.text.trim().toUpperCase();
-    
+
     if (passkey.length != 16) {
       setState(() => _error = 'Passkey must be 16 characters');
       return;
@@ -611,7 +629,7 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
 
     if (result != null && result.isNotEmpty) {
       Navigator.pop(context);
-      
+
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -619,19 +637,21 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
           backgroundColor: Colors.green,
         ),
       );
-      
+
       // Automatically log the user in with the new password
       try {
         final encryptionKey = KeyService.generateKeyFromPassword(result);
         EncryptionService.initializeKey(encryptionKey);
-        
+
         // Navigate to the main app using the callback
         widget.onSuccessfulRecovery();
       } catch (e) {
         print("[LoginScreen] Error during auto-login after password reset: $e");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Password reset successful, but auto-login failed. Please login manually.'),
+            content: Text(
+              'Password reset successful, but auto-login failed. Please login manually.',
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -670,13 +690,13 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
       await PasswordService.clearPasswordData();
       await KeyService.clearAllPasswordData();
       await KeyService.clearVaultPin();
-      
+
       // Also clear any remaining old format files
       await _clearLegacyFiles();
 
       // Set the new password and get the passkey
       final passkey = await PasswordService.setPassword(newPassword);
-      
+
       // Also save with KeyService for backward compatibility
       await KeyService.savePassword(newPassword);
       await KeyService.setPasswordSetFlag();
@@ -752,7 +772,9 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: passkey));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Passkey copied to clipboard!')),
+                          SnackBar(
+                            content: Text('Passkey copied to clipboard!'),
+                          ),
                         );
                       },
                       icon: Icon(Icons.copy, size: 16),
@@ -771,14 +793,16 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(context); // Close passkey dialog
-                
+
                 // Small delay to let the dialog close completely
                 await Future.delayed(Duration(milliseconds: 100));
-                
+
                 // Show success message and auto-login
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('All data reset successfully! Logging you in...'),
+                    content: Text(
+                      'All data reset successfully! Logging you in...',
+                    ),
                     backgroundColor: Colors.green,
                     duration: Duration(seconds: 2),
                   ),
@@ -789,18 +813,28 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
 
                 // Automatically log the user in with the new password
                 try {
-                  final encryptionKey = KeyService.generateKeyFromPassword(newPassword);
+                  final encryptionKey = KeyService.generateKeyFromPassword(
+                    newPassword,
+                  );
                   EncryptionService.initializeKey(encryptionKey);
-                  
-                  print("[LoginScreen] About to call onSuccessfulRecovery callback");
+
+                  print(
+                    "[LoginScreen] About to call onSuccessfulRecovery callback",
+                  );
                   // Navigate to the main app using the callback
                   widget.onSuccessfulRecovery();
-                  print("[LoginScreen] onSuccessfulRecovery callback completed");
+                  print(
+                    "[LoginScreen] onSuccessfulRecovery callback completed",
+                  );
                 } catch (e) {
-                  print("[LoginScreen] Error during auto-login after reset: $e");
+                  print(
+                    "[LoginScreen] Error during auto-login after reset: $e",
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Reset successful, but auto-login failed. Please login manually.'),
+                      content: Text(
+                        'Reset successful, but auto-login failed. Please login manually.',
+                      ),
                       backgroundColor: Colors.orange,
                     ),
                   );
@@ -832,7 +866,7 @@ class _PasswordRecoveryDialogState extends State<_PasswordRecoveryDialog> {
         'app_password.txt', // Any other old formats
         'vault_pin.txt',
       ];
-      
+
       for (final fileName in legacyFiles) {
         final file = File('${directory.path}/$fileName');
         if (await file.exists()) {
@@ -863,7 +897,7 @@ class _NewPasswordDialogState extends State<_NewPasswordDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return AlertDialog(
       backgroundColor: theme.dialogBackgroundColor,
       title: Text(

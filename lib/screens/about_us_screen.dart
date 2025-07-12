@@ -6,42 +6,63 @@ class AboutUsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context); // Getting the current theme
 
-    return Scaffold( // Main scaffold for the screen
-      backgroundColor: theme.scaffoldBackgroundColor, // Setting background color from theme
-      appBar: AppBar( // App bar at the top
+    return Scaffold(
+      // Main scaffold for the screen
+      backgroundColor:
+          theme.scaffoldBackgroundColor, // Setting background color from theme
+      appBar: AppBar(
+        // App bar at the top
         title: Text("About Us"), // Title of the app bar
         backgroundColor: theme.primaryColor, // App bar background color
         foregroundColor: Colors.white, // App bar text/icon color
         elevation: 0, // No shadow under the app bar
       ),
-      body: Center( // Centering the body content
-        child: SingleChildScrollView( // Allows scrolling if content overflows
-          child: Padding( // Padding around the content
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32), // Horizontal and vertical padding
-            child: Column( // Arranging widgets vertically
-              mainAxisAlignment: MainAxisAlignment.center, // Centering column content
+      body: Center(
+        // Centering the body content
+        child: SingleChildScrollView(
+          // Allows scrolling if content overflows
+          child: Padding(
+            // Padding around the content
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 32,
+            ), // Horizontal and vertical padding
+            child: Column(
+              // Arranging widgets vertically
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Centering column content
               children: [
                 // Title with emojis
-                Row( // Row for title and emojis
-                  mainAxisAlignment: MainAxisAlignment.center, // Centering row content
+                Row(
+                  // Row for title and emojis
+                  mainAxisAlignment:
+                      MainAxisAlignment.center, // Centering row content
                   children: [
-                    Text("💭", style: TextStyle(fontSize: 32)), // Emoji before title
+                    Text(
+                      "💭",
+                      style: TextStyle(fontSize: 32),
+                    ), // Emoji before title
                     SizedBox(width: 10), // Spacing between emoji and title
                     Text(
                       "About Reminest", // Title text
                       style: TextStyle(
                         fontSize: 32, // Title font size
                         fontWeight: FontWeight.bold, // Bold title
-                        color: theme.textTheme.titleLarge?.color, // Title color from theme
+                        color: theme
+                            .textTheme
+                            .titleLarge
+                            ?.color, // Title color from theme
                         letterSpacing: 2, // Spacing between letters
                       ),
                     ),
                     SizedBox(width: 10), // Spacing between title and emoji
-                    Text("🧠", style: TextStyle(fontSize: 32)), // Emoji after title
+                    Text(
+                      "🧠",
+                      style: TextStyle(fontSize: 32),
+                    ), // Emoji after title
                   ],
                 ),
                 SizedBox(height: 24), // Spacing below title
-
                 // Developer image
                 Container(
                   width: 120, // Image container width
@@ -54,24 +75,31 @@ class AboutUsScreen extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: theme.primaryColor.withOpacity(0.3), // Shadow color
+                        color: theme.primaryColor.withOpacity(
+                          0.3,
+                        ), // Shadow color
                         blurRadius: 10, // Shadow blur
                         offset: Offset(0, 4), // Shadow offset
                       ),
                     ],
                   ),
-                  child: ClipOval( // Clipping image to oval (circle)
+                  child: ClipOval(
+                    // Clipping image to oval (circle)
                     child: Image.asset(
                       'lib/assets/icons/Developer.png', // Path to developer image
                       width: 120, // Image width
                       height: 120, // Image height
                       fit: BoxFit.cover, // Cover the container
-                      errorBuilder: (context, error, stackTrace) { // Fallback if image fails to load
+                      errorBuilder: (context, error, stackTrace) {
+                        // Fallback if image fails to load
                         return CircleAvatar(
                           radius: 54, // Avatar radius
-                          backgroundColor: theme.brightness == Brightness.dark 
-                              ? Colors.white24 // Background for dark mode
-                              : Colors.grey.shade300, // Background for light mode
+                          backgroundColor: theme.brightness == Brightness.dark
+                              ? Colors
+                                    .white24 // Background for dark mode
+                              : Colors
+                                    .grey
+                                    .shade300, // Background for light mode
                           child: Icon(
                             Icons.person, // Default person icon
                             size: 60, // Icon size
@@ -83,7 +111,6 @@ class AboutUsScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 20), // Spacing below image
-
                 // About text with border
                 Container(
                   decoration: BoxDecoration(
@@ -92,8 +119,9 @@ class AboutUsScreen extends StatelessWidget {
                       width: 2, // Border width
                     ),
                     borderRadius: BorderRadius.circular(16), // Rounded corners
-                    color: theme.brightness == Brightness.dark 
-                        ? Colors.white10 // Background for dark mode
+                    color: theme.brightness == Brightness.dark
+                        ? Colors
+                              .white10 // Background for dark mode
                         : Colors.white, // Background for light mode
                   ),
                   padding: EdgeInsets.all(24), // Padding inside container
@@ -109,7 +137,10 @@ class AboutUsScreen extends StatelessWidget {
                     "Thank you for trusting Reminest on your journey toward better mental wellness.", // About text
                     style: TextStyle(
                       fontSize: 15, // Text font size
-                      color: theme.textTheme.bodyMedium?.color, // Text color from theme
+                      color: theme
+                          .textTheme
+                          .bodyMedium
+                          ?.color, // Text color from theme
                       height: 1.5, // Line height
                     ),
                     textAlign: TextAlign.left, // Align text to left
@@ -117,13 +148,14 @@ class AboutUsScreen extends StatelessWidget {
                 ),
 
                 SizedBox(height: 24), // Spacing below about text
-
                 // Developer info
                 Text(
                   "Developed by Bradley Murray.\n© 2025", // Developer and copyright info
                   textAlign: TextAlign.center, // Centered text
                   style: TextStyle(
-                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.7), // Faded text color from theme
+                    color: theme.textTheme.bodySmall?.color?.withOpacity(
+                      0.7,
+                    ), // Faded text color from theme
                     fontSize: 16, // Text font size
                   ),
                 ),

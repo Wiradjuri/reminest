@@ -8,9 +8,9 @@ import 'screens/add_entry_screen.dart';
 
 class AppNavBar extends StatefulWidget {
   final ValueNotifier<ThemeMode>? themeNotifier;
-  
+
   const AppNavBar({Key? key, this.themeNotifier}) : super(key: key);
-  
+
   @override
   State<AppNavBar> createState() => _AppNavBarState();
 }
@@ -34,36 +34,28 @@ class _AppNavBarState extends State<AppNavBar> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: theme.bottomNavigationBarTheme.backgroundColor,
         selectedItemColor: theme.primaryColor,
-        unselectedItemColor: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+        unselectedItemColor: theme.textTheme.bodyMedium?.color?.withOpacity(
+          0.6,
+        ),
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.book),
-            label: 'Journal',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.lock),
-            label: 'Vault',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.info),
-            label: 'About',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Journal'),
+          BottomNavigationBarItem(icon: Icon(Icons.lock), label: 'Vault'),
+          BottomNavigationBarItem(icon: Icon(Icons.info), label: 'About'),
         ],
       ),
-      floatingActionButton: _selectedIndex == 1 // Show only on Journal screen
+      floatingActionButton:
+          _selectedIndex ==
+              1 // Show only on Journal screen
           ? FloatingActionButton(
               backgroundColor: theme.primaryColor,
               foregroundColor: Colors.white,
@@ -82,9 +74,7 @@ class _AppNavBarState extends State<AppNavBar> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: theme.primaryColor,
-              ),
+              decoration: BoxDecoration(color: theme.primaryColor),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -99,23 +89,24 @@ class _AppNavBarState extends State<AppNavBar> {
                   SizedBox(height: 8),
                   Text(
                     'Your Mental Health Journal',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                 ],
               ),
             ),
             ListTile(
               leading: Icon(Icons.settings, color: theme.iconTheme.color),
-              title: Text('Settings', style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
+              title: Text(
+                'Settings',
+                style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SettingsScreen(themeNotifier: widget.themeNotifier),
+                    builder: (context) =>
+                        SettingsScreen(themeNotifier: widget.themeNotifier),
                   ),
                 );
               },

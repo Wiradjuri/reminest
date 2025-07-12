@@ -19,7 +19,9 @@ void main() {
         title: 'Reminest',
         theme: ThemeData.light().copyWith(
           primaryColor: Color(0xFF9B59B6),
-          scaffoldBackgroundColor: Color(0xFFFAFAFA), // VS Code light background
+          scaffoldBackgroundColor: Color(
+            0xFFFAFAFA,
+          ), // VS Code light background
           appBarTheme: AppBarTheme(
             backgroundColor: Color(0xFF9B59B6),
             foregroundColor: Colors.white,
@@ -132,10 +134,11 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
     // Check if a password exists to determine if setup is needed
     final hasPassword = await PasswordService.isPasswordSet();
     setState(() {
-      _isAuthenticated = false; // Always start unauthenticated (user must login)
+      _isAuthenticated =
+          false; // Always start unauthenticated (user must login)
       _isLoading = false;
     });
-    
+
     // If no password exists, we know the user needs to do setup
     // If password exists, user needs to login
     print("[AuthenticationWrapper] Password exists: $hasPassword");
@@ -154,7 +157,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
       _isAuthenticated = false;
     });
   }
-  
+
   void _onReset() {
     // Complete reset: check authentication status from scratch
     setState(() {
@@ -166,23 +169,19 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    print("[AuthenticationWrapper] build called - isLoading: $_isLoading, isAuthenticated: $_isAuthenticated");
-    
+    print(
+      "[AuthenticationWrapper] build called - isLoading: $_isLoading, isAuthenticated: $_isAuthenticated",
+    );
+
     if (_isLoading) {
-      return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // Show different interfaces based on authentication status
     if (!_isAuthenticated) {
       print("[AuthenticationWrapper] Showing HomeScreen (unauthenticated)");
       // Before authentication: Show only Home page (no tabs, no other screens)
-      return Scaffold(
-        body: HomeScreen(onLoginSuccess: _onLoginSuccess),
-      );
+      return Scaffold(body: HomeScreen(onLoginSuccess: _onLoginSuccess));
     } else {
       print("[AuthenticationWrapper] Showing MainScaffold (authenticated)");
       // After authentication: Show full app interface starting with Journal
@@ -201,7 +200,7 @@ class MainScaffold extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
   final VoidCallback? onLogout;
   final VoidCallback? onReset;
-  
+
   MainScaffold({
     required this.isAuthenticated,
     this.onLoginSuccess,
@@ -214,7 +213,8 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _MainScaffoldState extends State<MainScaffold> {
-  int _selectedIndex = 0; // Start with first tab (Home when not authenticated, Journal when authenticated)
+  int _selectedIndex =
+      0; // Start with first tab (Home when not authenticated, Journal when authenticated)
 
   @override
   void initState() {
@@ -227,14 +227,15 @@ class _MainScaffoldState extends State<MainScaffold> {
     // MainScaffold only shows when authenticated, so always show authenticated screens
     return [
       HomeScreen(
-        onLoginSuccess: widget.onLoginSuccess, 
+        onLoginSuccess: widget.onLoginSuccess,
         isAuthenticated: true,
-        onNavigateToJournal: () => _onTabSelected(2), // Navigate to Journal tab (index 2)
+        onNavigateToJournal: () =>
+            _onTabSelected(2), // Navigate to Journal tab (index 2)
       ),
       AboutUsScreen(),
       JournalScreen(),
       SettingsScreen(
-        themeNotifier: themeNotifier, 
+        themeNotifier: themeNotifier,
         onLogout: widget.onLogout,
         onReset: widget.onReset,
       ),
@@ -258,7 +259,9 @@ class _MainScaffoldState extends State<MainScaffold> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Logout"),
-          content: Text("Are you sure you want to logout? You'll need to enter your password again to access your journal."),
+          content: Text(
+            "Are you sure you want to logout? You'll need to enter your password again to access your journal.",
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -342,11 +345,15 @@ class _MainScaffoldState extends State<MainScaffold> {
                   border: OutlineInputBorder(),
                   counterText: "",
                 ),
-                onSubmitted: (_) => verifyVaultPin(pinController.text, setDialogState),
+                onSubmitted: (_) =>
+                    verifyVaultPin(pinController.text, setDialogState),
               ),
               if (pinError.isNotEmpty) ...[
                 SizedBox(height: 8),
-                Text(pinError, style: TextStyle(color: Colors.red, fontSize: 12)),
+                Text(
+                  pinError,
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                ),
               ],
             ],
           ),
@@ -356,7 +363,8 @@ class _MainScaffoldState extends State<MainScaffold> {
               child: Text("Cancel"),
             ),
             ElevatedButton(
-              onPressed: () => verifyVaultPin(pinController.text, setDialogState),
+              onPressed: () =>
+                  verifyVaultPin(pinController.text, setDialogState),
               child: Text("Open Vault"),
             ),
           ],
@@ -368,7 +376,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: theme.primaryColor.withOpacity(0.1),
@@ -383,7 +391,9 @@ class _MainScaffoldState extends State<MainScaffold> {
                       ? theme.primaryColor
                       : theme.textTheme.bodyMedium?.color,
                   textStyle: TextStyle(
-                    fontWeight: _selectedIndex == index ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: _selectedIndex == index
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     fontSize: 18,
                   ),
                 ),

@@ -28,9 +28,9 @@ class _JournalScreenState extends State<JournalScreen> {
         entries = allEntries.where((entry) => !entry.isInVault).toList();
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load entries: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load entries: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -38,26 +38,34 @@ class _JournalScreenState extends State<JournalScreen> {
 
   Widget _buildEntryCard(JournalEntry entry) {
     final theme = Theme.of(context);
-    
+
     return Card(
       color: theme.cardColor,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ListTile(
         title: Text(
           entry.title,
-          style: TextStyle(color: theme.textTheme.titleMedium?.color, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: theme.textTheme.titleMedium?.color,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              entry.body.length > 100 ? '${entry.body.substring(0, 100)}...' : entry.body,
+              entry.body.length > 100
+                  ? '${entry.body.substring(0, 100)}...'
+                  : entry.body,
               style: TextStyle(color: theme.textTheme.bodyMedium?.color),
             ),
             SizedBox(height: 4),
             Text(
               'Created: ${entry.createdAt.toLocal().toString().split(' ')[0]}',
-              style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
+              style: TextStyle(
+                color: theme.textTheme.bodySmall?.color,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -89,18 +97,14 @@ class _JournalScreenState extends State<JournalScreen> {
   Future<void> _viewEntry(JournalEntry entry) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ViewEntryScreen(entry: entry),
-      ),
+      MaterialPageRoute(builder: (context) => ViewEntryScreen(entry: entry)),
     );
   }
 
   Future<void> _editEntry(JournalEntry entry) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => EditEntryScreen(entry: entry),
-      ),
+      MaterialPageRoute(builder: (context) => EditEntryScreen(entry: entry)),
     );
 
     if (result == true) {
@@ -113,7 +117,9 @@ class _JournalScreenState extends State<JournalScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Delete Entry'),
-        content: Text('Are you sure you want to delete "${entry.title}"? This action cannot be undone.'),
+        content: Text(
+          'Are you sure you want to delete "${entry.title}"? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -155,7 +161,7 @@ class _JournalScreenState extends State<JournalScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -172,45 +178,45 @@ class _JournalScreenState extends State<JournalScreen> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(color: theme.primaryColor),
-            )
+          ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
           : entries.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.book_outlined,
-                        size: 64,
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'No journal entries yet.',
-                        style: TextStyle(
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-                          fontSize: 16,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Start writing to capture your thoughts.',
-                        style: TextStyle(
-                          color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.book_outlined,
+                    size: 64,
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
                   ),
-                )
-              : ListView.builder(
-                  itemCount: entries.length,
-                  itemBuilder: (context, index) {
-                    final entry = entries[index];
-                    return _buildEntryCard(entry);
-                  },
-                ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No journal entries yet.',
+                    style: TextStyle(
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.7,
+                      ),
+                      fontSize: 16,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Start writing to capture your thoughts.',
+                    style: TextStyle(
+                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              itemCount: entries.length,
+              itemBuilder: (context, index) {
+                final entry = entries[index];
+                return _buildEntryCard(entry);
+              },
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(

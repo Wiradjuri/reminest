@@ -12,7 +12,7 @@ void main() {
       // Initialize FFI for testing
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
-      
+
       // Initialize encryption service with a test key
       EncryptionService.initializeKey(List<int>.generate(32, (i) => i));
     });
@@ -49,7 +49,7 @@ void main() {
 
       // Get entries
       final entries = await PlatformDatabaseService.getAllEntries();
-      
+
       expect(entries.length, 1);
       expect(entries.first.title, 'Test Title');
       expect(entries.first.body, 'Test body content for testing');

@@ -6,17 +6,12 @@ class TopNavBar extends StatelessWidget {
 
   TopNavBar({required this.selectedIndex, required this.onTabSelected});
 
-  final List<String> titles = [
-    'Homepage',
-    'About Us',
-    'Settings',
-    'Login',
-  ];
+  final List<String> titles = ['Homepage', 'About Us', 'Settings', 'Login'];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       color: theme.primaryColor.withOpacity(0.1),
       child: Row(
@@ -29,7 +24,9 @@ class TopNavBar extends StatelessWidget {
                   ? theme.primaryColor
                   : theme.textTheme.bodyMedium?.color,
               textStyle: TextStyle(
-                fontWeight: selectedIndex == index ? FontWeight.bold : FontWeight.normal,
+                fontWeight: selectedIndex == index
+                    ? FontWeight.bold
+                    : FontWeight.normal,
                 fontSize: 18,
               ),
             ),
@@ -40,4 +37,5 @@ class TopNavBar extends StatelessWidget {
     );
   }
 }
+
 // This is the coding for the TopNavBar widget. It holds The Hompage, About Us, Settings, and Login tabs.

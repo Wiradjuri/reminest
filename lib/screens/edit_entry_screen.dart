@@ -40,7 +40,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     if (result != null && result.files.single.path != null) {
       setState(() {
         _selectedImage = File(result.files.single.path!);
-        _currentImagePath = null; // Clear current image when new one is selected
+        _currentImagePath =
+            null; // Clear current image when new one is selected
       });
     }
   }
@@ -65,7 +66,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
     try {
       String? finalImagePath;
-      
+
       if (_selectedImage != null && await _selectedImage!.exists()) {
         finalImagePath = _selectedImage!.path;
       } else if (_currentImagePath != null) {
@@ -83,7 +84,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       );
 
       await PlatformDatabaseService.updateEntry(updatedEntry);
-      
+
       if (mounted) {
         Navigator.pop(context, true); // Return true to indicate success
         ScaffoldMessenger.of(context).showSnackBar(
@@ -94,9 +95,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update entry: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update entry: $e')));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -105,7 +106,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -174,9 +175,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   ),
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // Body Field
               Text(
                 'Content',
@@ -208,9 +209,9 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   contentPadding: EdgeInsets.all(16),
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // Image Section
               Container(
                 padding: EdgeInsets.all(16),
@@ -237,9 +238,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                       ],
                     ),
                     SizedBox(height: 12),
-                    
+
                     // Current/Selected Image Display
-                    if (_selectedImage != null || _currentImagePath != null) ...[
+                    if (_selectedImage != null ||
+                        _currentImagePath != null) ...[
                       Container(
                         height: 200,
                         width: double.infinity,
@@ -251,16 +253,21 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                           borderRadius: BorderRadius.circular(8),
                           child: _selectedImage != null
                               ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                              : (_currentImagePath != null && File(_currentImagePath!).existsSync())
-                                  ? Image.file(File(_currentImagePath!), fit: BoxFit.cover)
-                                  : Container(
-                                      color: theme.cardColor,
-                                      child: Icon(
-                                        Icons.broken_image,
-                                        size: 50,
-                                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
-                                      ),
-                                    ),
+                              : (_currentImagePath != null &&
+                                    File(_currentImagePath!).existsSync())
+                              ? Image.file(
+                                  File(_currentImagePath!),
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  color: theme.cardColor,
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    size: 50,
+                                    color: theme.textTheme.bodyMedium?.color
+                                        ?.withOpacity(0.5),
+                                  ),
+                                ),
                         ),
                       ),
                       SizedBox(height: 12),
@@ -300,16 +307,18 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   ],
                 ),
               ),
-              
+
               SizedBox(height: 30),
-              
+
               // Entry Info
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: theme.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: theme.primaryColor.withOpacity(0.3)),
+                  border: Border.all(
+                    color: theme.primaryColor.withOpacity(0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

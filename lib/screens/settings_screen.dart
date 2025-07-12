@@ -11,13 +11,17 @@ import 'package:reminest/screens/set_password_screen.dart';
 import 'package:reminest/screens/journal_screen.dart';
 import 'package:reminest/screens/set_vault_pin_screen.dart';
 
-
 class SettingsScreen extends StatefulWidget {
   final ValueNotifier<ThemeMode>? themeNotifier;
   final VoidCallback? onLogout;
   final VoidCallback? onReset; // Callback when complete reset happens
 
-  const SettingsScreen({Key? key, this.themeNotifier, this.onLogout, this.onReset}) : super(key: key);
+  const SettingsScreen({
+    Key? key,
+    this.themeNotifier,
+    this.onLogout,
+    this.onReset,
+  }) : super(key: key);
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -122,7 +126,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SizedBox(height: 12),
               Text(
                 "The vault PIN cannot be recovered once deleted!",
-                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
               ),
             ],
           ),
@@ -153,10 +160,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Clear vault data and PIN
       await KeyService.clearVaultPin();
       await PlatformDatabaseService.clearAllData();
-      
+
       // Clear password data using PasswordService (this is the key fix!)
       await PasswordService.clearPasswordData();
-      
+
       // Clear SharedPreferences but preserve theme setting
       final prefs = await SharedPreferences.getInstance();
       final themeMode = prefs.getString('theme_mode');
@@ -164,17 +171,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (themeMode != null) {
         await prefs.setString('theme_mode', themeMode);
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("All data cleared successfully. You can now set up the app from scratch."),
+          content: Text(
+            "All data cleared successfully. You can now set up the app from scratch.",
+          ),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 2),
         ),
       );
-      
+
       await Future.delayed(Duration(milliseconds: 500));
-      
+
       // Use the onReset callback to trigger complete app reset
       if (widget.onReset != null) {
         widget.onReset!();
@@ -221,7 +230,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SizedBox(height: 12),
               Text(
                 "Vault entries cannot be recovered once deleted!",
-                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
               ),
               SizedBox(height: 8),
               Text("Your regular journal entries will remain intact."),
@@ -250,18 +262,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       // Clear vault data first (this makes the vault entries inaccessible)
       await PlatformDatabaseService.clearVaultData();
-      
+
       // Then clear the vault PIN
       await KeyService.clearVaultPin();
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Vault PIN and all vault entries cleared. Please set a new PIN."),
+          content: Text(
+            "Vault PIN and all vault entries cleared. Please set a new PIN.",
+          ),
           backgroundColor: Colors.green,
           duration: Duration(seconds: 3),
         ),
       );
-      
+
       // Navigate to set new PIN, but keep navigation stack intact
       await Future.delayed(Duration(milliseconds: 500));
       Navigator.of(context).push(
@@ -300,7 +314,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("⚠️ PRIVACY WARNING", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+              Text(
+                "⚠️ PRIVACY WARNING",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange,
+                ),
+              ),
               SizedBox(height: 12),
               Text("Exporting will:"),
               SizedBox(height: 8),
@@ -309,7 +329,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text("• Create a readable JSON file"),
               Text("• Store data without password protection"),
               SizedBox(height: 12),
-              Text("Store the exported file securely for privacy!", style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                "Store the exported file securely for privacy!",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
             ],
           ),
           actions: [
@@ -341,19 +364,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
         return;
       }
-      
+
       final exportData = {
         'version': '1.0.0',
         'export_date': DateTime.now().toIso8601String(),
         'total_entries': entries.length,
-        'warning': 'This file contains unencrypted personal journal data. Store securely!',
+        'warning':
+            'This file contains unencrypted personal journal data. Store securely!',
         'entries': entries.map((entry) => entry.toMap()).toList(),
       };
-      
+
       final jsonData = jsonEncode(exportData);
       final file = await _getExportFile();
       await file.writeAsString(jsonData);
-      
+
       setState(() {
         _exporting = false;
         _exportStatus = "Export successful: ${file.path}";
@@ -378,7 +402,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           context: context,
           builder: (context) => AlertDialog(
             title: Text('Help & Documentation'),
-            content: SelectableText('Visit: https://github.com/Wiradjuri/mental_health_vault'),
+            content: SelectableText(
+              'Visit: https://github.com/Wiradjuri/mental_health_vault',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -422,10 +448,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     value: ThemeMode.light,
                     child: Text("Light"),
                   ),
-                  DropdownMenuItem(
-                    value: ThemeMode.dark,
-                    child: Text("Dark"),
-                  ),
+                  DropdownMenuItem(value: ThemeMode.dark, child: Text("Dark")),
                 ],
                 onChanged: _changeTheme,
               ),
@@ -447,7 +470,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: Text("Export"),
                     ),
               subtitle: _exportStatus != null
-                  ? Text(_exportStatus!, style: TextStyle(color: Colors.green, fontSize: 12))
+                  ? Text(
+                      _exportStatus!,
+                      style: TextStyle(color: Colors.green, fontSize: 12),
+                    )
                   : null,
             ),
             Divider(),
@@ -456,7 +482,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               leading: Icon(Icons.lock_reset),
               title: Text("Reset Vault PIN"),
-              subtitle: Text("⚠️ Deletes ALL vault entries and clears PIN (cannot be recovered)"),
+              subtitle: Text(
+                "⚠️ Deletes ALL vault entries and clears PIN (cannot be recovered)",
+              ),
               trailing: ElevatedButton(
                 onPressed: _resetVaultPin,
                 child: Text("Reset PIN"),
@@ -471,7 +499,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Clear Data & Reset Vault PIN
             ListTile(
               leading: Icon(Icons.delete_forever, color: Colors.red),
-              title: Text("Clear Data & Reset Vault PIN", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
+              title: Text(
+                "Clear Data & Reset Vault PIN",
+                style: TextStyle(color: theme.textTheme.bodyMedium?.color),
+              ),
               trailing: ElevatedButton(
                 onPressed: _showResetAllDataConfirmation,
                 child: Text("Reset All"),
@@ -479,7 +510,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(horizontal: 24),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
               subtitle: Text(

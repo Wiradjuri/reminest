@@ -7,7 +7,8 @@ import '../services/password_service.dart';
 class SetPasswordScreen extends StatefulWidget {
   final VoidCallback onPasswordSet; // Now REQUIRED
 
-  const SetPasswordScreen({Key? key, required this.onPasswordSet}) : super(key: key);
+  const SetPasswordScreen({Key? key, required this.onPasswordSet})
+    : super(key: key);
 
   @override
   State<SetPasswordScreen> createState() => _SetPasswordScreenState();
@@ -38,9 +39,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     if (_isLoading) return;
 
     if (_passwordController.text != _confirmController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Passwords do not match')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Passwords do not match')));
       return;
     }
 
@@ -54,10 +55,14 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final passkey = await PasswordService.setPassword(_passwordController.text);
+      final passkey = await PasswordService.setPassword(
+        _passwordController.text,
+      );
       await KeyService.savePassword(_passwordController.text);
       await KeyService.setPasswordSetFlag();
-      final keyBytes = KeyService.generateKeyFromPassword(_passwordController.text);
+      final keyBytes = KeyService.generateKeyFromPassword(
+        _passwordController.text,
+      );
       EncryptionService.initializeKey(keyBytes);
 
       if (mounted) {
@@ -65,9 +70,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to set password: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to set password: $e')));
       }
     } finally {
       if (mounted) {
@@ -190,7 +195,8 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bool canSubmit = _passwordController.text.isNotEmpty &&
+    final bool canSubmit =
+        _passwordController.text.isNotEmpty &&
         _confirmController.text.isNotEmpty &&
         !_isLoading;
 
@@ -254,8 +260,11 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                   borderSide: BorderSide(color: theme.primaryColor),
                 ),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
             ),
@@ -290,8 +299,11 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                   borderSide: BorderSide(color: theme.primaryColor),
                 ),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirm ? Icons.visibility : Icons.visibility_off),
-                  onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                  icon: Icon(
+                    _obscureConfirm ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscureConfirm = !_obscureConfirm),
                 ),
               ),
             ),
@@ -369,7 +381,8 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                           ? 'Passwords match'
                           : 'Passwords do not match',
                       style: TextStyle(
-                        color: _passwordController.text == _confirmController.text
+                        color:
+                            _passwordController.text == _confirmController.text
                             ? Colors.green.shade700
                             : Colors.red.shade700,
                         fontSize: 12,
@@ -402,7 +415,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           ),
                           SizedBox(width: 12),

@@ -83,15 +83,19 @@ void main() {
     test('decrypt throws error for invalid ciphertext', () {
       final invalidCiphertext = Uint8List.fromList([1, 2, 3, 4]);
 
-      expect(() => EncryptionService.decrypt(invalidCiphertext), throwsA(isA<RangeError>()));
+      expect(
+        () => EncryptionService.decrypt(invalidCiphertext),
+        throwsA(isA<RangeError>()),
+      );
     });
 
     test('decryptText throws error for invalid Base64 string', () {
       const invalidBase64 = 'invalid_base64_string';
 
-      expect(() => EncryptionService.decryptText(invalidBase64), throwsA(isA<FormatException>()));
+      expect(
+        () => EncryptionService.decryptText(invalidBase64),
+        throwsA(isA<FormatException>()),
+      );
     });
   });
 }
-
-

@@ -10,7 +10,7 @@ class ViewEntryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -34,7 +34,7 @@ class ViewEntryScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16),
-            
+
             // Entry metadata
             Container(
               padding: EdgeInsets.all(12),
@@ -47,7 +47,11 @@ class ViewEntryScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: theme.textTheme.bodySmall?.color),
+                      Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: theme.textTheme.bodySmall?.color,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         'Created: ${entry.createdAt.toLocal().toString().split(' ')[0]}',
@@ -62,12 +66,16 @@ class ViewEntryScreen extends StatelessWidget {
                     SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.schedule, size: 16, color: theme.textTheme.bodySmall?.color),
+                        Icon(
+                          Icons.schedule,
+                          size: 16,
+                          color: theme.textTheme.bodySmall?.color,
+                        ),
                         SizedBox(width: 8),
                         Text(
-                          entry.isInVault 
-                            ? 'Vault unlock date: ${entry.reviewDate!.toLocal().toString().split(' ')[0]}'
-                            : 'Review date: ${entry.reviewDate!.toLocal().toString().split(' ')[0]}',
+                          entry.isInVault
+                              ? 'Vault unlock date: ${entry.reviewDate!.toLocal().toString().split(' ')[0]}'
+                              : 'Review date: ${entry.reviewDate!.toLocal().toString().split(' ')[0]}',
                           style: TextStyle(
                             color: theme.textTheme.bodySmall?.color,
                             fontSize: 12,
@@ -97,7 +105,7 @@ class ViewEntryScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 24),
-            
+
             // Entry body
             Container(
               width: double.infinity,
@@ -116,7 +124,7 @@ class ViewEntryScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // Image attachment if present
             if (entry.imagePath != null) ...[
               SizedBox(height: 24),
@@ -177,7 +185,7 @@ class ViewEntryScreen extends StatelessWidget {
                 ),
               ),
             ],
-            
+
             SizedBox(height: 40),
           ],
         ),

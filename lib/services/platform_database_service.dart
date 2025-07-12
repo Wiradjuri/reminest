@@ -19,7 +19,9 @@ class PlatformDatabaseService {
         // For web, use shared_preferences instead of SQLite for now
         // We'll store data as JSON strings
         _isInitialized = true;
-        print("[PlatformDatabaseService] Web storage initialized (using SharedPreferences)");
+        print(
+          "[PlatformDatabaseService] Web storage initialized (using SharedPreferences)",
+        );
         return;
       } else if (Platform.isAndroid || Platform.isIOS) {
         // Mobile platforms (Android/iOS)
@@ -32,8 +34,11 @@ class PlatformDatabaseService {
         // Desktop platforms (Windows/Linux/macOS)
         desktop.sqfliteFfiInit();
         desktop.databaseFactory = desktop.databaseFactoryFfi;
-        
-        final dbPath = p.join(await desktop.getDatabasesPath(), 'journal_entries.db');
+
+        final dbPath = p.join(
+          await desktop.getDatabasesPath(),
+          'journal_entries.db',
+        );
         _db = await desktop.databaseFactoryFfi.openDatabase(
           dbPath,
           options: desktop.OpenDatabaseOptions(
@@ -42,9 +47,11 @@ class PlatformDatabaseService {
           ),
         );
       }
-      
+
       _isInitialized = true;
-      print("[PlatformDatabaseService] Database initialized for ${_getPlatformName()}");
+      print(
+        "[PlatformDatabaseService] Database initialized for ${_getPlatformName()}",
+      );
     } catch (e) {
       print("[PlatformDatabaseService] Error initializing database: $e");
       rethrow;
@@ -52,7 +59,10 @@ class PlatformDatabaseService {
   }
 
   /// Create database tables for mobile platforms
-  static Future<void> _createMobileTables(mobile.Database db, int version) async {
+  static Future<void> _createMobileTables(
+    mobile.Database db,
+    int version,
+  ) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,7 +78,10 @@ class PlatformDatabaseService {
   }
 
   /// Create database tables for desktop platforms
-  static Future<void> _createDesktopTables(desktop.Database db, int version) async {
+  static Future<void> _createDesktopTables(
+    desktop.Database db,
+    int version,
+  ) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,13 +110,15 @@ class PlatformDatabaseService {
   /// Add a new journal entry to the database
   static Future<void> addEntry(JournalEntry entry) async {
     if (!_isInitialized) await initDB();
-    
+
     if (kIsWeb) {
       // For web, we'll use a simple in-memory list for now
-      print("[PlatformDatabaseService] Web storage not yet implemented for entries");
+      print(
+        "[PlatformDatabaseService] Web storage not yet implemented for entries",
+      );
       return;
     }
-    
+
     try {
       await _db!.insert('entries', {
         'title': EncryptionService.encryptText(entry.title),
@@ -124,12 +139,12 @@ class PlatformDatabaseService {
   /// Get all journal entries from the database
   static Future<List<JournalEntry>> getAllEntries() async {
     if (!_isInitialized) await initDB();
-    
+
     if (kIsWeb) {
       // For web, return empty list for now
       return [];
     }
-    
+
     try {
       final List<Map<String, dynamic>> maps = await _db!.query('entries');
       return maps.map((map) => _mapToJournalEntry(map)).toList();
@@ -142,11 +157,11 @@ class PlatformDatabaseService {
   /// Get entries that are not in the vault
   static Future<List<JournalEntry>> getRegularEntries() async {
     if (!_isInitialized) await initDB();
-    
+
     if (kIsWeb) {
       return [];
     }
-    
+
     try {
       final List<Map<String, dynamic>> maps = await _db!.query(
         'entries',
@@ -163,11 +178,11 @@ class PlatformDatabaseService {
   /// Get entries that are in the vault
   static Future<List<JournalEntry>> getVaultEntries() async {
     if (!_isInitialized) await initDB();
-    
+
     if (kIsWeb) {
       return [];
     }
-    
+
     try {
       final List<Map<String, dynamic>> maps = await _db!.query(
         'entries',
@@ -184,12 +199,12 @@ class PlatformDatabaseService {
   /// Update an existing journal entry
   static Future<void> updateEntry(JournalEntry entry) async {
     if (!_isInitialized) await initDB();
-    
+
     if (kIsWeb) {
       print("[PlatformDatabaseService] Web update not yet implemented");
       return;
     }
-    
+
     try {
       await _db!.update(
         'entries',
@@ -214,18 +229,14 @@ class PlatformDatabaseService {
   /// Delete a journal entry by ID
   static Future<void> deleteEntry(int id) async {
     if (!_isInitialized) await initDB();
-    
+
     if (kIsWeb) {
       print("[PlatformDatabaseService] Web delete not yet implemented");
       return;
     }
-    
+
     try {
-      await _db!.delete(
-        'entries',
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await _db!.delete('entries', where: 'id = ?', whereArgs: [id]);
       print("[PlatformDatabaseService] Entry deleted successfully");
     } catch (e) {
       print("[PlatformDatabaseService] Error deleting entry: $e");
@@ -236,18 +247,14 @@ class PlatformDatabaseService {
   /// Clear all vault data (entries marked as in vault)
   static Future<void> clearVaultData() async {
     if (!_isInitialized) await initDB();
-    
+
     if (kIsWeb) {
       print("[PlatformDatabaseService] Web vault clear not yet implemented");
       return;
     }
-    
+
     try {
-      await _db!.delete(
-        'entries',
-        where: 'isInVault = ?',
-        whereArgs: [1],
-      );
+      await _db!.delete('entries', where: 'isInVault = ?', whereArgs: [1]);
       print("[PlatformDatabaseService] Vault data cleared successfully");
     } catch (e) {
       print("[PlatformDatabaseService] Error clearing vault data: $e");
@@ -258,12 +265,12 @@ class PlatformDatabaseService {
   /// Clear all data from the database
   static Future<void> clearAllData() async {
     if (!_isInitialized) await initDB();
-    
+
     if (kIsWeb) {
       print("[PlatformDatabaseService] Web clear all not yet implemented");
       return;
     }
-    
+
     try {
       await _db!.delete('entries');
       print("[PlatformDatabaseService] All data cleared successfully");

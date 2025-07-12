@@ -15,7 +15,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   final _bodyController = TextEditingController();
   final _titleFocusNode = FocusNode();
   final _bodyFocusNode = FocusNode();
-  DateTime? _lockUntilDate; // Optional lock date unless specified with ticked store in vault box
+  DateTime?
+  _lockUntilDate; // Optional lock date unless specified with ticked store in vault box
   File? _selectedImage; // optional image attachment
   bool _storeInVault = false; // Whether to store in vault or journal
   bool _isSaving = false; // Whether currently saving entry
@@ -91,7 +92,11 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       if (_lockUntilDate == null) {
         // User cancelled date selection
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vault entries require a lock date. Please select a date or uncheck "Store in Vault".')),
+          SnackBar(
+            content: Text(
+              'Vault entries require a lock date. Please select a date or uncheck "Store in Vault".',
+            ),
+          ),
         );
         return;
       }
@@ -99,15 +104,13 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
 
     // Determine storage location based on lock date
     final bool shouldStoreInVault = _lockUntilDate != null;
-    
+
     // Perform save directly without dialog
     await _performSave(
       storeInVault: shouldStoreInVault,
       lockUntilDate: _lockUntilDate,
     );
   }
-
-
 
   Future<void> _performSave({
     required bool storeInVault,
@@ -123,8 +126,11 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     final entry = JournalEntry(
       title: _titleController.text,
       body: _bodyController.text,
-      reviewDate: storeInVault 
-          ? (lockUntilDate ?? DateTime.now().add(Duration(minutes: 1))) // Default vault unlock in 1 minute for testing
+      reviewDate: storeInVault
+          ? (lockUntilDate ??
+                DateTime.now().add(
+                  Duration(minutes: 1),
+                )) // Default vault unlock in 1 minute for testing
           : DateTime.now(), // Journal entries are immediately available
       imagePath: imagePath,
       isInVault: storeInVault,
@@ -137,18 +143,20 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         Navigator.pop(context, true); // Return true to indicate success
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(storeInVault 
-              ? 'Entry saved to vault successfully!'
-              : 'Entry saved to journal successfully!'),
+            content: Text(
+              storeInVault
+                  ? 'Entry saved to vault successfully!'
+                  : 'Entry saved to journal successfully!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e, stack) {
       debugPrint('Failed to save entry: $e\n$stack');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save entry: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to save entry: $e')));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -157,7 +165,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -203,9 +211,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   ),
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // Body Field
               Text(
                 'Content',
@@ -238,9 +246,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   contentPadding: EdgeInsets.all(16),
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // Optional Time Lock Section
               Container(
                 padding: EdgeInsets.all(16),
@@ -278,12 +286,12 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                     Container(
                       padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: _lockUntilDate != null 
+                        color: _lockUntilDate != null
                             ? theme.primaryColor.withOpacity(0.1)
                             : theme.cardColor.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: _lockUntilDate != null 
+                          color: _lockUntilDate != null
                               ? theme.primaryColor.withOpacity(0.3)
                               : theme.dividerColor,
                         ),
@@ -291,18 +299,22 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                       child: Row(
                         children: [
                           Icon(
-                            _lockUntilDate != null ? Icons.security : Icons.book,
-                            color: _lockUntilDate != null ? theme.primaryColor : theme.iconTheme.color,
+                            _lockUntilDate != null
+                                ? Icons.security
+                                : Icons.book,
+                            color: _lockUntilDate != null
+                                ? theme.primaryColor
+                                : theme.iconTheme.color,
                             size: 16,
                           ),
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              _lockUntilDate != null 
+                              _lockUntilDate != null
                                   ? '📁 This entry will be saved in the VAULT (time-locked)'
                                   : '📝 This entry will be saved in the JOURNAL (immediately accessible)',
                               style: TextStyle(
-                                color: _lockUntilDate != null 
+                                color: _lockUntilDate != null
                                     ? theme.primaryColor
                                     : theme.textTheme.bodySmall?.color,
                                 fontSize: 12,
@@ -334,11 +346,17 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.orange.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                                border: Border.all(
+                                  color: Colors.orange.withOpacity(0.3),
+                                ),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.lock_clock, color: Colors.orange, size: 18),
+                                  Icon(
+                                    Icons.lock_clock,
+                                    color: Colors.orange,
+                                    size: 18,
+                                  ),
                                   SizedBox(width: 8),
                                   Text(
                                     'Locked until: ${_lockUntilDate!.toLocal().toString().split(' ')[0]}',
@@ -362,18 +380,22 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   ],
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // Vault Storage Option
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: _storeInVault ? theme.primaryColor.withOpacity(0.1) : theme.cardColor,
+                  color: _storeInVault
+                      ? theme.primaryColor.withOpacity(0.1)
+                      : theme.cardColor,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: _storeInVault ? theme.primaryColor.withOpacity(0.3) : theme.dividerColor,
+                    color: _storeInVault
+                        ? theme.primaryColor.withOpacity(0.3)
+                        : theme.dividerColor,
                     width: 1,
                   ),
                 ),
@@ -393,7 +415,10 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                       title: Text('Store in Vault'),
                       subtitle: Text(
                         'Check to store this entry in the vault (requires a lock date for automatic time-based access)',
-                        style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.textTheme.bodySmall?.color,
+                        ),
                       ),
                       value: _storeInVault,
                       onChanged: (value) async {
@@ -420,11 +445,17 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                         decoration: BoxDecoration(
                           color: Colors.green.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.green.withOpacity(0.3)),
+                          border: Border.all(
+                            color: Colors.green.withOpacity(0.3),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.lock_clock, color: Colors.green, size: 18),
+                            Icon(
+                              Icons.lock_clock,
+                              color: Colors.green,
+                              size: 18,
+                            ),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -443,9 +474,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   ],
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // Photo Attachment Section
               Container(
                 padding: EdgeInsets.all(16),
@@ -492,11 +523,17 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.green.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: Colors.green.withOpacity(0.3)),
+                                border: Border.all(
+                                  color: Colors.green.withOpacity(0.3),
+                                ),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(Icons.check_circle, color: Colors.green, size: 18),
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 18,
+                                  ),
                                   SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -514,7 +551,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                           ),
                           SizedBox(width: 8),
                           IconButton(
-                            onPressed: () => setState(() => _selectedImage = null),
+                            onPressed: () =>
+                                setState(() => _selectedImage = null),
                             icon: Icon(Icons.clear, color: Colors.red),
                             tooltip: 'Remove photo',
                           ),
@@ -523,9 +561,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   ],
                 ),
               ),
-              
+
               SizedBox(height: 30),
-              
+
               // Save Button
               SizedBox(
                 width: double.infinity,
@@ -549,7 +587,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             ),
                             SizedBox(width: 12),
@@ -572,5 +612,3 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     );
   }
 }
-
-

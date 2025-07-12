@@ -1,4 +1,3 @@
-
 import 'package:crypto/crypto.dart';
 // Dart core libraries for file, encoding, randomness, and byte data
 import 'dart:io'; // For file and directory operations
@@ -13,24 +12,28 @@ import 'package:path_provider/path_provider.dart'; // For accessing app-specific
 class PasswordService {
   static const String _passwordFileName = 'app_password.sec';
   static const String _passkeyFileName = 'recovery_passkey.sec';
-  static const int _pbkdf2Iterations = 100000; // High iteration count for security
+  static const int _pbkdf2Iterations =
+      100000; // High iteration count for security
 
   /// Generate a secure random passkey for password recovery
   static String generatePasskey() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final random = Random.secure();
-    return List.generate(16, (index) => chars[random.nextInt(chars.length)]).join();
+    return List.generate(
+      16,
+      (index) => chars[random.nextInt(chars.length)],
+    ).join();
   }
 
   /// PBKDF2 implementation using HMAC-SHA256
   static String _pbkdf2(String password, String salt, int iterations) {
     var hmac = Hmac(sha256, utf8.encode(password));
     var digest = hmac.convert(utf8.encode(salt));
-    
+
     for (int i = 1; i < iterations; i++) {
       digest = hmac.convert(digest.bytes);
     }
-    
+
     return digest.toString();
   }
 
@@ -55,10 +58,10 @@ class PasswordService {
     // Generate cryptographically secure salt and passkey
     final salt = _generateSalt();
     final passkey = generatePasskey();
-    
+
     // Derive strong key from password using PBKDF2 with high iteration count
     final hashedPassword = _pbkdf2(password, salt, _pbkdf2Iterations);
-    
+
     // Create password data structure with metadata
     final passwordData = {
       'hash': hashedPassword,
@@ -66,7 +69,7 @@ class PasswordService {
       'iterations': _pbkdf2Iterations,
       'created': DateTime.now().toIso8601String(),
       'algorithm': 'PBKDF2-SHA256',
-      'version': '2.0'
+      'version': '2.0',
     };
 
     // Store password data as encrypted JSON
@@ -78,10 +81,12 @@ class PasswordService {
     final passkeyHash = _pbkdf2(passkey, salt, 50000); // Hash the passkey too
     final passkeyData = {
       'passkeyHash': passkeyHash,
-      'passkey': base64.encode(utf8.encode(passkey)), // Base64 encode the passkey
+      'passkey': base64.encode(
+        utf8.encode(passkey),
+      ), // Base64 encode the passkey
       'salt': salt,
       'created': DateTime.now().toIso8601String(),
-      'version': '2.0'
+      'version': '2.0',
     };
 
     final passkeyJson = jsonEncode(passkeyData);
@@ -105,7 +110,7 @@ class PasswordService {
       final encryptedData = await passwordFile.readAsString();
       final decryptedData = utf8.decode(base64.decode(encryptedData));
       final passwordData = jsonDecode(decryptedData);
-      
+
       final storedHash = passwordData['hash'];
       final salt = passwordData['salt'];
       final iterations = passwordData['iterations'] ?? _pbkdf2Iterations;
@@ -143,7 +148,7 @@ class PasswordService {
       final encryptedData = await passkeyFile.readAsString();
       final decryptedData = utf8.decode(base64.decode(encryptedData));
       final passkeyData = jsonDecode(decryptedData);
-      
+
       // Decode the base64 encoded passkey
       final passkey = utf8.decode(base64.decode(passkeyData['passkey']));
       return passkey;
@@ -153,7 +158,10 @@ class PasswordService {
   }
 
   /// Reset password using passkey
-  static Future<bool> resetPasswordWithPasskey(String passkey, String newPassword) async {
+  static Future<bool> resetPasswordWithPasskey(
+    String passkey,
+    String newPassword,
+  ) async {
     try {
       final storedPasskey = await getRecoveryPasskey();
       if (storedPasskey == null || storedPasskey != passkey) {
@@ -193,17 +201,20 @@ class PasswordService {
     try {
       final fileSize = await file.length();
       final random = Random.secure();
-      
+
       // Overwrite with random data 3 times
       for (int pass = 0; pass < 3; pass++) {
-        final randomData = List<int>.generate(fileSize, (i) => random.nextInt(256));
+        final randomData = List<int>.generate(
+          fileSize,
+          (i) => random.nextInt(256),
+        );
         await file.writeAsBytes(randomData);
       }
-      
+
       // Final overwrite with zeros
       final zeroData = List<int>.filled(fileSize, 0);
       await file.writeAsBytes(zeroData);
-      
+
       // Delete the file
       await file.delete();
     } catch (e) {
@@ -230,7 +241,7 @@ class PasswordService {
       final encryptedData = await passwordFile.readAsString();
       final decryptedData = utf8.decode(base64.decode(encryptedData));
       final passwordData = jsonDecode(decryptedData);
-      
+
       return DateTime.parse(passwordData['created']);
     } catch (e) {
       return null;
@@ -251,13 +262,15 @@ class PasswordService {
       final encryptedData = await passwordFile.readAsString();
       final decryptedData = utf8.decode(base64.decode(encryptedData));
       final passwordData = jsonDecode(decryptedData);
-      
+
       return {
         'algorithm': passwordData['algorithm'] ?? 'SHA256',
         'iterations': passwordData['iterations'] ?? 1,
         'version': passwordData['version'] ?? '1.0',
         'created': passwordData['created'],
-        'isSecure': (passwordData['iterations'] ?? 1) >= 50000, // Consider secure if >= 50k iterations
+        'isSecure':
+            (passwordData['iterations'] ?? 1) >=
+            50000, // Consider secure if >= 50k iterations
       };
     } catch (e) {
       return null;

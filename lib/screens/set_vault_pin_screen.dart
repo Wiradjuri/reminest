@@ -4,10 +4,11 @@ import 'package:reminest/screens/vault_screen.dart'; // Import the vault screen 
 
 // Stateful widget for setting the vault PIN
 class SetVaultPinScreen extends StatefulWidget {
-  final VoidCallback? onComplete; // Optional callback when PIN is set successfully
-  
+  final VoidCallback?
+  onComplete; // Optional callback when PIN is set successfully
+
   SetVaultPinScreen({this.onComplete});
-  
+
   @override
   State<SetVaultPinScreen> createState() => _SetVaultPinScreenState(); // Create state for the widget
 }
@@ -15,9 +16,12 @@ class SetVaultPinScreen extends StatefulWidget {
 // State class for SetVaultPinScreen
 class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
   final _pinController = TextEditingController(); // Controller for PIN input
-  final _confirmController = TextEditingController(); // Controller for confirm PIN input
-  bool _isButtonEnabled = false; // Tracks if the set PIN button should be enabled
-  bool _isLoading = false; // Tracks if the PIN is being set (shows loading indicator)
+  final _confirmController =
+      TextEditingController(); // Controller for confirm PIN input
+  bool _isButtonEnabled =
+      false; // Tracks if the set PIN button should be enabled
+  bool _isLoading =
+      false; // Tracks if the PIN is being set (shows loading indicator)
 
   @override
   void initState() {
@@ -29,8 +33,12 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
 
   @override
   void dispose() {
-    _pinController.removeListener(_updateButtonState); // Remove listener from PIN controller
-    _confirmController.removeListener(_updateButtonState); // Remove listener from confirm controller
+    _pinController.removeListener(
+      _updateButtonState,
+    ); // Remove listener from PIN controller
+    _confirmController.removeListener(
+      _updateButtonState,
+    ); // Remove listener from confirm controller
     _pinController.dispose(); // Dispose PIN controller
     _confirmController.dispose(); // Dispose confirm controller
     super.dispose(); // Call parent dispose
@@ -39,27 +47,35 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
   // Updates the state of the set PIN button based on input fields
   void _updateButtonState() {
     setState(() {
-      _isButtonEnabled = _pinController.text.isNotEmpty && 
-                        _confirmController.text.isNotEmpty; // Enable if both fields are not empty
+      _isButtonEnabled =
+          _pinController.text.isNotEmpty &&
+          _confirmController
+              .text
+              .isNotEmpty; // Enable if both fields are not empty
     });
   }
 
   // Handles setting the PIN
   void _setPin() async {
     if (_isLoading) return; // Prevent multiple submissions
-    
+
     // Check if PIN and confirm PIN match
     if (_pinController.text != _confirmController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('PINs do not match.')), // Show error if not matching
+        SnackBar(
+          content: Text('PINs do not match.'),
+        ), // Show error if not matching
       );
       return;
     }
     // Validate PIN length and digits
-    if (_pinController.text.length < 4 || _pinController.text.length > 6 ||
+    if (_pinController.text.length < 4 ||
+        _pinController.text.length > 6 ||
         !RegExp(r'^\d+$').hasMatch(_pinController.text)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('PIN must be 4-6 digits.')), // Show error if invalid
+        SnackBar(
+          content: Text('PIN must be 4-6 digits.'),
+        ), // Show error if invalid
       );
       return;
     }
@@ -67,8 +83,10 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
     setState(() => _isLoading = true); // Show loading indicator
 
     try {
-      await KeyService.saveVaultPin(_pinController.text); // Save the PIN using KeyService
-      
+      await KeyService.saveVaultPin(
+        _pinController.text,
+      ); // Save the PIN using KeyService
+
       if (mounted) {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,7 +95,7 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        
+
         // Use callback if provided, otherwise navigate to vault screen
         if (widget.onComplete != null) {
           widget.onComplete!();
@@ -109,7 +127,7 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context); // Get current theme
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor, // Set background color
 
@@ -130,8 +148,12 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
               padding: EdgeInsets.all(16), // Inner padding
               margin: EdgeInsets.only(bottom: 24), // Margin below
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1), // Light orange background
-                border: Border.all(color: Colors.orange.withOpacity(0.3)), // Orange border
+                color: Colors.orange.withOpacity(
+                  0.1,
+                ), // Light orange background
+                border: Border.all(
+                  color: Colors.orange.withOpacity(0.3),
+                ), // Orange border
                 borderRadius: BorderRadius.circular(8), // Rounded corners
               ),
               child: Column(
@@ -139,7 +161,11 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.warning_amber, color: Colors.orange, size: 24), // Warning icon
+                      Icon(
+                        Icons.warning_amber,
+                        color: Colors.orange,
+                        size: 24,
+                      ), // Warning icon
                       SizedBox(width: 8), // Space between icon and text
                       Text(
                         "Important: PIN Security", // Section title
@@ -169,43 +195,60 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
               keyboardType: TextInputType.number, // Numeric keyboard
               maxLength: 6, // Max 6 digits
               onSubmitted: (_) => _isLoading ? null : _setPin(),
-              style: TextStyle(color: theme.textTheme.bodyLarge?.color), // Text color
+              style: TextStyle(
+                color: theme.textTheme.bodyLarge?.color,
+              ), // Text color
               decoration: InputDecoration(
                 hintText: 'Enter 4-6 digit PIN', // Placeholder text
                 hintStyle: TextStyle(color: theme.hintColor), // Hint color
                 counterText: "", // Hide counter
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: theme.dividerColor), // Border color when enabled
+                  borderSide: BorderSide(
+                    color: theme.dividerColor,
+                  ), // Border color when enabled
                 ),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: theme.primaryColor), // Border color when focused
+                  borderSide: BorderSide(
+                    color: theme.primaryColor,
+                  ), // Border color when focused
                 ),
                 disabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: theme.dividerColor.withOpacity(0.5)), // Border color when disabled
+                  borderSide: BorderSide(
+                    color: theme.dividerColor.withOpacity(0.5),
+                  ), // Border color when disabled
                 ),
               ),
             ),
             SizedBox(height: 20), // Space between fields
             TextField(
-              controller: _confirmController, // Controller for confirm PIN input
+              controller:
+                  _confirmController, // Controller for confirm PIN input
               enabled: !_isLoading, // Disable if loading
               obscureText: true, // Hide input
               keyboardType: TextInputType.number, // Numeric keyboard
               maxLength: 6, // Max 6 digits
               onSubmitted: (_) => _isLoading ? null : _setPin(),
-              style: TextStyle(color: theme.textTheme.bodyLarge?.color), // Text color
+              style: TextStyle(
+                color: theme.textTheme.bodyLarge?.color,
+              ), // Text color
               decoration: InputDecoration(
                 hintText: 'Confirm PIN', // Placeholder text
                 hintStyle: TextStyle(color: theme.hintColor), // Hint color
                 counterText: "", // Hide counter
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: theme.dividerColor), // Border color when enabled
+                  borderSide: BorderSide(
+                    color: theme.dividerColor,
+                  ), // Border color when enabled
                 ),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: theme.primaryColor), // Border color when focused
+                  borderSide: BorderSide(
+                    color: theme.primaryColor,
+                  ), // Border color when focused
                 ),
                 disabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: theme.dividerColor.withOpacity(0.5)), // Border color when disabled
+                  borderSide: BorderSide(
+                    color: theme.dividerColor.withOpacity(0.5),
+                  ), // Border color when disabled
                 ),
               ),
             ),
@@ -214,7 +257,8 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
               width: double.infinity, // Button takes full width
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primaryColor, // Button background color
+                  backgroundColor:
+                      theme.primaryColor, // Button background color
                   foregroundColor: Colors.white, // Button text color
                   elevation: 6, // Button shadow
                   padding: EdgeInsets.symmetric(vertical: 14), // Button padding
@@ -222,29 +266,40 @@ class _SetVaultPinScreenState extends State<SetVaultPinScreen> {
                     borderRadius: BorderRadius.circular(10), // Rounded corners
                   ),
                 ),
-                onPressed: (_isButtonEnabled && !_isLoading) ? _setPin : null, // Enable if inputs valid and not loading
+                onPressed: (_isButtonEnabled && !_isLoading)
+                    ? _setPin
+                    : null, // Enable if inputs valid and not loading
                 child: _isLoading
                     ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center, // Center loading row
+                        mainAxisAlignment:
+                            MainAxisAlignment.center, // Center loading row
                         children: [
                           SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // White spinner
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ), // White spinner
                             ),
                           ),
                           SizedBox(width: 12), // Space between spinner and text
                           Text(
                             'Setting PIN...', // Loading text
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       )
                     : Text(
                         'Set PIN', // Button text
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
               ),
             ),

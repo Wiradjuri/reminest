@@ -29,10 +29,7 @@ class EncryptionService {
     final iv = _generateRandomBytes(16);
 
     final cipher = CBCBlockCipher(AESEngine())
-      ..init(
-        true,
-        ParametersWithIV(KeyParameter(_key), iv),
-      );
+      ..init(true, ParametersWithIV(KeyParameter(_key), iv));
 
     // Encrypt the data with padding
     final encryptedData = _processBlocks(cipher, _addPadding(data));
@@ -52,10 +49,7 @@ class EncryptionService {
     final ciphertext = encryptedData.sublist(16);
 
     final cipher = CBCBlockCipher(AESEngine())
-      ..init(
-        false,
-        ParametersWithIV(KeyParameter(_key), iv),
-      );
+      ..init(false, ParametersWithIV(KeyParameter(_key), iv));
 
     // Decrypt the data and remove padding
     return _removePadding(_processBlocks(cipher, ciphertext));
@@ -112,6 +106,8 @@ class EncryptionService {
   /// Generates a list of random bytes of the specified length.
   static Uint8List _generateRandomBytes(int length) {
     final random = Random.secure();
-    return Uint8List.fromList(List.generate(length, (_) => random.nextInt(256)));
+    return Uint8List.fromList(
+      List.generate(length, (_) => random.nextInt(256)),
+    );
   }
 }
