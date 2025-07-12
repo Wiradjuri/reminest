@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/key_service.dart';
 import '../services/password_service.dart';
 import 'set_password_screen.dart';
 import 'login_screen.dart';
@@ -498,12 +497,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ],
     );
-  }
-
-  Widget _buildOpenJournalButton(ThemeData theme) {
-    // This method is no longer used as the functionality is moved to _buildActionButtons
-    // Keeping for backward compatibility, but returns empty widget
-    return SizedBox.shrink();
   }
 }
 // This is the HomeScreen widget. It serves as the landing page for the Reminest app, providing a welcoming message and mental health support resources in an integrated table format.
