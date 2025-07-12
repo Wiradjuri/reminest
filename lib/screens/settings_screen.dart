@@ -4,12 +4,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'dart:io';
-import '../services/platform_database_service.dart';
-import '../services/key_service.dart';
-import '../services/password_service.dart';
-import 'set_password_screen.dart';
-import 'journal_screen.dart';
-import 'set_vault_pin_screen.dart';
+import 'reminest/lib/services/platform_database_service.dart';
+import 'reminest/lib/services/key_service.dart';
+import 'reminest/lib/services/password_service.dart';
+import 'reminest/lib/screens/set_password_screen.dart';
+import 'reminest/lib/screens/journal_screen.dart';
+import 'reminest/lib/screens/set_vault_pin_screen.dart';
 
 
 class SettingsScreen extends StatefulWidget {

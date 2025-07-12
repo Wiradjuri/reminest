@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import '../models/journal_entry.dart';
-import '../services/platform_database_service.dart';
+import 'lib/models/journal_entry.dart';
+import 'lib/services/platform_database_service.dart';
 
 class EditEntryScreen extends StatefulWidget {
   final JournalEntry entry;

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../services/platform_database_service.dart';
-import '../models/journal_entry.dart';
+import 'reminest/lib/services/platform_database_service.dart';
+import 'reminest/lib/models/journal_entry.dart';
 
 class VaultScreen extends StatefulWidget {
   @override

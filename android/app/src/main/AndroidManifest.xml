@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="mental_health_vault"
+        android:label="reminest"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
