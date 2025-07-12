@@ -1,8 +1,8 @@
 import 'package:sqlite3/sqlite3.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
-import 'reminest/lib/models/journal_entry.dart';
-import 'reminest/lib/services/encryption_service.dart';
+import 'lib/models/journal_entry.dart';
+import 'lib/services/encryption_service.dart';
 
 class DatabaseService {
   static Database? _db;

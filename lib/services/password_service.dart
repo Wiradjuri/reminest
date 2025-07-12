@@ -1,9 +1,14 @@
-import 'dart:io';
-import 'dart:convert';
-import 'dart:math';
-import 'dart:typed_data';
+
 import 'package:crypto/crypto.dart';
-import 'package:path_provider/path_provider.dart';
+// Dart core libraries for file, encoding, randomness, and byte data
+import 'dart:io'; // For file and directory operations
+import 'dart:convert'; // For encoding and decoding JSON/base64
+import 'dart:math'; // For secure random number generation
+import 'dart:typed_data'; // For handling byte data
+
+// Third-party packages for cryptography and file path management
+import 'package:crypto/crypto.dart'; // For hashing and HMAC
+import 'package:path_provider/path_provider.dart'; // For accessing app-specific directories
 
 class PasswordService {
   static const String _passwordFileName = 'app_password.sec';

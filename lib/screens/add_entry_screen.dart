@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
-import 'reminest/lib/models/journal_entry.dart';
-import 'reminest/lib/services/platform_database_service.dart';
+import 'package:reminest/models/journal_entry.dart';
+import 'package:reminest/services/platform_database_service.dart';
 
 class AddEntryScreen extends StatefulWidget {
   @override

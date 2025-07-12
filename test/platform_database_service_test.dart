@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reminest/services/platform_database_service.dart';
+import 'package:reminest/services/encryption_service.dart';
 import 'package:reminest/models/journal_entry.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -11,6 +12,9 @@ void main() {
       // Initialize FFI for testing
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
+      
+      // Initialize encryption service with a test key
+      EncryptionService.initializeKey(List<int>.generate(32, (i) => i));
     });
 
     setUp(() async {
@@ -44,7 +48,7 @@ void main() {
       await PlatformDatabaseService.addEntry(entry);
 
       // Get entries
-      final entries = await PlatformDatabaseService.getEntries();
+      final entries = await PlatformDatabaseService.getAllEntries();
       
       expect(entries.length, 1);
       expect(entries.first.title, 'Test Title');
@@ -67,7 +71,7 @@ void main() {
       );
 
       await PlatformDatabaseService.addEntry(entry);
-      final entries = await PlatformDatabaseService.getEntries();
+      final entries = await PlatformDatabaseService.getAllEntries();
       final addedEntry = entries.first;
 
       // Update entry
@@ -84,7 +88,7 @@ void main() {
       await PlatformDatabaseService.updateEntry(updatedEntry);
 
       // Verify update
-      final updatedEntries = await PlatformDatabaseService.getEntries();
+      final updatedEntries = await PlatformDatabaseService.getAllEntries();
       expect(updatedEntries.length, 1);
       expect(updatedEntries.first.title, 'Updated Title');
       expect(updatedEntries.first.body, 'Updated body content');
@@ -106,14 +110,14 @@ void main() {
       );
 
       await PlatformDatabaseService.addEntry(entry);
-      final entries = await PlatformDatabaseService.getEntries();
+      final entries = await PlatformDatabaseService.getAllEntries();
       expect(entries.length, 1);
 
       // Delete entry
       await PlatformDatabaseService.deleteEntry(entries.first.id!);
 
       // Verify deletion
-      final remainingEntries = await PlatformDatabaseService.getEntries();
+      final remainingEntries = await PlatformDatabaseService.getAllEntries();
       expect(remainingEntries.length, 0);
     });
 
@@ -144,14 +148,14 @@ void main() {
       await PlatformDatabaseService.addEntry(regularEntry);
 
       // Verify both entries exist
-      final allEntries = await PlatformDatabaseService.getEntries();
+      final allEntries = await PlatformDatabaseService.getAllEntries();
       expect(allEntries.length, 2);
 
       // Clear vault data
       await PlatformDatabaseService.clearVaultData();
 
       // Verify only regular entry remains
-      final remainingEntries = await PlatformDatabaseService.getEntries();
+      final remainingEntries = await PlatformDatabaseService.getAllEntries();
       expect(remainingEntries.length, 1);
       expect(remainingEntries.first.title, 'Regular Entry');
       expect(remainingEntries.first.isInVault, false);
@@ -174,14 +178,14 @@ void main() {
       }
 
       // Verify entries exist
-      final allEntries = await PlatformDatabaseService.getEntries();
+      final allEntries = await PlatformDatabaseService.getAllEntries();
       expect(allEntries.length, 3);
 
       // Clear all data
       await PlatformDatabaseService.clearAllData();
 
       // Verify all entries removed
-      final remainingEntries = await PlatformDatabaseService.getEntries();
+      final remainingEntries = await PlatformDatabaseService.getAllEntries();
       expect(remainingEntries.length, 0);
     });
   });

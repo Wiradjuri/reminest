@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart'; // Import Flutter material package for UI widgets
-import 'reminest/lib/services/key_service.dart'; // Import custom key service for PIN storage
-import 'reminest/lib/screens/vault_screen.dart'; // Import the vault screen to navigate after setting PIN
+import 'package:reminest/services/key_service.dart'; // Import custom key service for PIN storage
+import 'package:reminest/screens/vault_screen.dart'; // Import the vault screen to navigate after setting PIN
 
 // Stateful widget for setting the vault PIN
 class SetVaultPinScreen extends StatefulWidget {

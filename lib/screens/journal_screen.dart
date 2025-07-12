@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'lib/models/journal_entry.dart';
-import 'lib/services/platform_database_service.dart';
-import 'reminest/lib/screens/add_entry_screen.dart';
-import 'reminest/lib/screens/edit_entry_screen.dart';
-import 'reminest/lib/screens/view_entry_screen.dart';
+import 'package:reminest/models/journal_entry.dart';
+import 'package:reminest/services/platform_database_service.dart';
+import 'package:reminest/screens/add_entry_screen.dart';
+import 'package:reminest/screens/edit_entry_screen.dart';
+import 'package:reminest/screens/view_entry_screen.dart';
 
 class JournalScreen extends StatefulWidget {
   @override

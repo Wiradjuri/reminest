@@ -1,103 +1,97 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reminest/services/encryption_service.dart';
+import 'dart:typed_data';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('EncryptionService', () {
+    setUpAll(() {
+      // Initialize the service once for all tests
+      EncryptionService.initializeKey(List<int>.generate(32, (i) => i));
+    });
+
+    test('initializeKey works correctly (verified through encryption)', () {
+      // Since key is already initialized, verify it works by testing encryption
+      const testText = 'Test message';
+      final encrypted = EncryptionService.encryptText(testText);
+      final decrypted = EncryptionService.decryptText(encrypted);
+      expect(decrypted, equals(testText));
+    });
+
+    test('encrypt and decrypt work correctly', () {
+      final plainText = 'This is a secret message';
+      final plainBytes = Uint8List.fromList(plainText.codeUnits);
+
+      final encryptedBytes = EncryptionService.encrypt(plainBytes);
+      final decryptedBytes = EncryptionService.decrypt(encryptedBytes);
+
+      expect(decryptedBytes, equals(plainBytes));
+      expect(encryptedBytes, isNot(equals(plainBytes)));
+    });
+
     test('encryptText and decryptText work correctly', () {
       const plainText = 'This is a secret message';
-      
-      final encrypted = EncryptionService.encryptText(plainText);
-      final decrypted = EncryptionService.decryptText(encrypted);
-      
-      expect(decrypted, equals(plainText));
-      expect(encrypted, isNot(equals(plainText))); // Ensure it's actually encrypted
+
+      final encryptedText = EncryptionService.encryptText(plainText);
+      final decryptedText = EncryptionService.decryptText(encryptedText);
+
+      expect(decryptedText, equals(plainText));
+      expect(encryptedText, isNot(equals(plainText)));
     });
 
-    test('encrypt and decrypt with password work correctly', () {
-      const plainText = 'Secret data with custom password';
-      const password = 'myCustomPassword123';
-      
-      final encrypted = EncryptionService.encrypt(plainText, password);
-      final decrypted = EncryptionService.decrypt(encrypted, password);
-      
-      expect(decrypted, equals(plainText));
-      expect(encrypted, isNot(equals(plainText)));
-    });
-
-    test('generateRandomKey produces valid key', () {
-      final key1 = EncryptionService.generateRandomKey();
-      final key2 = EncryptionService.generateRandomKey();
-      
-      expect(key1.length, equals(32));
-      expect(key2.length, equals(32));
-      expect(key1, isNot(equals(key2))); // Keys should be random and different
-    });
-
-    test('different passwords produce different encrypted results', () {
-      const plainText = 'Same message, different passwords';
-      const password1 = 'password1';
-      const password2 = 'password2';
-      
-      final encrypted1 = EncryptionService.encrypt(plainText, password1);
-      final encrypted2 = EncryptionService.encrypt(plainText, password2);
-      
-      expect(encrypted1, isNot(equals(encrypted2)));
-    });
-
-    test('wrong password fails to decrypt correctly', () {
-      const plainText = 'Secret message';
-      const correctPassword = 'correctPassword';
-      const wrongPassword = 'wrongPassword';
-      
-      final encrypted = EncryptionService.encrypt(plainText, correctPassword);
-      
-      expect(
-        () => EncryptionService.decrypt(encrypted, wrongPassword),
-        throwsException,
-      );
-    });
-
-    test('encryption handles empty strings', () {
+    test('encrypt and decrypt handle empty strings', () {
       const plainText = '';
-      
-      final encrypted = EncryptionService.encryptText(plainText);
-      final decrypted = EncryptionService.decryptText(encrypted);
-      
-      expect(decrypted, equals(plainText));
+
+      final encryptedText = EncryptionService.encryptText(plainText);
+      final decryptedText = EncryptionService.decryptText(encryptedText);
+
+      expect(decryptedText, equals(plainText));
     });
 
-    test('encryption handles unicode characters', () {
+    test('encrypt and decrypt handle unicode characters', () {
       const plainText = 'Unicode test: 🔒 安全性 العربية Русский 🌟';
-      
-      final encrypted = EncryptionService.encryptText(plainText);
-      final decrypted = EncryptionService.decryptText(encrypted);
-      
-      expect(decrypted, equals(plainText));
+
+      final encryptedText = EncryptionService.encryptText(plainText);
+      final decryptedText = EncryptionService.decryptText(encryptedText);
+
+      expect(decryptedText, equals(plainText));
     });
 
-    test('encryption handles long text', () {
-      final plainText = 'Long text: ' + 'A' * 10000; // 10KB+ text
-      
-      final encrypted = EncryptionService.encryptText(plainText);
-      final decrypted = EncryptionService.decryptText(encrypted);
-      
-      expect(decrypted, equals(plainText));
+    test('encrypt and decrypt handle long text', () {
+      final plainText = 'Long text: ' + 'A' * 10000;
+
+      final encryptedText = EncryptionService.encryptText(plainText);
+      final decryptedText = EncryptionService.decryptText(encryptedText);
+
+      expect(decryptedText, equals(plainText));
     });
 
     test('same plaintext with same key produces consistent encryption', () {
       const plainText = 'Consistent encryption test';
-      
-      // Note: This test assumes deterministic encryption with a static key
-      // If encryption includes random elements, this test might need adjustment
+
       final encrypted1 = EncryptionService.encryptText(plainText);
       final encrypted2 = EncryptionService.encryptText(plainText);
-      
-      // Both should decrypt to the same plaintext
+
       final decrypted1 = EncryptionService.decryptText(encrypted1);
       final decrypted2 = EncryptionService.decryptText(encrypted2);
-      
+
       expect(decrypted1, equals(plainText));
       expect(decrypted2, equals(plainText));
     });
+
+    test('decrypt throws error for invalid ciphertext', () {
+      final invalidCiphertext = Uint8List.fromList([1, 2, 3, 4]);
+
+      expect(() => EncryptionService.decrypt(invalidCiphertext), throwsA(isA<RangeError>()));
+    });
+
+    test('decryptText throws error for invalid Base64 string', () {
+      const invalidBase64 = 'invalid_base64_string';
+
+      expect(() => EncryptionService.decryptText(invalidBase64), throwsA(isA<FormatException>()));
+    });
   });
 }
+
+

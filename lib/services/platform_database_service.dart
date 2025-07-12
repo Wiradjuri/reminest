@@ -4,7 +4,7 @@ import 'package:sqflite/sqflite.dart' as mobile;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as desktop;
 import 'package:path/path.dart' as p;
 import '../models/journal_entry.dart';
-import 'encryption_service.dart';
+import '../services/encryption_service.dart';
 
 class PlatformDatabaseService {
   static dynamic _db;
