@@ -1,22 +1,107 @@
-name: Dart/Flutter Tests
+name: Test Suite & Security Analysis
 
 on:
   push:
-    branches: [inital]        # or [main] or ['*'] for all branches
+    branches: [ main, develop, inital ]
   pull_request:
-    branches: [inital]
+    branches: [ main, develop, inital ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.32.6'
-        
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Run tests
-        run: flutter test
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.32.5'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Verify the installation
+      run: flutter doctor -v
+
+    - name: Run code analysis
+      run: flutter analyze
+
+    - name: Check code formatting
+      run: dart format --dry-run --set-exit-if-changed .
+
+    - name: Run unit tests
+      run: flutter test --coverage
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: coverage/lcov.info
+        fail_ci_if_error: false
+
+  build-test:
+    needs: test
+    strategy:
+      matrix:
+        platform: [web, android, windows, linux]
+        include:
+          - platform: web
+            os: ubuntu-latest
+            build_cmd: flutter build web --release
+          - platform: android
+            os: ubuntu-latest
+            build_cmd: flutter build apk --release
+          - platform: windows
+            os: windows-latest
+            build_cmd: flutter build windows --release
+          - platform: linux
+            os: ubuntu-latest
+            build_cmd: flutter build linux --release
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.32.5'
+        channel: 'stable'
+
+    - name: Install Linux dependencies
+      if: matrix.platform == 'linux'
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y ninja-build libgtk-3-dev
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Enable platform
+      run: |
+        case "${{ matrix.platform }}" in
+          web) flutter config --enable-web ;;
+          android) flutter config --enable-android ;;
+          windows) flutter config --enable-windows-desktop ;;
+          linux) flutter config --enable-linux-desktop ;;
+        esac
+
+    - name: Build for ${{ matrix.platform }}
+      run: ${{ matrix.build_cmd }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.platform }}-build
+        path: |
+          build/web/**
+          build/app/outputs/flutter-apk/*.apk
+          build/windows/x64/runner/Release/**
+          build/linux/x64/release/bundle/**
+        retention-days: 7
 

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'reminest/lib/services/key_service.dart';
-import 'reminest/lib/services/encryption_service.dart';
-import 'reminest/lib/services/password_service.dart';
-import 'reminest/lib/screens/journal_screen.dart';
-import 'reminest/lib/screens/vault_screen.dart';
-import 'reminest/lib/screens/set_password_screen.dart';
-import 'reminest/lib/screens/set_vault_pin_screen.dart';
+import '../services/key_service.dart';
+import '../services/encryption_service.dart';
+import '../services/password_service.dart';
+import 'journal_screen.dart';
+import 'vault_screen.dart';
+import 'set_password_screen.dart';
+import 'set_vault_pin_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback? onLoginSuccess;

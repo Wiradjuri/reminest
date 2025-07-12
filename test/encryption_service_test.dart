@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reminest/lib/services/encryption_service.dart';
+import 'package:reminest/services/encryption_service.dart';
 
 void main() {
   group('EncryptionService', () {

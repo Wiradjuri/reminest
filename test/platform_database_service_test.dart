@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reminest/lib/services/platform_database_service.dart';
-import 'package:reminest/lib/models/journal_entry.dart';
+import 'package:reminest/services/platform_database_service.dart';
+import 'package:reminest/models/journal_entry.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {

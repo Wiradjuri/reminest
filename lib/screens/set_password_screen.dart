@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'reminest/lib/services/key_service.dart';
-import 'reminest/lib/services/encryption_service.dart';
-import 'reminest/lib/services/password_service.dart';
+import '../services/key_service.dart';
+import '../services/encryption_service.dart';
+import '../services/password_service.dart';
 
 class SetPasswordScreen extends StatefulWidget {
   final VoidCallback onPasswordSet; // Now REQUIRED
