@@ -4,7 +4,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'dart:io';
-import '../services/database_service.dart';
+import '../services/platform_database_service.dart';
 import '../services/key_service.dart';
 import '../services/password_service.dart';
 import 'set_password_screen.dart';
@@ -152,7 +152,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       // Clear vault data and PIN
       await KeyService.clearVaultPin();
-      await DatabaseService.clearAllData();
+      await PlatformDatabaseService.clearAllData();
       
       // Clear password data using PasswordService (this is the key fix!)
       await PasswordService.clearPasswordData();
@@ -249,7 +249,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       // Clear vault data first (this makes the vault entries inaccessible)
-      await DatabaseService.clearVaultData();
+      await PlatformDatabaseService.clearVaultData();
       
       // Then clear the vault PIN
       await KeyService.clearVaultPin();
@@ -333,8 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return;
       }
 
-      final databaseService = DatabaseService();
-      final entries = await databaseService.getAllEntries();
+      final entries = await PlatformDatabaseService.getAllEntries();
       if (entries.isEmpty) {
         setState(() {
           _exporting = false;
@@ -471,7 +470,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Clear Data & Reset Vault PIN
             ListTile(
-              contentPadding: EdgeInsets.zero,
+              leading: Icon(Icons.delete_forever, color: Colors.red),
               title: Text("Clear Data & Reset Vault PIN", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
               trailing: ElevatedButton(
                 onPressed: _showResetAllDataConfirmation,

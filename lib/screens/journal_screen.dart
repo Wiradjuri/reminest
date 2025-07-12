@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/journal_entry.dart';
-import '../services/database_service.dart';
+import '../services/platform_database_service.dart';
 import 'add_entry_screen.dart';
 import 'edit_entry_screen.dart';
 import 'view_entry_screen.dart';
@@ -23,8 +23,7 @@ class _JournalScreenState extends State<JournalScreen> {
   Future<void> _loadEntries() async {
     setState(() => _isLoading = true);
     try {
-      final databaseService = DatabaseService();
-      final allEntries = await databaseService.getAllEntries();
+      final allEntries = await PlatformDatabaseService.getAllEntries();
       setState(() {
         entries = allEntries.where((entry) => !entry.isInVault).toList();
       });
@@ -134,7 +133,7 @@ class _JournalScreenState extends State<JournalScreen> {
 
     if (confirmed == true) {
       try {
-        await DatabaseService.deleteEntry(entry.id!);
+        await PlatformDatabaseService.deleteEntry(entry.id!);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Entry deleted successfully'),

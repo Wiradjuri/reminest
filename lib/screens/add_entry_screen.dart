@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import '../models/journal_entry.dart';
-import '../services/database_service.dart';
+import '../services/platform_database_service.dart';
 
 class AddEntryScreen extends StatefulWidget {
   @override
@@ -132,7 +132,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     );
 
     try {
-      await DatabaseService.addEntry(entry);
+      await PlatformDatabaseService.addEntry(entry);
       if (mounted) {
         Navigator.pop(context, true); // Return true to indicate success
         ScaffoldMessenger.of(context).showSnackBar(

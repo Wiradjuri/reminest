@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/journal_entry.dart';
-import '../services/database_service.dart';
+import '../services/platform_database_service.dart';
 
 class EditEntryScreen extends StatefulWidget {
   final JournalEntry entry;
@@ -82,7 +82,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         createdAt: widget.entry.createdAt,
       );
 
-      await DatabaseService.updateEntry(updatedEntry);
+      await PlatformDatabaseService.updateEntry(updatedEntry);
       
       if (mounted) {
         Navigator.pop(context, true); // Return true to indicate success

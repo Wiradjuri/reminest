@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../services/database_service.dart';
+import '../services/platform_database_service.dart';
 import '../models/journal_entry.dart';
 
 class VaultScreen extends StatefulWidget {
@@ -21,8 +21,7 @@ class _VaultScreenState extends State<VaultScreen> {
   Future<void> fetchVaultEntries() async {
     setState(() => _isLoading = true);
     try {
-      final databaseService = DatabaseService();
-      final allEntries = await databaseService.getAllEntries();
+      final allEntries = await PlatformDatabaseService.getAllEntries();
       
       setState(() {
         // Show ALL vault entries regardless of unlock status
@@ -66,7 +65,7 @@ class _VaultScreenState extends State<VaultScreen> {
 
     if (confirm == true) {
       try {
-        await DatabaseService.deleteEntry(entry.id!);
+        await PlatformDatabaseService.deleteEntry(entry.id!);
         fetchVaultEntries();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
