@@ -1,16 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:Reminest/services/encryption_service.dart';
+import 'package:reminest/services/encryption_service.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  group('EncryptionService', () {
+    test('encrypt and decrypt returns original text', () {
+      final plainText = 'super_secret_password';
+      final password = 'testpassword';
+      final encrypted = EncryptionService.encrypt(plainText, password);
+      final decrypted = EncryptionService.decrypt(encrypted, password);
+      expect(decrypted, plainText);
+    });
 
-  test('Encryption and decryption should return the original text', () {
-    EncryptionService.initializeKey(List<int>.filled(32, 1)); // Dummy key
-
-    final text = "Reminest Test Entry";
-    final encrypted = EncryptionService.encryptText(text);
-    final decrypted = EncryptionService.decryptText(encrypted);
-
-    expect(decrypted, text);
+    test('generateRandomKey returns key of length 32', () {
+      final key = EncryptionService.generateRandomKey();
+      expect(key.length, 32);
+    });
   });
 }
