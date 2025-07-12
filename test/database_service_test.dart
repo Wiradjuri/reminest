@@ -1,4 +1,4 @@
-import 'package:reminest/services/database_service.dart';
+import '../lib/services/database_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
