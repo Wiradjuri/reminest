@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:reminest/services/key_service.dart';
+import 'package:reminest/lib/services/key_service.dart';
 
 void main() {
   group('KeyService', () {
