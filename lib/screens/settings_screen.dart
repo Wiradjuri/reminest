@@ -2,19 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
 import '../services/database_service.dart';
 import '../services/key_service.dart';
+import '../services/password_service.dart';
+import 'set_password_screen.dart';
+import 'journal_screen.dart';
+import 'set_vault_pin_screen.dart';
+
 
 class SettingsScreen extends StatefulWidget {
   final ValueNotifier<ThemeMode>? themeNotifier;
   final VoidCallback? onLogout;
   final VoidCallback? onReset; // Callback when complete reset happens
-  
+
   const SettingsScreen({Key? key, this.themeNotifier, this.onLogout, this.onReset}) : super(key: key);
-  
+
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
@@ -28,7 +32,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize with current global theme if available
     if (widget.themeNotifier != null) {
       _themeMode = widget.themeNotifier!.value;
     }
@@ -43,7 +46,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final themeString = prefs.getString('theme_mode') ?? 'ThemeMode.system';
-      
       ThemeMode mode;
       switch (themeString) {
         case 'ThemeMode.light':
@@ -55,12 +57,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         default:
           mode = ThemeMode.system;
       }
-      
       setState(() {
         _themeMode = mode;
       });
-      
-      // Sync with global theme notifier
       if (widget.themeNotifier != null) {
         widget.themeNotifier!.value = mode;
       }
@@ -92,10 +91,200 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<File> _getExportFile() async {
     final directory = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    return File('${directory.path}/reminest_backup_$timestamp.json');
+    return File('${directory.path}/reminest_export_$timestamp.json');
   }
 
-  Future<void> _exportEntries() async {
+  void _showResetAllDataConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Clear All Data & Reset Vault PIN"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "⚠️ WARNING: This action is IRREVERSIBLE!",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(height: 12),
+              Text("This will:"),
+              SizedBox(height: 8),
+              Text("• Permanently delete ALL journal entries"),
+              Text("• Permanently delete your vault PIN"),
+              Text("• Clear all app data"),
+              SizedBox(height: 8),
+              Text("• Your login password will remain intact"),
+              SizedBox(height: 12),
+              Text(
+                "The vault PIN cannot be recovered once deleted!",
+                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _resetAllData();
+              },
+              child: Text("CLEAR ALL DATA"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _resetAllData() async {
+    try {
+      // Clear vault data and PIN
+      await KeyService.clearVaultPin();
+      await DatabaseService.clearAllData();
+      
+      // Clear password data using PasswordService (this is the key fix!)
+      await PasswordService.clearPasswordData();
+      
+      // Clear SharedPreferences but preserve theme setting
+      final prefs = await SharedPreferences.getInstance();
+      final themeMode = prefs.getString('theme_mode');
+      await prefs.clear();
+      if (themeMode != null) {
+        await prefs.setString('theme_mode', themeMode);
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("All data cleared successfully. You can now set up the app from scratch."),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      
+      await Future.delayed(Duration(milliseconds: 500));
+      
+      // Use the onReset callback to trigger complete app reset
+      if (widget.onReset != null) {
+        widget.onReset!();
+      } else {
+        // Fallback: Force logout to trigger re-authentication flow
+        if (widget.onLogout != null) {
+          widget.onLogout!();
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error during reset: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _resetVaultPin() async {
+    // Show warning dialog first
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Reset Vault PIN"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "⚠️ WARNING: This action is IRREVERSIBLE!",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(height: 12),
+              Text("This will:"),
+              SizedBox(height: 8),
+              Text("• Permanently delete ALL vault entries"),
+              Text("• Clear your vault PIN"),
+              Text("• Require you to set a new PIN"),
+              SizedBox(height: 12),
+              Text(
+                "Vault entries cannot be recovered once deleted!",
+                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
+              ),
+              SizedBox(height: 8),
+              Text("Your regular journal entries will remain intact."),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text("RESET VAULT PIN"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (proceed != true) return;
+
+    try {
+      // Clear vault data first (this makes the vault entries inaccessible)
+      await DatabaseService.clearVaultData();
+      
+      // Then clear the vault PIN
+      await KeyService.clearVaultPin();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Vault PIN and all vault entries cleared. Please set a new PIN."),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      
+      // Navigate to set new PIN, but keep navigation stack intact
+      await Future.delayed(Duration(milliseconds: 500));
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => SetVaultPinScreen(
+            onComplete: () {
+              // When PIN is set, pop back to settings
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error resetting vault PIN: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _exportData() async {
     setState(() {
       _exporting = true;
       _exportStatus = null;
@@ -143,9 +332,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
         return;
       }
-    
+
       final databaseService = DatabaseService();
-      final entries = await databaseService.getAllEntries(); // Fetch all entries from the database
+      final entries = await databaseService.getAllEntries();
       if (entries.isEmpty) {
         setState(() {
           _exporting = false;
@@ -153,22 +342,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
         return;
       }
+      
       final exportData = {
-        'app_name': 'Reminest',
         'version': '1.0.0',
         'export_date': DateTime.now().toIso8601String(),
         'total_entries': entries.length,
         'warning': 'This file contains unencrypted personal journal data. Store securely!',
-        'entries': entries.map((entry) => {
-          'id': entry.id,
-          'title': entry.title,
-          'body': entry.body,
-          'created_at': entry.createdAt.toIso8601String(),
-          'review_date': entry.reviewDate.toIso8601String(),
-          'is_reviewed': entry.isReviewed,
-          'is_in_vault': entry.isInVault,
-          'image_path': entry.imagePath,
-        }).toList(),
+        'entries': entries.map((entry) => entry.toMap()).toList(),
       };
       
       final jsonData = jsonEncode(exportData);
@@ -177,161 +357,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       
       setState(() {
         _exporting = false;
-        _exportStatus = "✅ Backup exported successfully!\nLocation: ${file.path}";
+        _exportStatus = "Export successful: ${file.path}";
       });
-      
-      // Show success dialog with option to open file location
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text("Export Successful"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Your journal has been exported successfully!"),
-              SizedBox(height: 12),
-              Text("Exported ${entries.length} entries"),
-              SizedBox(height: 8),
-              Text("File location:", style: TextStyle(fontWeight: FontWeight.bold)),
-              SizedBox(height: 4),
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  file.path,
-                  style: TextStyle(fontSize: 12, fontFamily: 'monospace'),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("OK"),
-            ),
-          ],
-        ),
-      );
     } catch (e) {
       setState(() {
         _exporting = false;
-        _exportStatus = "Export failed: ${e.toString()}"; // Show error message 
+        _exportStatus = "Export failed: $e";
       });
     }
   }
 
-  Future<void> _checkForUpdates() async {
-    setState(() {
-      _updateStatus = "Checking for updates...";
-    });
-    
+  void _launchHelp() async {
     try {
-      const currentVersion = '1.0.0'; // This should match pubspec.yaml version
-      const repoUrl = 'https://api.github.com/repos/Wiradjuri/Reminest/releases/latest';
-      
-      // Make HTTP request to GitHub API
-      final response = await http.get(Uri.parse(repoUrl));
-      
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final latestVersion = data['tag_name'].toString().replaceFirst('v', ''); // Remove 'v' prefix if present
-        final downloadUrl = data['html_url']; // GitHub release page URL
-        
-        // Compare versions (simple string comparison, in production use proper version comparison)
-        final hasUpdate = _compareVersions(currentVersion, latestVersion) < 0;
-        
-        if (hasUpdate) {
-          setState(() {
-            _updateStatus = "Update available: v$latestVersion";
-          });
-          
-          // Show update dialog
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text("Update Available"),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("A new version of Reminest is available!"),
-                  SizedBox(height: 12),
-                  Text("Current version: v$currentVersion"),
-                  Text("Latest version: v$latestVersion", style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 12),
-                  Text("Would you like to download the update?"),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text("Later"),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    await launchUrl(Uri.parse(downloadUrl), mode: LaunchMode.externalApplication);
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: Text("Download Update"),
-                ),
-              ],
-            ),
-          );
-        } else {
-          setState(() {
-            _updateStatus = "You're using the latest version! v$currentVersion";
-          });
-        }
-      } else if (response.statusCode == 404) {
-        setState(() {
-          _updateStatus = "Repository not found. Updates will be available when the app is published.";
-        });
-      } else {
-        setState(() {
-          _updateStatus = "Failed to check for updates (Error ${response.statusCode})";
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _updateStatus = "Update check failed: ${e.toString()}";
-      });
-    }
-  }
-  
-  // Simple version comparison (returns -1 if current < latest, 0 if equal, 1 if current > latest)
-  int _compareVersions(String current, String latest) {
-    List<int> currentParts = current.split('.').map(int.parse).toList();
-    List<int> latestParts = latest.split('.').map(int.parse).toList();
-    
-    // Pad with zeros if needed
-    while (currentParts.length < 3) currentParts.add(0);
-    while (latestParts.length < 3) latestParts.add(0);
-    
-    for (int i = 0; i < 3; i++) {
-      if (currentParts[i] < latestParts[i]) return -1;
-      if (currentParts[i] > latestParts[i]) return 1;
-    }
-    return 0;
-  }
-
-  Future<void> _openGitHubRepo() async {
-    const url = 'https://github.com/Wiradjuri/mental_health_vault';
-    try {
+      const url = 'https://github.com/Wiradjuri/mental_health_vault';
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (e) {
-      print('Error opening GitHub repo: $e');
+      print('Error opening help page: $e');
       // Fallback: show a dialog with the URL
       if (mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('GitHub Repository'),
-            content: SelectableText(url),
+            title: Text('Help & Documentation'),
+            content: SelectableText('Visit: https://github.com/Wiradjuri/mental_health_vault'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -344,608 +392,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showLogoutConfirmation() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Logout"),
-          content: Text("Are you sure you want to logout?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (widget.onLogout != null) {
-                  widget.onLogout!();
-                }
-              },
-              child: Text("Logout"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showRestorePasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Restore Password"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("This will recover your password from local storage."),
-              SizedBox(height: 12),
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.security, color: Colors.orange, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "For security, you'll need to verify your vault PIN to access your stored password.",
-                        style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 12),
-              Text("✅ Your journal entries will remain intact"),
-              Text("✅ Your vault PIN will remain intact"),
-              Text("✅ Only your login password will be restored"),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _restorePassword();
-              },
-              child: Text("Restore Password"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _restorePassword() async {
-    try {
-      // First check if we have a password stored at all
-      final password = await KeyService.getStoredPassword();
-      if (password == null) {
-        // Check if this is because of a fresh install reset
-        final prefs = await SharedPreferences.getInstance();
-        final hasBeenReset = prefs.getBool('fresh_install_reset') ?? false;
-        
-        String message;
-        if (hasBeenReset) {
-          message = "Cannot restore password: You previously used 'Restore to Fresh Install State' which permanently removed all stored passwords for security reasons.";
-        } else {
-          message = "No password found in local storage. Either no password was set or it has been cleared.";
-        }
-        
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Row(
-              children: [
-                Icon(Icons.error, color: Colors.red),
-                SizedBox(width: 8),
-                Text("Password Not Found"),
-              ],
-            ),
-            content: Text(message),
-            actions: [
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("OK"),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-
-      // If password exists, require vault PIN for additional security
-      await _showVaultPinVerificationForPasswordRestore();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error restoring password: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _showVaultPinVerificationForPasswordRestore() async {
-    final pinController = TextEditingController();
-    bool isVerifying = false;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.security, color: Colors.orange),
-              SizedBox(width: 8),
-              Text("Security Verification"),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("For security reasons, please enter your vault PIN to restore your password:"),
-              SizedBox(height: 16),
-              TextField(
-                controller: pinController,
-                obscureText: true,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                decoration: InputDecoration(
-                  labelText: "Vault PIN",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                  counterText: "", // Hide counter
-                ),
-                enabled: !isVerifying,
-              ),
-              SizedBox(height: 12),
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "This ensures only you can access your stored password.",
-                        style: TextStyle(color: Colors.blue.shade800, fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: isVerifying ? null : () {
-                pinController.dispose();
-                Navigator.pop(context);
-              },
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: isVerifying ? null : () async {
-                if (pinController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Please enter your vault PIN")),
-                  );
-                  return;
-                }
-
-                setState(() => isVerifying = true);
-                
-                try {
-                  final isValid = await KeyService.verifyVaultPin(pinController.text);
-                  if (isValid) {
-                    pinController.dispose();
-                    Navigator.pop(context);
-                    await _showPasswordToUser();
-                  } else {
-                    setState(() => isVerifying = false);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Invalid vault PIN. Please try again."),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    pinController.clear();
-                  }
-                } catch (e) {
-                  setState(() => isVerifying = false);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Error verifying PIN: $e"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: isVerifying
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Text("Verifying..."),
-                    ],
-                  )
-                : Text("Verify & Restore"),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showPasswordToUser() async {
-    try {
-      final password = await KeyService.getStoredPassword();
-      if (password != null) {
-        // Show the password to the user
-        showDialog(
-          context: context,
-          barrierDismissible: false, // Force user to click Done
-          builder: (context) => AlertDialog(
-            title: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.green),
-                SizedBox(width: 8),
-                Text("Password Restored"),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("Your password has been recovered from local storage:"),
-                SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text("Your Password:", style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                      SizedBox(height: 4),
-                      SelectableText(
-                        password,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.blue.shade800,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.warning, color: Colors.orange, size: 20),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "Write this down and store it securely! This password protects all your journal entries.",
-                          style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () => Navigator.pop(context),
-                child: Text("I've Saved It"),
-              ),
-            ],
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("No password found in local storage."),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error restoring password: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _showResetVaultPinConfirmation() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Reset Vault PIN"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  border: Border.all(color: Colors.red.shade200),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.warning, color: Colors.red, size: 24),
-                        SizedBox(width: 8),
-                        Text(
-                          "CRITICAL WARNING",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      "This action is IRREVERSIBLE!",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 16),
-              Text("Resetting your vault PIN will:"),
-              SizedBox(height: 8),
-              Text("• Permanently delete ALL vault entries"),
-              Text("• Make all vault data completely inaccessible"),
-              Text("• Require setting up a new PIN to use the vault again"),
-              SizedBox(height: 12),
-              Text("Your regular journal entries will remain safe."),
-              SizedBox(height: 12),
-              Text(
-                "Vault PINs cannot be recovered by design for maximum security.",
-                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _resetVaultPinOnly();
-              },
-              child: Text("RESET VAULT PIN"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showResetAllDataConfirmation() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Restore to Fresh Install State"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "⚠️ WARNING: This action is IRREVERSIBLE!",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-              SizedBox(height: 12),
-              Text("This will restore the app to its initial state:"),
-              SizedBox(height: 8),
-              Text("• Permanently delete ALL journal entries"),
-              Text("• Permanently delete your vault PIN"),
-              Text("• Clear all app data and settings"),
-              Text("• Remove your login password (for security)"),
-              SizedBox(height: 12),
-              Text("The app will be exactly as when first installed."),
-              SizedBox(height: 8),
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning, color: Colors.red, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "All data will be permanently lost! You will NOT be able to restore your password after this action.",
-                        style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red.shade800),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _resetAllData();
-              },
-              child: Text("RESET TO FRESH STATE"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _resetAllData() async {
-    try {
-      // Clear vault PIN (non-recoverable)
-      await KeyService.clearVaultPin();
-      
-      // Clear all database entries
-      await DatabaseService.clearAllData();
-      
-      // Clear SharedPreferences completely (including password for security)
-      final prefs = await SharedPreferences.getInstance();
-      final themeMode = prefs.getString('theme_mode'); // Save theme preference only
-      await prefs.clear();
-      
-      // Set flag to indicate fresh install reset was performed
-      await prefs.setBool('fresh_install_reset', true);
-      
-      // Restore only the theme preference (password is intentionally cleared for security)
-      if (themeMode != null) {
-        await prefs.setString('theme_mode', themeMode);
-      }
-      
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("App has been restored to fresh install state. All data, including passwords, has been permanently removed for security."),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 4),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error during reset: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _resetVaultPinOnly() async {
-    try {
-      // Clear vault PIN (non-recoverable)
-      await KeyService.clearVaultPin();
-      
-      // Clear only vault entries from database
-      final databaseService = DatabaseService();
-      final allEntries = await databaseService.getAllEntries();
-      final vaultEntries = allEntries.where((entry) => entry.isInVault).toList();
-      
-      // Delete only vault entries
-      for (final entry in vaultEntries) {
-        if (entry.id != null) {
-          await DatabaseService.deleteEntry(entry.id!);
-        }
-      }
-      
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Vault PIN reset successfully. All vault entries have been permanently deleted."),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 4),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error resetting vault PIN: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -958,135 +408,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.all(24.0),
         child: ListView(
           children: [
-            // Theme Section
-            Text("Theme", style: TextStyle(
-              fontSize: 20, 
-              color: theme.textTheme.titleLarge?.color, 
-              fontWeight: FontWeight.bold
-            )),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Radio<ThemeMode>(
-                  value: ThemeMode.system,
-                  groupValue: _themeMode,
-                  onChanged: _changeTheme,
-                  activeColor: theme.primaryColor,
-                ),
-                Text("System", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
-                Radio<ThemeMode>(
-                  value: ThemeMode.dark,
-                  groupValue: _themeMode,
-                  onChanged: _changeTheme,
-                  activeColor: theme.primaryColor,
-                ),
-                Text("Dark", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
-                Radio<ThemeMode>(
-                  value: ThemeMode.light,
-                  groupValue: _themeMode,
-                  onChanged: _changeTheme,
-                  activeColor: theme.primaryColor,
-                ),
-                Text("Light", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
-              ],
-            ),
-            Divider(height: 32, color: theme.dividerTheme.color),
-
-            // Export Entries Button
+            // Theme Switcher
             ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text("Export All Journal Entries", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
-              trailing: ElevatedButton(
-                onPressed: _exporting ? null : _exportEntries,
-                child: _exporting 
-                    ? SizedBox(
-                        width: 16, 
-                        height: 16, 
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
-                      )
-                    : Text("Export"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF007BFF),
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
+              leading: Icon(Icons.brightness_6),
+              title: Text("Theme"),
+              trailing: DropdownButton<ThemeMode>(
+                value: _themeMode,
+                items: [
+                  DropdownMenuItem(
+                    value: ThemeMode.system,
+                    child: Text("System"),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.light,
+                    child: Text("Light"),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.dark,
+                    child: Text("Dark"),
+                  ),
+                ],
+                onChanged: _changeTheme,
               ),
-              subtitle: _exportStatus != null 
-                  ? Text(_exportStatus!, style: TextStyle(color: Colors.greenAccent, fontSize: 12))
+            ),
+            Divider(),
+
+            // Export Data
+            ListTile(
+              leading: Icon(Icons.file_download),
+              title: Text("Export Data"),
+              trailing: _exporting
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : ElevatedButton(
+                      onPressed: _exportData,
+                      child: Text("Export"),
+                    ),
+              subtitle: _exportStatus != null
+                  ? Text(_exportStatus!, style: TextStyle(color: Colors.green, fontSize: 12))
                   : null,
             ),
-            Divider(height: 32, color: theme.dividerTheme.color),
+            Divider(),
 
-            // Update Checker Button
+            // Reset Vault PIN
             ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text("Check for App Updates", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
+              leading: Icon(Icons.lock_reset),
+              title: Text("Reset Vault PIN"),
+              subtitle: Text("⚠️ Deletes ALL vault entries and clears PIN (cannot be recovered)"),
               trailing: ElevatedButton(
-                onPressed: _checkForUpdates,
-                child: Text("Check"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF007BFF),
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-              subtitle: _updateStatus != null 
-                  ? Text(_updateStatus!, style: TextStyle(color: Colors.lightBlueAccent, fontSize: 12))
-                  : null,
-            ),
-            Divider(height: 32, color: theme.dividerTheme.color),
-
-            // Reset Password Section
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text("Restore Password", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
-              trailing: ElevatedButton(
-                onPressed: _showRestorePasswordDialog,
-                child: Text("Restore"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-              subtitle: Text(
-                "Recover your password from local storage",
-                style: TextStyle(color: Colors.blue, fontSize: 12),
-              ),
-            ),
-            Divider(height: 16, color: theme.dividerTheme.color),
-
-            // Reset Vault PIN Only Section
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text("Reset Vault PIN Only", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
-              trailing: ElevatedButton(
-                onPressed: _showResetVaultPinConfirmation,
+                onPressed: _resetVaultPin,
                 child: Text("Reset PIN"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
-              subtitle: Text(
-                "⚠️ All VAULT entries will be permanently lost (PIN is not recoverable)",
-                style: TextStyle(color: Colors.orange.shade800, fontSize: 12),
-              ),
             ),
-            Divider(height: 16, color: theme.dividerTheme.color),
+            Divider(),
 
-            // Clear Data and Reset Vault PIN Section
+            // Clear Data & Reset Vault PIN
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text("Restore to Fresh Install State", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
+              title: Text("Clear Data & Reset Vault PIN", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
               trailing: ElevatedButton(
                 onPressed: _showResetAllDataConfirmation,
-                child: Text("Reset to Fresh"),
+                child: Text("Reset All"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
@@ -1095,31 +484,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               subtitle: Text(
-                "⚠️ Resets app to initial state - ALL data will be permanently lost",
+                "⚠️ Permanently erases ALL data (vault PIN cannot be recovered)",
                 style: TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
-            Divider(height: 32, color: theme.dividerTheme.color),
+            Divider(),
 
-            // GitHub Repository Link
+            // Help
             ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text("View Source Code", style: TextStyle(color: theme.textTheme.bodyMedium?.color)),
-              trailing: ElevatedButton(
-                onPressed: _openGitHubRepo,
-                child: Text("GitHub"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? Color(0xFF333333) : Color(0xFF6F42C1),
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-              subtitle: Text(
-                "Open source project on GitHub",
-                style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
-              ),
+              leading: Icon(Icons.help_outline),
+              title: Text("Help"),
+              onTap: _launchHelp,
             ),
+            Divider(),
+
+            // Logout
+            if (widget.onLogout != null)
+              ListTile(
+                leading: Icon(Icons.logout, color: Colors.red),
+                title: Text("Logout", style: TextStyle(color: Colors.red)),
+                onTap: widget.onLogout,
+              ),
           ],
         ),
       ),

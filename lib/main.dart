@@ -1,13 +1,13 @@
 // File: lib/main.dart
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
-import 'screens/about_us_screen.dart';
 import 'screens/settings_screen.dart';
-import 'screens/login_screen.dart';
 import 'screens/journal_screen.dart';
-import 'widgets/top_nav_bar.dart';
 import 'screens/vault_screen.dart';
+import 'screens/set_vault_pin_screen.dart';
+import 'screens/about_us_screen.dart';
 import 'services/key_service.dart';
+import 'services/password_service.dart';
 
 final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.system);
 
@@ -130,18 +130,15 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
 
   Future<void> _checkAuthenticationStatus() async {
     // Check if a password exists to determine if setup is needed
-    final hasPassword = await KeyService.hasPassword();
-    final hasVaultPin = await KeyService.hasVaultPin();
-    
+    final hasPassword = await PasswordService.isPasswordSet();
     setState(() {
       _isAuthenticated = false; // Always start unauthenticated (user must login)
       _isLoading = false;
     });
     
     // If no password exists, we know the user needs to do setup
-    // If password exists but no vault PIN, setup is incomplete
     // If password exists, user needs to login
-    print("[AuthenticationWrapper] Password exists: $hasPassword, Vault PIN exists: $hasVaultPin");
+    print("[AuthenticationWrapper] Password exists: $hasPassword");
   }
 
   void _onLoginSuccess() {
@@ -157,9 +154,20 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
       _isAuthenticated = false;
     });
   }
+  
+  void _onReset() {
+    // Complete reset: check authentication status from scratch
+    setState(() {
+      _isLoading = true;
+      _isAuthenticated = false;
+    });
+    _checkAuthenticationStatus();
+  }
 
   @override
   Widget build(BuildContext context) {
+    print("[AuthenticationWrapper] build called - isLoading: $_isLoading, isAuthenticated: $_isAuthenticated");
+    
     if (_isLoading) {
       return Scaffold(
         body: Center(
@@ -170,16 +178,19 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
 
     // Show different interfaces based on authentication status
     if (!_isAuthenticated) {
+      print("[AuthenticationWrapper] Showing HomeScreen (unauthenticated)");
       // Before authentication: Show only Home page (no tabs, no other screens)
       return Scaffold(
         body: HomeScreen(onLoginSuccess: _onLoginSuccess),
       );
     } else {
+      print("[AuthenticationWrapper] Showing MainScaffold (authenticated)");
       // After authentication: Show full app interface starting with Journal
       return MainScaffold(
         isAuthenticated: _isAuthenticated,
         onLoginSuccess: _onLoginSuccess,
         onLogout: _onLogout,
+        onReset: _onReset,
       );
     }
   }
@@ -189,11 +200,13 @@ class MainScaffold extends StatefulWidget {
   final bool isAuthenticated;
   final VoidCallback? onLoginSuccess;
   final VoidCallback? onLogout;
+  final VoidCallback? onReset;
   
   MainScaffold({
     required this.isAuthenticated,
     this.onLoginSuccess,
     this.onLogout,
+    this.onReset,
   });
 
   @override
@@ -206,23 +219,31 @@ class _MainScaffoldState extends State<MainScaffold> {
   @override
   void initState() {
     super.initState();
-    // Start with Home tab (index 0) when authenticated
-    _selectedIndex = 0; // Home page after authentication
+    // Start with Journal tab (index 0) since MainScaffold only shows when authenticated
+    _selectedIndex = 0;
   }
 
   List<Widget> get _screens {
     // MainScaffold only shows when authenticated, so always show authenticated screens
     return [
-      HomeScreen(onLoginSuccess: widget.onLoginSuccess, isAuthenticated: true),
+      HomeScreen(
+        onLoginSuccess: widget.onLoginSuccess, 
+        isAuthenticated: true,
+        onNavigateToJournal: () => _onTabSelected(2), // Navigate to Journal tab (index 2)
+      ),
       AboutUsScreen(),
-      SettingsScreen(themeNotifier: themeNotifier, onReset: widget.onLogout),
       JournalScreen(),
+      SettingsScreen(
+        themeNotifier: themeNotifier, 
+        onLogout: widget.onLogout,
+        onReset: widget.onReset,
+      ),
     ];
   }
 
   List<String> get _navTitles {
     // MainScaffold only shows when authenticated, so always show authenticated tabs
-    return ['Home', 'About Us', 'Settings', 'Journal'];
+    return ['Home', 'About Us', 'Journal', 'Settings'];
   }
 
   void _onTabSelected(int index) {
@@ -269,110 +290,16 @@ class _MainScaffoldState extends State<MainScaffold> {
   void _openVault() async {
     final hasPin = await KeyService.hasVaultPin();
     if (!hasPin) {
-      // First time accessing vault - prompt for PIN setup
-      _showVaultPinSetupDialog();
-    } else {
-      // PIN already exists - prompt for verification
-      _showVaultPinDialog();
-    }
-  }
-
-  void _showVaultPinSetupDialog() {
-    final pinController = TextEditingController();
-    final confirmPinController = TextEditingController();
-    String pinError = '';
-
-    void setupVaultPin(String pin, String confirmPin, StateSetter setDialogState) async {
-      if (pin.length < 4 || pin.length > 6) {
-        setDialogState(() => pinError = "PIN must be 4-6 digits");
-        return;
-      }
-
-      if (!RegExp(r'^\d+$').hasMatch(pin)) {
-        setDialogState(() => pinError = "PIN must contain only numbers");
-        return;
-      }
-
-      if (pin != confirmPin) {
-        setDialogState(() => pinError = "PINs do not match");
-        return;
-      }
-
-      try {
-        await KeyService.saveVaultPin(pin);
-        Navigator.pop(context); // Close setup dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Vault PIN set up successfully!"),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Now open the vault
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => VaultScreen()),
-        );
-      } catch (e) {
-        setDialogState(() => pinError = "Error setting up PIN: $e");
-      }
+      // Navigate to Set Vault PIN screen
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => SetVaultPinScreen()),
+      );
+      return;
     }
 
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text("Set Up Vault PIN"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Create a 4-6 digit PIN to secure your vault entries.",
-                style: TextStyle(fontSize: 14),
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: pinController,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "Enter PIN (4-6 digits)",
-                  border: OutlineInputBorder(),
-                  counterText: "",
-                ),
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: confirmPinController,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "Confirm PIN",
-                  border: OutlineInputBorder(),
-                  counterText: "",
-                ),
-                onSubmitted: (_) => setupVaultPin(pinController.text, confirmPinController.text, setDialogState),
-              ),
-              if (pinError.isNotEmpty) ...[
-                SizedBox(height: 8),
-                Text(pinError, style: TextStyle(color: Colors.red, fontSize: 12)),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () => setupVaultPin(pinController.text, confirmPinController.text, setDialogState),
-              child: Text("Set PIN"),
-            ),
-          ],
-        ),
-      ),
-    );
+    // Show PIN dialog
+    _showVaultPinDialog();
   }
 
   void _showVaultPinDialog() {
@@ -380,7 +307,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     String pinError = '';
 
     void verifyVaultPin(String pin, StateSetter setDialogState) async {
-      if (pin.length < 4 || pin.length > 6) {
+      if (pin.length < 4 || pin.length > 6 || !RegExp(r'^\d+$').hasMatch(pin)) {
         setDialogState(() => pinError = "PIN must be 4-6 digits");
         return;
       }
@@ -411,7 +338,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                 maxLength: 6,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: "Enter PIN (4-6 digits)",
+                  labelText: "4-6 digit PIN",
                   border: OutlineInputBorder(),
                   counterText: "",
                 ),

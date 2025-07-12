@@ -16,21 +16,16 @@ class EditEntryScreen extends StatefulWidget {
 class _EditEntryScreenState extends State<EditEntryScreen> {
   late TextEditingController _titleController;
   late TextEditingController _bodyController;
-  DateTime? _lockUntilDate;
   File? _selectedImage;
   bool _isSaving = false;
+  String? _currentImagePath;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.entry.title);
     _bodyController = TextEditingController(text: widget.entry.body);
-    _lockUntilDate = widget.entry.reviewDate.isAfter(DateTime.now()) ? widget.entry.reviewDate : null;
-    
-    // Load existing image if any
-    if (widget.entry.imagePath != null && widget.entry.imagePath!.isNotEmpty) {
-      _selectedImage = File(widget.entry.imagePath!);
-    }
+    _currentImagePath = widget.entry.imagePath;
   }
 
   @override
@@ -45,48 +40,19 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     if (result != null && result.files.single.path != null) {
       setState(() {
         _selectedImage = File(result.files.single.path!);
+        _currentImagePath = null; // Clear current image when new one is selected
       });
     }
-  }
-
-  Future<void> _selectLockDate(BuildContext context) async {
-    final theme = Theme.of(context);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _lockUntilDate ?? DateTime.now().add(Duration(days: 1)),
-      firstDate: DateTime.now().add(Duration(days: 1)),
-      lastDate: DateTime.now().add(Duration(days: 365 * 5)),
-      builder: (context, child) {
-        return Theme(
-          data: theme.copyWith(
-            colorScheme: theme.colorScheme.copyWith(
-              primary: theme.primaryColor,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() {
-        _lockUntilDate = picked;
-      });
-    }
-  }
-
-  void _clearLockDate() {
-    setState(() {
-      _lockUntilDate = null;
-    });
   }
 
   void _removeImage() {
     setState(() {
       _selectedImage = null;
+      _currentImagePath = null;
     });
   }
 
-  Future<void> _saveEntry() async {
+  Future<void> _saveChanges() async {
     if (_isSaving) return;
     if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,23 +63,27 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
 
     setState(() => _isSaving = true);
 
-    String? imagePath;
-    if (_selectedImage != null && await _selectedImage!.exists()) {
-      imagePath = _selectedImage!.path;
-    }
-
-    final updatedEntry = JournalEntry(
-      id: widget.entry.id,
-      title: _titleController.text,
-      body: _bodyController.text,
-      reviewDate: _lockUntilDate ?? DateTime.now(),
-      imagePath: imagePath,
-      isInVault: widget.entry.isInVault, // Keep original vault status
-      createdAt: widget.entry.createdAt, // Keep original creation date
-    );
-
     try {
+      String? finalImagePath;
+      
+      if (_selectedImage != null && await _selectedImage!.exists()) {
+        finalImagePath = _selectedImage!.path;
+      } else if (_currentImagePath != null) {
+        finalImagePath = _currentImagePath;
+      }
+
+      final updatedEntry = JournalEntry(
+        id: widget.entry.id,
+        title: _titleController.text,
+        body: _bodyController.text,
+        reviewDate: widget.entry.reviewDate,
+        imagePath: finalImagePath,
+        isInVault: widget.entry.isInVault,
+        createdAt: widget.entry.createdAt,
+      );
+
       await DatabaseService.updateEntry(updatedEntry);
+      
       if (mounted) {
         Navigator.pop(context, true); // Return true to indicate success
         ScaffoldMessenger.of(context).showSnackBar(
@@ -123,8 +93,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           ),
         );
       }
-    } catch (e, stack) {
-      debugPrint('Failed to update entry: $e\n$stack');
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update entry: $e')),
       );
@@ -145,11 +114,28 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
-          if (!_isSaving)
-            IconButton(
-              icon: Icon(Icons.save),
-              onPressed: _saveEntry,
-              tooltip: 'Save changes',
+          if (_isSaving)
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            )
+          else
+            TextButton(
+              onPressed: _saveChanges,
+              child: Text(
+                'SAVE',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
         ],
       ),
@@ -203,10 +189,10 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
               SizedBox(height: 8),
               TextField(
                 controller: _bodyController,
-                maxLines: 10,
                 style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                maxLines: 12,
                 decoration: InputDecoration(
-                  hintText: 'Write your thoughts here...',
+                  hintText: 'Write your thoughts, feelings, or experiences...',
                   hintStyle: TextStyle(color: theme.hintColor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -219,166 +205,139 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: theme.primaryColor),
                   ),
-                  alignLabelWithHint: true,
+                  contentPadding: EdgeInsets.all(16),
                 ),
               ),
-
-              SizedBox(height: 20),
-
-              // Lock Date Section
-              Text(
-                'Lock Until Date (Optional)',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: theme.textTheme.titleMedium?.color,
-                ),
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: theme.dividerColor),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _lockUntilDate != null
-                            ? 'Lock until: ${_lockUntilDate!.toLocal().toString().split(' ')[0]}'
-                            : 'No lock date set',
-                        style: TextStyle(
-                          color: _lockUntilDate != null 
-                              ? theme.textTheme.bodyLarge?.color 
-                              : theme.hintColor,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () => _selectLockDate(context),
-                    icon: Icon(Icons.calendar_today, color: theme.primaryColor),
-                    tooltip: 'Select lock date',
-                  ),
-                  if (_lockUntilDate != null)
-                    IconButton(
-                      onPressed: _clearLockDate,
-                      icon: Icon(Icons.clear, color: Colors.red),
-                      tooltip: 'Clear lock date',
-                    ),
-                ],
-              ),
-
-              SizedBox(height: 20),
-
-              // Image Section
-              Text(
-                'Attach Image (Optional)',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: theme.textTheme.titleMedium?.color,
-                ),
-              ),
-              SizedBox(height: 8),
               
-              if (_selectedImage != null) ...[
-                Container(
-                  width: double.infinity,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: theme.dividerColor),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      _selectedImage!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+              SizedBox(height: 20),
+              
+              // Image Section
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: theme.dividerColor),
                 ),
-                SizedBox(height: 8),
-                Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ElevatedButton.icon(
-                      onPressed: _pickImage,
-                      icon: Icon(Icons.image),
-                      label: Text('Change Image'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.primaryColor,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    TextButton.icon(
-                      onPressed: _removeImage,
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      label: Text('Remove', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              ] else ...[
-                Container(
-                  width: double.infinity,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: theme.dividerColor, style: BorderStyle.solid),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: InkWell(
-                    onTap: _pickImage,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Row(
                       children: [
-                        Icon(Icons.add_photo_alternate_outlined, 
-                             size: 32, color: theme.hintColor),
-                        SizedBox(height: 8),
-                        Text('Tap to add an image', 
-                             style: TextStyle(color: theme.hintColor)),
+                        Icon(Icons.image, color: theme.primaryColor),
+                        SizedBox(width: 8),
+                        Text(
+                          'Image (Optional)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: theme.textTheme.titleMedium?.color,
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ),
-              ],
-
-              SizedBox(height: 30),
-
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _saveEntry,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: _isSaving
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Text('Saving Changes...'),
-                          ],
-                        )
-                      : Text(
-                          'Save Changes',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    SizedBox(height: 12),
+                    
+                    // Current/Selected Image Display
+                    if (_selectedImage != null || _currentImagePath != null) ...[
+                      Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: theme.dividerColor),
                         ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: _selectedImage != null
+                              ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                              : (_currentImagePath != null && File(_currentImagePath!).existsSync())
+                                  ? Image.file(File(_currentImagePath!), fit: BoxFit.cover)
+                                  : Container(
+                                      color: theme.cardColor,
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        size: 50,
+                                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                                      ),
+                                    ),
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _pickImage,
+                            icon: Icon(Icons.edit),
+                            label: Text('Change Image'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.primaryColor,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          OutlinedButton.icon(
+                            onPressed: _removeImage,
+                            icon: Icon(Icons.delete),
+                            label: Text('Remove'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      ElevatedButton.icon(
+                        onPressed: _pickImage,
+                        icon: Icon(Icons.add_photo_alternate),
+                        label: Text('Add Image'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              
+              SizedBox(height: 30),
+              
+              // Entry Info
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: theme.primaryColor.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Entry Information',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryColor,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Created: ${widget.entry.createdAt.toLocal().toString().split('.')[0]}',
+                      style: TextStyle(
+                        color: theme.textTheme.bodyMedium?.color,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      'Location: ${widget.entry.isInVault ? "Vault" : "Journal"}',
+                      style: TextStyle(
+                        color: theme.textTheme.bodyMedium?.color,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

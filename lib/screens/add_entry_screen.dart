@@ -1,14 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
 import '../models/journal_entry.dart';
 import '../services/database_service.dart';
 
 class AddEntryScreen extends StatefulWidget {
-  final bool forceVault;
-
-  const AddEntryScreen({Key? key, this.forceVault = false}) : super(key: key);
-
   @override
   State<AddEntryScreen> createState() => _AddEntryScreenState();
 }
@@ -16,23 +13,23 @@ class AddEntryScreen extends StatefulWidget {
 class _AddEntryScreenState extends State<AddEntryScreen> {
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();
-  DateTime? _lockUntilDate; // Optional lock date
-  File? _selectedImage;
-  bool _storeInVault = false;
-  bool _isSaving = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.forceVault) {
-      _storeInVault = true;
-    }
-  }
+  final _titleFocusNode = FocusNode();
+  final _bodyFocusNode = FocusNode();
+  DateTime? _lockUntilDate; // Optional lock date unless specified with ticked store in vault box
+  File? _selectedImage; // optional image attachment
+  bool _storeInVault = false; // Whether to store in vault or journal
+  bool _isSaving = false; // Whether currently saving entry
 
   @override
   void dispose() {
+    // Release the resources used by the title TextEditingController
     _titleController.dispose();
+    // Release the resources used by the body TextEditingController
     _bodyController.dispose();
+    // Dispose focus nodes
+    _titleFocusNode.dispose();
+    _bodyFocusNode.dispose();
+    // Call the dispose method of the parent class to ensure proper disposal of all resources
     super.dispose();
   }
 
@@ -45,7 +42,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     }
   }
 
-  Future<void> _selectLockDate(BuildContext context) async {
+  Future<DateTime?> _selectLockDate(BuildContext context) async {
     final theme = Theme.of(context);
     final picked = await showDatePicker(
       context: context,
@@ -68,6 +65,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         _lockUntilDate = picked;
       });
     }
+    return picked;
   }
 
   void _clearLockDate() {
@@ -85,32 +83,31 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       return;
     }
 
-    // Show confirmation dialog with options
-    if (widget.forceVault) {
-      // If forced to vault, save directly to vault
-      await _performSave(storeInVault: true, lockUntilDate: _lockUntilDate);
-    } else {
-      await _showSaveOptionsDialog();
+    // If lock date is set, automatically store in vault
+    // If user wants vault but no date is set, show date picker
+    if (_storeInVault && _lockUntilDate == null) {
+      // User wants vault but hasn't set a date - prompt for date
+      await _selectLockDate(context);
+      if (_lockUntilDate == null) {
+        // User cancelled date selection
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Vault entries require a lock date. Please select a date or uncheck "Store in Vault".')),
+        );
+        return;
+      }
     }
-  }
 
-  Future<void> _showSaveOptionsDialog() async {
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => _SaveOptionsDialog(
-        hasLockDate: _lockUntilDate != null,
-        lockDate: _lockUntilDate,
-        initialStoreInVault: _storeInVault,
-      ),
+    // Determine storage location based on lock date
+    final bool shouldStoreInVault = _lockUntilDate != null;
+    
+    // Perform save directly without dialog
+    await _performSave(
+      storeInVault: shouldStoreInVault,
+      lockUntilDate: _lockUntilDate,
     );
-
-    if (result != null) {
-      await _performSave(
-        storeInVault: result['storeInVault'] ?? false,
-        lockUntilDate: result['lockUntilDate'],
-      );
-    }
   }
+
+
 
   Future<void> _performSave({
     required bool storeInVault,
@@ -126,7 +123,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     final entry = JournalEntry(
       title: _titleController.text,
       body: _bodyController.text,
-      reviewDate: lockUntilDate ?? DateTime.now(), // Use lock date as review date
+      reviewDate: storeInVault 
+          ? (lockUntilDate ?? DateTime.now().add(Duration(minutes: 1))) // Default vault unlock in 1 minute for testing
+          : DateTime.now(), // Journal entries are immediately available
       imagePath: imagePath,
       isInVault: storeInVault,
       createdAt: DateTime.now(),
@@ -140,7 +139,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
           SnackBar(
             content: Text(storeInVault 
               ? 'Entry saved to vault successfully!'
-              : 'Entry saved successfully!'),
+              : 'Entry saved to journal successfully!'),
             backgroundColor: Colors.green,
           ),
         );
@@ -162,7 +161,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(widget.forceVault ? 'Create New Vault Entry' : 'Create New Entry'),
+        title: Text('Create New Entry'),
         backgroundColor: theme.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -185,7 +184,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
               SizedBox(height: 8),
               TextField(
                 controller: _titleController,
+                focusNode: _titleFocusNode,
                 style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+                onSubmitted: (_) => _bodyFocusNode.requestFocus(),
                 decoration: InputDecoration(
                   hintText: 'Enter a title for your entry',
                   hintStyle: TextStyle(color: theme.hintColor),
@@ -217,6 +218,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
               SizedBox(height: 8),
               TextField(
                 controller: _bodyController,
+                focusNode: _bodyFocusNode,
                 style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                 maxLines: 12,
                 decoration: InputDecoration(
@@ -255,7 +257,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                         Icon(Icons.schedule, color: theme.primaryColor),
                         SizedBox(width: 8),
                         Text(
-                          'Time Lock (Optional)',
+                          'Vault Time Lock',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -266,7 +268,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Lock this entry until a specific date. It will be hidden and only viewable after the date passes.',
+                      'Set a lock date to automatically store this entry in the vault. It will be hidden until the date arrives.',
                       style: TextStyle(
                         color: theme.textTheme.bodySmall?.color,
                         fontSize: 12,
@@ -363,6 +365,87 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
               
               SizedBox(height: 20),
               
+              // Vault Storage Option
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _storeInVault ? theme.primaryColor.withOpacity(0.1) : theme.cardColor,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _storeInVault ? theme.primaryColor.withOpacity(0.3) : theme.dividerColor,
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Vault Storage',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: theme.textTheme.titleLarge?.color,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    CheckboxListTile(
+                      title: Text('Store in Vault'),
+                      subtitle: Text(
+                        'Check to store this entry in the vault (requires a lock date for automatic time-based access)',
+                        style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color),
+                      ),
+                      value: _storeInVault,
+                      onChanged: (value) async {
+                        if (value == true && _lockUntilDate == null) {
+                          // If vault is checked but no date is set, prompt for date
+                          final selectedDate = await _selectLockDate(context);
+                          if (selectedDate != null) {
+                            setState(() {
+                              _storeInVault = true;
+                              _lockUntilDate = selectedDate;
+                            });
+                          }
+                        } else {
+                          setState(() => _storeInVault = value ?? false);
+                        }
+                      },
+                      activeColor: theme.primaryColor,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    if (_storeInVault && _lockUntilDate != null) ...[
+                      SizedBox(height: 8),
+                      Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.green.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.lock_clock, color: Colors.green, size: 18),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Will be stored in vault and locked until ${_lockUntilDate!.toLocal().toString().split(' ')[0]}',
+                                style: TextStyle(
+                                  color: Colors.green.shade700,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              
+              SizedBox(height: 20),
+              
               // Photo Attachment Section
               Container(
                 padding: EdgeInsets.all(16),
@@ -417,7 +500,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                                   SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      'Photo selected: ${_selectedImage!.path.split('/').last}',
+                                      'Photo selected: ${p.basename(_selectedImage!.path)}',
                                       style: TextStyle(
                                         color: Colors.green.shade700,
                                         fontWeight: FontWeight.w600,
@@ -490,106 +573,4 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   }
 }
 
-class _SaveOptionsDialog extends StatefulWidget {
-  final bool hasLockDate;
-  final DateTime? lockDate;
-  final bool initialStoreInVault;
 
-  _SaveOptionsDialog({
-    required this.hasLockDate,
-    required this.lockDate,
-    required this.initialStoreInVault,
-  });
-
-  @override
-  _SaveOptionsDialogState createState() => _SaveOptionsDialogState();
-}
-
-class _SaveOptionsDialogState extends State<_SaveOptionsDialog> {
-  bool _storeInVault = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _storeInVault = widget.initialStoreInVault;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return AlertDialog(
-      title: Text('Save Entry Options'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Choose where to save your entry:',
-            style: TextStyle(fontSize: 14),
-          ),
-          SizedBox(height: 16),
-          
-          // Time lock info
-          if (widget.hasLockDate) ...[
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.orange.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.lock_clock, color: Colors.orange, size: 18),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'This entry will be locked until ${widget.lockDate!.toLocal().toString().split(' ')[0]}',
-                      style: TextStyle(
-                        color: Colors.orange.shade700,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 16),
-          ],
-          
-          // Storage options
-          CheckboxListTile(
-            title: Text('Store in Vault'),
-            subtitle: Text(
-              'Requires PIN to access. More secure.',
-              style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color),
-            ),
-            value: _storeInVault,
-            onChanged: (value) => setState(() => _storeInVault = value ?? false),
-            activeColor: theme.primaryColor,
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context, {
-              'storeInVault': _storeInVault,
-              'lockUntilDate': widget.lockDate,
-            });
-          },
-          child: Text('Save Entry'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: theme.primaryColor,
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-}

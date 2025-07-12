@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/mental_health_vault.iml" filepath="$PROJECT_DIR$/mental_health_vault.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android/mental_health_vault_android.iml" filepath="$PROJECT_DIR$/android/mental_health_vault_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Reminest.iml" filepath="$PROJECT_DIR$/Reminest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/Reminest_android.iml" filepath="$PROJECT_DIR$/android/Reminest_android.iml" />
     </modules>
   </component>
 </project>

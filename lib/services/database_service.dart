@@ -84,6 +84,33 @@ class DatabaseService {
     return entries;
   }
 
+  /// Updates an existing journal entry.
+  static Future<void> updateEntry(JournalEntry entry) async {
+    if (_db == null) await initDB();
+    try {
+      _db!.execute('''
+        UPDATE entries SET
+          title = ?,
+          body = ?,
+          reviewDate = ?,
+          imagePath = ?,
+          isInVault = ?
+        WHERE id = ?
+      ''', [
+        EncryptionService.encryptText(entry.title),
+        EncryptionService.encryptText(entry.body),
+        entry.reviewDate.toIso8601String(),
+        entry.imagePath,
+        entry.isInVault ? 1 : 0,
+        entry.id,
+      ]);
+      print("[DatabaseService] Entry updated: ID ${entry.id}");
+    } catch (e) {
+      print("[DatabaseService] Error updating entry: $e");
+      throw e;
+    }
+  }
+
   /// Deletes a journal entry by its ID.
   static Future<void> deleteEntry(int id) async {
     if (_db == null) await initDB();
@@ -95,33 +122,6 @@ class DatabaseService {
     }
   }
 
-  /// Updates an existing journal entry in the database.
-  static Future<void> updateEntry(JournalEntry entry) async {
-    if (_db == null) await initDB();
-    try {
-      _db!.execute(
-        '''
-        UPDATE entries 
-        SET title = ?, body = ?, imagePath = ?, reviewDate = ?, isReviewed = ?, isInVault = ?
-        WHERE id = ?
-        ''',
-        [
-          EncryptionService.encryptText(entry.title),
-          EncryptionService.encryptText(entry.body),
-          entry.imagePath,
-          entry.reviewDate.toIso8601String(),
-          entry.isReviewed ? 1 : 0,
-          entry.isInVault ? 1 : 0,
-          entry.id,
-        ],
-      );
-      print("[DatabaseService] Entry updated: ${entry.title}");
-    } catch (e) {
-      print("[DatabaseService] Error updating entry: $e");
-      throw e;
-    }
-  }
-
   /// Clears all data from the `entries` table.
   static Future<void> clearAllData() async {
     if (_db == null) await initDB();
@@ -130,6 +130,17 @@ class DatabaseService {
       print("[DatabaseService] All data cleared");
     } catch (e) {
       print("[DatabaseService] Error clearing all data: $e");
+    }
+  }
+
+  /// Clears only vault entries (entries with isInVault = 1).
+  static Future<void> clearVaultData() async {
+    if (_db == null) await initDB();
+    try {
+      _db!.execute('DELETE FROM entries WHERE isInVault = 1');
+      print("[DatabaseService] Vault data cleared");
+    } catch (e) {
+      print("[DatabaseService] Error clearing vault data: $e");
     }
   }
 

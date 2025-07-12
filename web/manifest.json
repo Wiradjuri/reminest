@@ -1,6 +1,6 @@
 {
-    "name": "mental_health_vault",
-    "short_name": "mental_health_vault",
+    "name": "Reminest",
+    "short_name": "Reminest",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

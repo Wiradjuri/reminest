@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import '../services/key_service.dart';
+import '../services/password_service.dart';
 import '../screens/set_password_screen.dart';
 import '../screens/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
-  final bool isAuthenticated; // Add flag to indicate if already authenticated
+  final bool isAuthenticated;
+  final VoidCallback? onNavigateToJournal;
   
-  HomeScreen({this.onLoginSuccess, this.isAuthenticated = false});
+  HomeScreen({this.onLoginSuccess, this.isAuthenticated = false, this.onNavigateToJournal});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -22,36 +24,39 @@ class _HomeScreenState extends State<HomeScreen> {
     _checkPasswordStatus();
   }
 
-  @override
-  void didUpdateWidget(HomeScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Refresh password status when widget updates
-    _checkPasswordStatus();
-  }
-
   Future<void> _checkPasswordStatus() async {
-    final hasPassword = await KeyService.hasPassword();
+    final hasPassword = await PasswordService.isPasswordSet();
     setState(() {
       _hasPassword = hasPassword;
     });
   }
 
   void _beginSetup() async {
+    print("[HomeScreen] _beginSetup called");
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => SetPasswordScreen()),
+      MaterialPageRoute(builder: (_) => SetPasswordScreen(
+        onPasswordSet: () {
+          if (widget.onLoginSuccess != null) {
+            print("[HomeScreen] Calling onLoginSuccess callback from setup");
+            widget.onLoginSuccess!();
+          }
+        },
+      )),
     );
-    // If setup was successful, call the login success callback
-    if (result == true && widget.onLoginSuccess != null) {
-      widget.onLoginSuccess!();
-    }
+    print("[HomeScreen] Setup result: $result");
+    // The callback handles authentication, no need for additional logic here
   }
 
-  void _login() {
-    Navigator.push(
+  void _login() async {
+    print("[HomeScreen] _login called, passing onLoginSuccess callback");
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => LoginScreen(onLoginSuccess: widget.onLoginSuccess)),
     );
+    print("[HomeScreen] Login navigation returned with result: $result");
+    // If login was successful, the callback would have been called
+    // and the AuthenticationWrapper should handle the navigation
   }
   @override
   Widget build(BuildContext context) {
@@ -70,6 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.all(24),
         child: Column(
           children: [
+            _buildEmergencyNotice(theme),
+            SizedBox(height: 24),
             IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -79,7 +86,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     flex: 3,
                     child: Container(
                       margin: EdgeInsets.only(right: 24),
-                      child: _buildSupportTable(theme),
+                      child: Column(
+                        children: [
+                          Expanded(child: _buildSupportTable(theme)),
+                          SizedBox(height: 16),
+                          _buildOpenJournalButton(theme),
+                        ],
+                      ),
                     ),
                   ),
                   // Right side - Main content
@@ -90,8 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 24),
-            _buildEmergencyNotice(theme),
           ],
         ),
       ),
@@ -104,11 +115,13 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.all(24),
         child: Column(
           children: [
+            _buildEmergencyNotice(theme),
+            SizedBox(height: 24),
             _buildMainContent(theme),
             SizedBox(height: 32),
             _buildSupportTable(theme),
-            SizedBox(height: 24),
-            _buildEmergencyNotice(theme),
+            SizedBox(height: 16),
+            _buildOpenJournalButton(theme),
           ],
         ),
       ),
@@ -130,8 +143,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.lock, size: 80, color: theme.primaryColor),
-          SizedBox(height: 20),
           Text(
             "Welcome to Reminest",
             style: TextStyle(
@@ -141,11 +152,76 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(height: 20),
-          // App logo - moved between title and subtitle, made bigger
+          
+          // Welcome back message (only show when authenticated) - moved here
+          if (widget.isAuthenticated) ...[
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: theme.primaryColor.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle_outline, color: theme.primaryColor, size: 24),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "Welcome back! You're successfully logged in to your secure journal.",
+                      style: TextStyle(
+                        color: theme.primaryColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20),
+          ],
+          
+          // Begin Setup Button (only show if no password is set AND not authenticated) - moved here
+          if (!_hasPassword && !widget.isAuthenticated) ...[
+            Container(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _beginSetup,
+                icon: Icon(Icons.play_arrow, size: 20),
+                label: Text(
+                  "Begin Setup",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 2,
+                ),
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              "Get started with your secure mental health journal",
+              style: TextStyle(
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 20),
+          ],
+          
+          // App logo - enlarged and centered
           Image.asset(
             'lib/assets/icons/Reminest.png',
-            height: 150,
-            width: 150,
+            height: 200,
+            width: 200,
           ),
           SizedBox(height: 20),
           Padding(
@@ -210,39 +286,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 SizedBox(height: 30),
-                
-                // Begin Setup Button (only show if no password is set AND not authenticated)
-                if (!_hasPassword && !widget.isAuthenticated) ...[
-                  Container(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _beginSetup,
-                      icon: Icon(Icons.play_arrow, size: 20),
-                      label: Text(
-                        "Begin Setup",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 2,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    "Get started with your secure mental health journal",
-                    style: TextStyle(
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
                 
                 // Login Button (only show if password is already set AND not authenticated)
                 if (_hasPassword && !widget.isAuthenticated) ...[
@@ -419,6 +462,47 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildOpenJournalButton(ThemeData theme) {
+    // Only show the Open Journal button when authenticated
+    if (!widget.isAuthenticated) {
+      return SizedBox.shrink();
+    }
+    
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: widget.onNavigateToJournal,
+            icon: Icon(Icons.book, size: 20),
+            label: Text(
+              "Open Journal",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.primaryColor,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 2,
+            ),
+          ),
+        ),
+        SizedBox(height: 8),
+        Text(
+          "Start writing your mental health journey",
+          style: TextStyle(
+            color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+            fontSize: 12,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }

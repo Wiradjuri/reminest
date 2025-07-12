@@ -1,95 +1,102 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // Importing Flutter material design package
 
+// Defining a stateless widget for the About Us screen
 class AboutUsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text("About Us"),
-        backgroundColor: theme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
+    final theme = Theme.of(context); // Getting the current theme
+
+    return Scaffold( // Main scaffold for the screen
+      backgroundColor: theme.scaffoldBackgroundColor, // Setting background color from theme
+      appBar: AppBar( // App bar at the top
+        title: Text("About Us"), // Title of the app bar
+        backgroundColor: theme.primaryColor, // App bar background color
+        foregroundColor: Colors.white, // App bar text/icon color
+        elevation: 0, // No shadow under the app bar
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+      body: Center( // Centering the body content
+        child: SingleChildScrollView( // Allows scrolling if content overflows
+          child: Padding( // Padding around the content
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32), // Horizontal and vertical padding
+            child: Column( // Arranging widgets vertically
+              mainAxisAlignment: MainAxisAlignment.center, // Centering column content
               children: [
                 // Title with emojis
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Row( // Row for title and emojis
+                  mainAxisAlignment: MainAxisAlignment.center, // Centering row content
                   children: [
-                    Text("💭", style: TextStyle(fontSize: 32)),
-                    SizedBox(width: 10),
+                    Text("💭", style: TextStyle(fontSize: 32)), // Emoji before title
+                    SizedBox(width: 10), // Spacing between emoji and title
                     Text(
-                      "About Reminest",
+                      "About Reminest", // Title text
                       style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: theme.textTheme.titleLarge?.color,
-                        letterSpacing: 2,
+                        fontSize: 32, // Title font size
+                        fontWeight: FontWeight.bold, // Bold title
+                        color: theme.textTheme.titleLarge?.color, // Title color from theme
+                        letterSpacing: 2, // Spacing between letters
                       ),
                     ),
-                    SizedBox(width: 10),
-                    Text("🧠", style: TextStyle(fontSize: 32)),
+                    SizedBox(width: 10), // Spacing between title and emoji
+                    Text("🧠", style: TextStyle(fontSize: 32)), // Emoji after title
                   ],
                 ),
-                SizedBox(height: 24),
-                
-                // Profile photo with your Developer.png image
+                SizedBox(height: 24), // Spacing below title
+
+                // Developer image
                 Container(
-                  width: 108,
-                  height: 108,
+                  width: 120, // Image container width
+                  height: 120, // Image container height
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    shape: BoxShape.circle, // Circular shape
                     border: Border.all(
-                      color: theme.primaryColor,
-                      width: 3,
+                      color: theme.primaryColor, // Border color from theme
+                      width: 3, // Border width
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.primaryColor.withOpacity(0.3), // Shadow color
+                        blurRadius: 10, // Shadow blur
+                        offset: Offset(0, 4), // Shadow offset
+                      ),
+                    ],
                   ),
-                  child: ClipOval(
+                  child: ClipOval( // Clipping image to oval (circle)
                     child: Image.asset(
-                      'lib/assets/icons/Developer.png',
-                      width: 108,
-                      height: 108,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        // Fallback to icon if image fails to load
+                      'lib/assets/icons/Developer.png', // Path to developer image
+                      width: 120, // Image width
+                      height: 120, // Image height
+                      fit: BoxFit.cover, // Cover the container
+                      errorBuilder: (context, error, stackTrace) { // Fallback if image fails to load
                         return CircleAvatar(
-                          radius: 54,
+                          radius: 54, // Avatar radius
                           backgroundColor: theme.brightness == Brightness.dark 
-                              ? Colors.white24 
-                              : Colors.grey.shade300,
+                              ? Colors.white24 // Background for dark mode
+                              : Colors.grey.shade300, // Background for light mode
                           child: Icon(
-                            Icons.person,
-                            size: 60,
-                            color: theme.primaryColor,
+                            Icons.person, // Default person icon
+                            size: 60, // Icon size
+                            color: theme.primaryColor, // Icon color from theme
                           ),
                         );
                       },
                     ),
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 20), // Spacing below image
 
                 // About text with border
                 Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: theme.primaryColor,
-                      width: 2,
+                      color: theme.primaryColor, // Border color from theme
+                      width: 2, // Border width
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(16), // Rounded corners
                     color: theme.brightness == Brightness.dark 
-                        ? Colors.white10 
-                        : Colors.white,
+                        ? Colors.white10 // Background for dark mode
+                        : Colors.white, // Background for light mode
                   ),
-                  padding: EdgeInsets.all(24),
+                  padding: EdgeInsets.all(24), // Padding inside container
                   child: Text(
                     "Hello! I'm Brad, the creator of Reminest. Having personally experienced mental health challenges, I understand the importance of having a safe, private space for self-reflection and emotional expression.\n\n"
                     "Reminest is designed as your secure digital sanctuary—a place where you can document your thoughts, track your emotional journey, and reflect on your growth over time. The app's core purpose is to help you identify patterns in your mental health by allowing you to revisit entries months or years later.\n\n"
@@ -99,25 +106,25 @@ class AboutUsScreen extends StatelessWidget {
                     "• Flexible organization between main journal and secure vault\n"
                     "• Privacy-focused design with no external sharing\n\n"
                     "In a world of constant social media exposure, Reminest provides a judgment-free environment where you can express yourself authentically. Whether you're managing anxiety, depression, or simply navigating life's challenges, this app serves as your personal mental health companion.\n\n"
-                    "Thank you for trusting Reminest on your journey toward better mental wellness.",
+                    "Thank you for trusting Reminest on your journey toward better mental wellness.", // About text
                     style: TextStyle(
-                      fontSize: 15,
-                      color: theme.textTheme.bodyMedium?.color,
-                      height: 1.5,
+                      fontSize: 15, // Text font size
+                      color: theme.textTheme.bodyMedium?.color, // Text color from theme
+                      height: 1.5, // Line height
                     ),
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.left, // Align text to left
                   ),
                 ),
-                
-                SizedBox(height: 24),
-                
+
+                SizedBox(height: 24), // Spacing below about text
+
                 // Developer info
                 Text(
-                  "Developed by Bradley Murray.\n© 2025",
-                  textAlign: TextAlign.center,
+                  "Developed by Bradley Murray.\n© 2025", // Developer and copyright info
+                  textAlign: TextAlign.center, // Centered text
                   style: TextStyle(
-                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-                    fontSize: 16,
+                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.7), // Faded text color from theme
+                    fontSize: 16, // Text font size
                   ),
                 ),
               ],

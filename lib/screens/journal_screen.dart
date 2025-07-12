@@ -3,6 +3,7 @@ import '../models/journal_entry.dart';
 import '../services/database_service.dart';
 import 'add_entry_screen.dart';
 import 'edit_entry_screen.dart';
+import 'view_entry_screen.dart';
 
 class JournalScreen extends StatefulWidget {
   @override
@@ -65,6 +66,11 @@ class _JournalScreenState extends State<JournalScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
+              icon: Icon(Icons.visibility, color: Colors.blue),
+              onPressed: () => _viewEntry(entry),
+              tooltip: 'View entry',
+            ),
+            IconButton(
               icon: Icon(Icons.edit, color: theme.primaryColor),
               onPressed: () => _editEntry(entry),
               tooltip: 'Edit entry',
@@ -76,9 +82,16 @@ class _JournalScreenState extends State<JournalScreen> {
             ),
           ],
         ),
-        onTap: () {
-          // TODO: Navigate to entry detail screen
-        },
+        onTap: () => _viewEntry(entry),
+      ),
+    );
+  }
+
+  Future<void> _viewEntry(JournalEntry entry) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewEntryScreen(entry: entry),
       ),
     );
   }
@@ -87,11 +100,12 @@ class _JournalScreenState extends State<JournalScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => EditEntryScreen(entry: entry),
+        builder: (context) => EditEntryScreen(entry: entry),
       ),
     );
+
     if (result == true) {
-      _loadEntries(); // Refresh entries if the entry was updated
+      _loadEntries(); // Refresh the list
     }
   }
 

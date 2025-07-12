@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../services/key_service.dart';
 import '../services/encryption_service.dart';
-import 'set_vault_pin_screen.dart';
+import '../services/password_service.dart';
 
 class SetPasswordScreen extends StatefulWidget {
+  final VoidCallback onPasswordSet; // Now REQUIRED
+
+  const SetPasswordScreen({Key? key, required this.onPasswordSet}) : super(key: key);
+
   @override
   State<SetPasswordScreen> createState() => _SetPasswordScreenState();
 }
@@ -18,7 +23,6 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
   @override
   void initState() {
     super.initState();
-    // Add listeners to update UI when text changes
     _passwordController.addListener(() => setState(() {}));
     _confirmController.addListener(() => setState(() {}));
   }
@@ -32,7 +36,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
 
   void _setPassword() async {
     if (_isLoading) return;
-    
+
     if (_passwordController.text != _confirmController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Passwords do not match')),
@@ -50,22 +54,14 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final passkey = await PasswordService.setPassword(_passwordController.text);
       await KeyService.savePassword(_passwordController.text);
       await KeyService.setPasswordSetFlag();
-
       final keyBytes = KeyService.generateKeyFromPassword(_passwordController.text);
       EncryptionService.initializeKey(keyBytes);
 
       if (mounted) {
-        // Navigate to vault PIN setup (mandatory)
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => SetVaultPinScreen()),
-        );
-        // If vault PIN setup was successful, return success to HomeScreen
-        if (result == true) {
-          Navigator.pop(context, true);
-        }
+        _showPasskeyDialog(passkey);
       }
     } catch (e) {
       if (mounted) {
@@ -80,13 +76,124 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     }
   }
 
+  void _showPasskeyDialog(String passkey) {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.key, color: Colors.amber),
+            SizedBox(width: 8),
+            Text('Your Recovery Passkey'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.withOpacity(0.3)),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'IMPORTANT: Save this passkey!',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.amber.shade700,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'This passkey can be used to recover your APPLICATION PASSWORD if you forget it. Note: This does NOT recover your vault PIN - the vault cannot be recovered if the PIN is lost.',
+                    style: TextStyle(fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: theme.dividerColor),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Your Passkey:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: theme.textTheme.titleMedium?.color,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  SelectableText(
+                    passkey,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'monospace',
+                      letterSpacing: 2,
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: passkey));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Passkey copied to clipboard!')),
+                      );
+                    },
+                    icon: Icon(Icons.copy, size: 16),
+                    label: Text('Copy Passkey'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              // First close the dialog
+              Navigator.of(context).pop();
+              // Then pop the SetPasswordScreen itself to return to the previous screen
+              Navigator.of(context).pop();
+              // Finally call the callback to trigger authentication
+              widget.onPasswordSet();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('I have saved my passkey'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bool canSubmit = _passwordController.text.isNotEmpty && 
-                          _confirmController.text.isNotEmpty && 
-                          !_isLoading;
-    
+    final bool canSubmit = _passwordController.text.isNotEmpty &&
+        _confirmController.text.isNotEmpty &&
+        !_isLoading;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -100,7 +207,6 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome text
             Text(
               'Welcome to Reminest',
               style: TextStyle(
@@ -118,8 +224,6 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
               ),
             ),
             SizedBox(height: 32),
-            
-            // Password field
             Text(
               'Password',
               style: TextStyle(
@@ -134,6 +238,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
               obscureText: _obscurePassword,
               enabled: !_isLoading,
               style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+              onSubmitted: (_) => _isLoading ? null : _setPassword(),
               decoration: InputDecoration(
                 hintText: 'Enter a secure password (min. 6 characters)',
                 hintStyle: TextStyle(color: theme.hintColor),
@@ -155,8 +260,6 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
               ),
             ),
             SizedBox(height: 20),
-            
-            // Confirm password field
             Text(
               'Confirm Password',
               style: TextStyle(
@@ -171,6 +274,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
               obscureText: _obscureConfirm,
               enabled: !_isLoading,
               style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+              onSubmitted: (_) => _isLoading ? null : _setPassword(),
               decoration: InputDecoration(
                 hintText: 'Re-enter your password',
                 hintStyle: TextStyle(color: theme.hintColor),
@@ -191,19 +295,17 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 ),
               ),
             ),
-            
-            // Password requirements
             if (_passwordController.text.isNotEmpty) ...[
               SizedBox(height: 16),
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _passwordController.text.length >= 6 
+                  color: _passwordController.text.length >= 6
                       ? Colors.green.withOpacity(0.1)
                       : Colors.orange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: _passwordController.text.length >= 6 
+                    color: _passwordController.text.length >= 6
                         ? Colors.green.withOpacity(0.3)
                         : Colors.orange.withOpacity(0.3),
                   ),
@@ -211,21 +313,21 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      _passwordController.text.length >= 6 
-                          ? Icons.check_circle 
+                      _passwordController.text.length >= 6
+                          ? Icons.check_circle
                           : Icons.warning,
-                      color: _passwordController.text.length >= 6 
-                          ? Colors.green 
+                      color: _passwordController.text.length >= 6
+                          ? Colors.green
                           : Colors.orange,
                       size: 18,
                     ),
                     SizedBox(width: 8),
                     Text(
-                      _passwordController.text.length >= 6 
+                      _passwordController.text.length >= 6
                           ? 'Password meets requirements'
                           : 'Password must be at least 6 characters',
                       style: TextStyle(
-                        color: _passwordController.text.length >= 6 
+                        color: _passwordController.text.length >= 6
                             ? Colors.green.shade700
                             : Colors.orange.shade700,
                         fontSize: 12,
@@ -235,19 +337,17 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 ),
               ),
             ],
-            
-            // Password match indicator
             if (_confirmController.text.isNotEmpty) ...[
               SizedBox(height: 8),
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _passwordController.text == _confirmController.text 
+                  color: _passwordController.text == _confirmController.text
                       ? Colors.green.withOpacity(0.1)
                       : Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: _passwordController.text == _confirmController.text 
+                    color: _passwordController.text == _confirmController.text
                         ? Colors.green.withOpacity(0.3)
                         : Colors.red.withOpacity(0.3),
                   ),
@@ -255,21 +355,21 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 child: Row(
                   children: [
                     Icon(
-                      _passwordController.text == _confirmController.text 
-                          ? Icons.check_circle 
+                      _passwordController.text == _confirmController.text
+                          ? Icons.check_circle
                           : Icons.error,
-                      color: _passwordController.text == _confirmController.text 
-                          ? Colors.green 
+                      color: _passwordController.text == _confirmController.text
+                          ? Colors.green
                           : Colors.red,
                       size: 18,
                     ),
                     SizedBox(width: 8),
                     Text(
-                      _passwordController.text == _confirmController.text 
+                      _passwordController.text == _confirmController.text
                           ? 'Passwords match'
                           : 'Passwords do not match',
                       style: TextStyle(
-                        color: _passwordController.text == _confirmController.text 
+                        color: _passwordController.text == _confirmController.text
                             ? Colors.green.shade700
                             : Colors.red.shade700,
                         fontSize: 12,
@@ -279,10 +379,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 ),
               ),
             ],
-            
             SizedBox(height: 40),
-            
-            // Set password button
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -321,10 +418,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                       ),
               ),
             ),
-            
             SizedBox(height: 16),
-            
-            // Security note
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(

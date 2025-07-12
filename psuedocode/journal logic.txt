@@ -1,9 +1,0 @@
-Vault/Journal Logic
-After login, show JournalScreen with all entries.
-
-Vault is a special modal/page; first open prompts for PIN, then can view locked entries only if unlocked and “date to unlock” is reached.
-
-Each journal entry requires a “date to unlock” before saving.
-
-Optionally attach photo (use file_picker/image_picker for Windows).
-
