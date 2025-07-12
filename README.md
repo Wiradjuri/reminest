@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Reminest - Your Private Mental Health Vault
 
 Reminest is a secure, privacy-first mental health journaling application designed to help users safely document their thoughts, feelings, and mental health journey. Built with Flutter for cross-platform compatibility, Reminest prioritizes user privacy by storing all data locally with military-grade encryption, ensuring your most personal thoughts remain completely private and secure.
@@ -191,6 +192,13 @@ For support or questions:
 
 Copyright (c) 2025 Bradley Murray
 
+All Rights Reserved.
+
+You are NOT permitted to access, use, copy, modify, distribute, or sublicense any part of this codebase without obtaining express written permission from the copyright holder.
+
+Any unauthorized use of this code or its derivatives is strictly prohibited and may result in legal action.
+
+For inquiries regarding permission to access or use this code, please contact: <bmuzza1992@gmail.com>
 All Rights Reserved.
 
 You are NOT permitted to access, use, copy, modify, distribute, or sublicense any part of this codebase without obtaining express written permission from the copyright holder.
