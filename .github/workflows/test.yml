@@ -12,9 +12,5 @@ jobs:
 
       - uses: k-paxian/dart-package-publisher@v1.6
         with:
-          accessToken: ${{ secrets.OAUTH_ACCESS_TOKEN }}
-          refreshToken: ${{ secrets.OAUTH_REFRESH_TOKEN }}
-          # If you prefer, you can use the CREDENTIAL_JSON secret instead:
-          # credentialJson: ${{ secrets.CREDENTIAL_JSON }}
-          # flutter: true  # Uncomment if this is a Flutter package
-          # dryRunOnly: true  # Uncomment for testing only (no publish)
+          credentialJson: ${{ secrets.CREDENTIAL_JSON }}
+          dryRunOnly: true
