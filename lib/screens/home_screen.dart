@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'reminest/lib/services/key_service.dart';
-import 'reminest/lib/services/password_service.dart';
-import 'reminest/lib/screens/set_password_screen.dart';
-import 'reminest/lib/screens/login_screen.dart';
+import '../services/key_service.dart';
+import '../services/password_service.dart';
+import 'set_password_screen.dart';
+import 'login_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
