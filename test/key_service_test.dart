@@ -3,15 +3,15 @@ import 'package:reminest/services/key_service.dart';
 
 void main() {
   group('KeyService', () {
-    test('save and get password hash', () async {
+    test('save and get password', () async {
       final password = 'mysecret';
-      await KeyService.savePasswordHash(password);
-      final hash = await KeyService.getPasswordHash();
-      expect(hash, isNotNull);
+      await KeyService.savePassword(password);
+      final storedPassword = await KeyService.getPassword();
+      expect(storedPassword, password);
     });
 
-    test('clear password does not throw', () async {
-      await KeyService.clearPassword();
+    test('clearAllPasswordData does not throw', () async {
+      await KeyService.clearAllPasswordData();
       expect(true, isTrue);
     });
 

@@ -16,14 +16,14 @@ void main() {
       expect(entries, isA<List>());
     });
 
-    test('insertEntry inserts an entry without throwing', () async {
+    test('addEntry inserts an entry without throwing', () async {
       await DatabaseService.init();
       final entry = {
         'title': 'Test Title',
         'content': 'Test Content',
         'createdAt': DateTime.now().toIso8601String(),
       };
-      await DatabaseService.insertEntry(entry);
+      await DatabaseService.addEntry(entry);
       final entries = await DatabaseService.getEntries();
       expect(entries, anyElement(containsPair('title', 'Test Title')));
     });
@@ -36,7 +36,6 @@ void main() {
         'content': 'Updated Content',
         'createdAt': DateTime.now().toIso8601String(),
       };
-      // You may need a real entry in your DB for this to work!
       await DatabaseService.updateEntry(entry);
       expect(true, isTrue);
     });
