@@ -1,22 +1,38 @@
-name: Dart/Flutter Tests
+name: Flutter CI
 
 on:
   push:
-    branches: [inital]        # or [main] or ['*'] for all branches
+    branches:
+      - main
+      - dev
+      - init
   pull_request:
-    branches: [inital]
+    branches:
+      - main
+      - dev
+      - init
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.32.6'
-        
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Run tests
-        run: flutter test
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.1'  # You can change this if needed
+
+      - name: Show Flutter version
+        run: flutter --version
+
+      - name: Clean project
+        run: flutter clean
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run unit tests
+        run: flutter test
