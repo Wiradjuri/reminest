@@ -2,9 +2,9 @@ name: Test Suite & Security Analysis
 
 on:
   push:
-    branches: [ main, develop, inital ]
+    branches: [ main, develop, initial ]
   pull_request:
-    branches: [ main, develop, inital ]
+    branches: [ main, develop, initial ]
 
 jobs:
   test:
@@ -17,7 +17,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.32.5'
+        flutter-version: '3.24.3'
         channel: 'stable'
 
     - name: Install dependencies
@@ -33,21 +33,30 @@ jobs:
       run: dart format --dry-run --set-exit-if-changed .
 
     - name: Run core tests (without platform dependencies)
-      run: flutter test test/encryption_service_test.dart test/platform_database_service_test.dart test/widget_test.dart --coverage
+      run: flutter test test/services/encryption_service_test.dart test/services/key_service_test.dart test/widget_test.dart --coverage
 
     - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         files: coverage/lcov.info
         fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   build-test:
-    runs-on: ubuntu-latest
     needs: test
-
     strategy:
       matrix:
-        platform: [linux, android, web]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: ubuntu-latest
+            platform: android
+          - os: ubuntu-latest
+            platform: web
+          - os: windows-latest
+            platform: windows
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout repository
@@ -56,7 +65,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.32.5'
+        flutter-version: '3.24.3'
         channel: 'stable'
 
     - name: Install dependencies
@@ -78,14 +87,42 @@ jobs:
       if: matrix.platform == 'web'
       run: flutter build web --release
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+    - name: Build for Windows
+      if: matrix.platform == 'windows'
+      run: |
+        flutter config --enable-windows-desktop
+        flutter build windows --release
+
+    - name: Upload Linux build artifacts
+      if: matrix.platform == 'linux'
+      uses: actions/upload-artifact@v4
       with:
-        name: build-${{ matrix.platform }}
-        path: |
-          build/linux/
-          build/app/outputs/
-          build/web/
+        name: build-linux
+        path: build/linux/x64/release/bundle/
+        retention-days: 7
+
+    - name: Upload Android build artifacts
+      if: matrix.platform == 'android'
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-android
+        path: build/app/outputs/flutter-apk/
+        retention-days: 7
+
+    - name: Upload Web build artifacts
+      if: matrix.platform == 'web'
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-web
+        path: build/web/
+        retention-days: 7
+
+    - name: Upload Windows build artifacts
+      if: matrix.platform == 'windows'
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-windows
+        path: build/windows/x64/runner/Release/
         retention-days: 7
 
   security:
@@ -99,7 +136,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.32.5'
+        flutter-version: '3.24.3'
         channel: 'stable'
 
     - name: Install dependencies
@@ -119,9 +156,47 @@ jobs:
         flutter analyze --fatal-infos
 
     - name: Upload security reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: security-reports
         path: |
           dependency-report.json
         retention-days: 30
+
+  # Windows-specific integration test
+  windows-integration:
+    runs-on: windows-latest
+    needs: test
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.3'
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Enable Windows desktop
+      run: flutter config --enable-windows-desktop
+
+    - name: Run Windows-specific tests
+      run: flutter test test/services/platform_database_service_test.dart test/services/password_service_test.dart --verbose
+
+    - name: Build Windows app for testing
+      run: flutter build windows --debug
+
+    - name: Test Windows executable
+      run: |
+        echo "Testing Windows executable creation..."
+        if (Test-Path "build/windows/x64/runner/Debug/reminest.exe") {
+          echo "✅ Windows executable created successfully"
+        } else {
+          echo "❌ Windows executable not found"
+          exit 1
+        }
+      shell: powershell
