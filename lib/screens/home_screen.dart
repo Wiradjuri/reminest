@@ -283,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     "Access your secure mental health journal",
                     style: TextStyle(
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                       fontSize: 12,
                     ),
                     textAlign: TextAlign.center,
@@ -476,74 +476,110 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildActionButtons(ThemeData theme) {
-    return Column(
-      children: [
-        // Begin Setup Button (only show if no password is set AND not authenticated)
-        if (!_hasPassword && !widget.isAuthenticated) ...[
-          Container(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _beginSetup,
-              icon: Icon(Icons.play_arrow, size: 20),
-              label: Text(
-                "Begin Setup",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primaryColor,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+    return Container(
+      height: 100, // Fixed height to prevent layout shifts
+      child: Column(
+        children: [
+          // Begin Setup Button (only show if no password is set AND not authenticated)
+          if (!_hasPassword && !widget.isAuthenticated) ...[
+            Container(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _beginSetup,
+                icon: Icon(Icons.play_arrow, size: 20),
+                label: Text(
+                  "Begin Setup",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                elevation: 2,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 2,
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 12),
-          Text(
-            "Get started with your secure mental health journal",
-            style: TextStyle(
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-              fontSize: 12,
+            SizedBox(height: 12),
+            Text(
+              "Get started with your secure mental health journal",
+              style: TextStyle(
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
 
-        // Open Journal Button (only show when authenticated)
-        if (widget.isAuthenticated) ...[
-          Container(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: widget.onNavigateToJournal,
-              icon: Icon(Icons.book, size: 20),
-              label: Text(
-                "Open Journal",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primaryColor,
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          // Login Button (only show if password is set AND not authenticated)
+          if (_hasPassword && !widget.isAuthenticated) ...[
+            Container(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _login,
+                icon: Icon(Icons.login, size: 20),
+                label: Text(
+                  "Login",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                elevation: 2,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 2,
+                ),
               ),
             ),
-          ),
-          SizedBox(height: 12),
-          Text(
-            "Start writing your mental health journey",
-            style: TextStyle(
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-              fontSize: 12,
+            SizedBox(height: 12),
+            Text(
+              "Access your secure mental health journal",
+              style: TextStyle(
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
+          ],
+
+          // Open Journal Button (only show when authenticated)
+          if (widget.isAuthenticated) ...[
+            Container(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: widget.onNavigateToJournal,
+                icon: Icon(Icons.book, size: 20),
+                label: Text(
+                  "Open Journal",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 2,
+                ),
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              "Start writing your mental health journey",
+              style: TextStyle(
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

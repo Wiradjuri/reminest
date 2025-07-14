@@ -7,7 +7,7 @@ import 'package:reminest/services/platform_database_service.dart';
 class EditEntryScreen extends StatefulWidget {
   final JournalEntry entry;
 
-  const EditEntryScreen({Key? key, required this.entry}) : super(key: key);
+  const EditEntryScreen({super.key, required this.entry});
 
   @override
   State<EditEntryScreen> createState() => _EditEntryScreenState();
@@ -57,7 +57,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     if (_isSaving) return;
     if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Title and body cannot be empty.')),
+        const SnackBar(content: Text('Title and body cannot be empty.')),
       );
       return;
     }
@@ -88,16 +88,18 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
       if (mounted) {
         Navigator.pop(context, true); // Return true to indicate success
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Entry updated successfully!'),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to update entry: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to update entry: $e')));
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -110,13 +112,13 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Edit Entry'),
+        title: const Text('Edit Entry'),
         backgroundColor: theme.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           if (_isSaving)
-            Padding(
+            const Padding(
               padding: EdgeInsets.all(16),
               child: SizedBox(
                 width: 20,
@@ -130,7 +132,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
           else
             TextButton(
               onPressed: _saveChanges,
-              child: Text(
+              child: const Text(
                 'SAVE',
                 style: TextStyle(
                   color: Colors.white,
@@ -155,7 +157,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   color: theme.textTheme.titleMedium?.color,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               TextField(
                 controller: _titleController,
                 style: TextStyle(color: theme.textTheme.bodyLarge?.color),
@@ -176,7 +178,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                 ),
               ),
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
               // Body Field
               Text(
@@ -187,7 +189,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                   color: theme.textTheme.titleMedium?.color,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               TextField(
                 controller: _bodyController,
                 style: TextStyle(color: theme.textTheme.bodyLarge?.color),
@@ -206,15 +208,15 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: theme.primaryColor),
                   ),
-                  contentPadding: EdgeInsets.all(16),
+                  contentPadding: const EdgeInsets.all(16),
                 ),
               ),
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
               // Image Section
               Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: theme.cardColor,
                   borderRadius: BorderRadius.circular(8),
@@ -226,7 +228,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     Row(
                       children: [
                         Icon(Icons.image, color: theme.primaryColor),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           'Image (Optional)',
                           style: TextStyle(
@@ -237,7 +239,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
                     // Current/Selected Image Display
                     if (_selectedImage != null ||
@@ -265,28 +267,28 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                                     Icons.broken_image,
                                     size: 50,
                                     color: theme.textTheme.bodyMedium?.color
-                                        ?.withOpacity(0.5),
+                                        ?.withValues(alpha: 0.5),
                                   ),
                                 ),
                         ),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           ElevatedButton.icon(
                             onPressed: _pickImage,
-                            icon: Icon(Icons.edit),
-                            label: Text('Change Image'),
+                            icon: const Icon(Icons.edit),
+                            label: const Text('Change Image'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: theme.primaryColor,
                               foregroundColor: Colors.white,
                             ),
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           OutlinedButton.icon(
                             onPressed: _removeImage,
-                            icon: Icon(Icons.delete),
-                            label: Text('Remove'),
+                            icon: const Icon(Icons.delete),
+                            label: const Text('Remove'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.red,
                             ),
@@ -296,8 +298,8 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                     ] else ...[
                       ElevatedButton.icon(
                         onPressed: _pickImage,
-                        icon: Icon(Icons.add_photo_alternate),
-                        label: Text('Add Image'),
+                        icon: const Icon(Icons.add_photo_alternate),
+                        label: const Text('Add Image'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: theme.primaryColor,
                           foregroundColor: Colors.white,
@@ -308,11 +310,11 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                 ),
               ),
 
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
 
               // Entry Info
               Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: theme.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -331,7 +333,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                         color: theme.primaryColor,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       'Created: ${widget.entry.createdAt.toLocal().toString().split('.')[0]}',
                       style: TextStyle(

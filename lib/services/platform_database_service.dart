@@ -1,14 +1,34 @@
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, Directory;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite/sqflite.dart' as mobile;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart' as desktop;
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../models/journal_entry.dart';
 import '../services/encryption_service.dart';
 
 class PlatformDatabaseService {
   static dynamic _db;
   static bool _isInitialized = false;
+  static List<JournalEntry> _webEntries = []; // For web storage
+
+  /// Get the database path for desktop platforms
+  static Future<String> _getDesktopDatabasePath() async {
+    if (Platform.isWindows) {
+      final appDataPath = Platform.environment['APPDATA'] ?? '';
+      final dbDir = '$appDataPath\\Reminest';
+      await Directory(dbDir).create(recursive: true);
+      return p.join(dbDir, 'journal_entries.db');
+    } else if (Platform.isLinux || Platform.isMacOS) {
+      final homeDir = Platform.environment['HOME'] ?? '';
+      final dbDir = p.join(homeDir, '.reminest');
+      await Directory(dbDir).create(recursive: true);
+      return p.join(dbDir, 'journal_entries.db');
+    }
+    // Fallback
+    return p.join(Directory.current.path, 'journal_entries.db');
+  }
 
   /// Initialize the appropriate database for the current platform
   static Future<void> initDB() async {
@@ -16,8 +36,8 @@ class PlatformDatabaseService {
 
     try {
       if (kIsWeb) {
-        // For web, use shared_preferences instead of SQLite for now
-        // We'll store data as JSON strings
+        // For web, use shared_preferences and in-memory storage
+        await _loadWebEntries();
         _isInitialized = true;
         print(
           "[PlatformDatabaseService] Web storage initialized (using SharedPreferences)",
@@ -35,10 +55,7 @@ class PlatformDatabaseService {
         desktop.sqfliteFfiInit();
         desktop.databaseFactory = desktop.databaseFactoryFfi;
 
-        final dbPath = p.join(
-          await desktop.getDatabasesPath(),
-          'journal_entries.db',
-        );
+        final dbPath = await _getDesktopDatabasePath();
         _db = await desktop.databaseFactoryFfi.openDatabase(
           dbPath,
           options: desktop.OpenDatabaseOptions(
@@ -58,11 +75,34 @@ class PlatformDatabaseService {
     }
   }
 
+  /// Load entries from SharedPreferences for web
+  static Future<void> _loadWebEntries() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final entriesJson = prefs.getStringList('journal_entries') ?? [];
+      _webEntries = entriesJson.map((json) {
+        final data = jsonDecode(json) as Map<String, dynamic>;
+        return JournalEntry.fromMap(data);
+      }).toList();
+    } catch (e) {
+      print("[PlatformDatabaseService] Error loading web entries: $e");
+      _webEntries = [];
+    }
+  }
+
+  /// Save entries to SharedPreferences for web
+  static Future<void> _saveWebEntries() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final entriesJson = _webEntries.map((entry) => jsonEncode(entry.toMap())).toList();
+      await prefs.setStringList('journal_entries', entriesJson);
+    } catch (e) {
+      print("[PlatformDatabaseService] Error saving web entries: $e");
+    }
+  }
+
   /// Create database tables for mobile platforms
-  static Future<void> _createMobileTables(
-    mobile.Database db,
-    int version,
-  ) async {
+  static Future<void> _createMobileTables(mobile.Database db, int version) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,10 +118,7 @@ class PlatformDatabaseService {
   }
 
   /// Create database tables for desktop platforms
-  static Future<void> _createDesktopTables(
-    desktop.Database db,
-    int version,
-  ) async {
+  static Future<void> _createDesktopTables(desktop.Database db, int version) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,10 +149,20 @@ class PlatformDatabaseService {
     if (!_isInitialized) await initDB();
 
     if (kIsWeb) {
-      // For web, we'll use a simple in-memory list for now
-      print(
-        "[PlatformDatabaseService] Web storage not yet implemented for entries",
+      // For web, add to in-memory list and save to preferences
+      final newEntry = JournalEntry(
+        id: _webEntries.isEmpty ? 1 : _webEntries.map((e) => e.id ?? 0).reduce((a, b) => a > b ? a : b) + 1,
+        title: entry.title,
+        body: entry.body,
+        imagePath: entry.imagePath,
+        createdAt: entry.createdAt,
+        reviewDate: entry.reviewDate,
+        isReviewed: entry.isReviewed,
+        isInVault: entry.isInVault,
       );
+      _webEntries.add(newEntry);
+      await _saveWebEntries();
+      print("[PlatformDatabaseService] Entry added to web storage");
       return;
     }
 
@@ -141,8 +188,7 @@ class PlatformDatabaseService {
     if (!_isInitialized) await initDB();
 
     if (kIsWeb) {
-      // For web, return empty list for now
-      return [];
+      return List.from(_webEntries);
     }
 
     try {
@@ -159,7 +205,7 @@ class PlatformDatabaseService {
     if (!_isInitialized) await initDB();
 
     if (kIsWeb) {
-      return [];
+      return _webEntries.where((entry) => !entry.isInVault).toList();
     }
 
     try {
@@ -180,7 +226,7 @@ class PlatformDatabaseService {
     if (!_isInitialized) await initDB();
 
     if (kIsWeb) {
-      return [];
+      return _webEntries.where((entry) => entry.isInVault).toList();
     }
 
     try {
@@ -201,7 +247,12 @@ class PlatformDatabaseService {
     if (!_isInitialized) await initDB();
 
     if (kIsWeb) {
-      print("[PlatformDatabaseService] Web update not yet implemented");
+      final index = _webEntries.indexWhere((e) => e.id == entry.id);
+      if (index != -1) {
+        _webEntries[index] = entry;
+        await _saveWebEntries();
+        print("[PlatformDatabaseService] Entry updated in web storage");
+      }
       return;
     }
 
@@ -231,7 +282,9 @@ class PlatformDatabaseService {
     if (!_isInitialized) await initDB();
 
     if (kIsWeb) {
-      print("[PlatformDatabaseService] Web delete not yet implemented");
+      _webEntries.removeWhere((entry) => entry.id == id);
+      await _saveWebEntries();
+      print("[PlatformDatabaseService] Entry deleted from web storage");
       return;
     }
 
@@ -249,7 +302,9 @@ class PlatformDatabaseService {
     if (!_isInitialized) await initDB();
 
     if (kIsWeb) {
-      print("[PlatformDatabaseService] Web vault clear not yet implemented");
+      _webEntries.removeWhere((entry) => entry.isInVault);
+      await _saveWebEntries();
+      print("[PlatformDatabaseService] Vault data cleared from web storage");
       return;
     }
 
@@ -267,7 +322,9 @@ class PlatformDatabaseService {
     if (!_isInitialized) await initDB();
 
     if (kIsWeb) {
-      print("[PlatformDatabaseService] Web clear all not yet implemented");
+      _webEntries.clear();
+      await _saveWebEntries();
+      print("[PlatformDatabaseService] All data cleared from web storage");
       return;
     }
 
@@ -296,11 +353,11 @@ class PlatformDatabaseService {
 
   /// Close the database connection
   static Future<void> close() async {
-    if (_db != null) {
+    if (_db != null && !kIsWeb) {
       await _db!.close();
       _db = null;
-      _isInitialized = false;
-      print("[PlatformDatabaseService] Database closed");
     }
+    _isInitialized = false;
+    print("[PlatformDatabaseService] Database closed");
   }
 }

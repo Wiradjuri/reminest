@@ -1,9 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:reminest/services/platform_database_service.dart';
 import 'package:reminest/models/journal_entry.dart';
 
 class VaultScreen extends StatefulWidget {
+  const VaultScreen({super.key});
+
   @override
   State<VaultScreen> createState() => _VaultScreenState();
 }
@@ -59,7 +60,7 @@ class _VaultScreenState extends State<VaultScreen> {
             child: Text(
               'Cancel',
               style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -120,9 +121,9 @@ class _VaultScreenState extends State<VaultScreen> {
               Container(
                 padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                  border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -298,15 +299,13 @@ class _VaultScreenState extends State<VaultScreen> {
                   Icon(
                     Icons.security,
                     size: 64,
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
                   ),
                   SizedBox(height: 16),
                   Text(
                     'No vault entries',
                     style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
-                        0.7,
-                      ),
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -315,9 +314,7 @@ class _VaultScreenState extends State<VaultScreen> {
                   Text(
                     'Create entries and store them in the vault with time-locked access. Entries will automatically unlock on their scheduled date.',
                     style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
-                        0.5,
-                      ),
+                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
                       fontSize: 14,
                     ),
                     textAlign: TextAlign.center,

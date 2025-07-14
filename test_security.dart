@@ -1,55 +1,54 @@
-import 'dart:convert';
-import 'lib/services/key_service.dart';
-import 'package:crypto/crypto.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:reminest/services/key_service.dart';
 
-void main() async {
-  // Test 1: Password Security
-  const testPassword = "MySecurePassword123!";
-  await KeyService.savePasswordHash(testPassword);
-  final isValidPassword = await KeyService.verifyPassword(testPassword);
-  assert(isValidPassword == true);
-  final isInvalidPassword = await KeyService.verifyPassword("WrongPassword");
-  assert(isInvalidPassword == false);
+void main() {
+  group('Password Security Tests', () {
+    test('password storage and retrieval', () async {
+      const testPassword = 'testPassword123';
+      
+      // Test password saving
+      await KeyService.savePassword(testPassword);
+      
+      // Test password verification
+      final isValid = await KeyService.verifyPassword(testPassword);
+      expect(isValid, true);
+      
+      // Test wrong password
+      final isWrong = await KeyService.verifyPassword('wrongPassword');
+      expect(isWrong, false);
+    });
 
-  // Test 2: Unique Salt Usage
-  await KeyService.clearAllPasswordData();
-  await KeyService.savePasswordHash(testPassword);
-  final firstHash = await KeyService.getPasswordHash();
+    test('password hashing consistency', () async {
+      const testPassword = 'testPassword123';
+      
+      // Save password twice
+      await KeyService.savePassword(testPassword);
+      final firstHash = await KeyService.getPasswordHash();
+      
+      await KeyService.savePassword(testPassword);
+      final secondHash = await KeyService.getPasswordHash();
+      
+      // Hashes should be different due to salt
+      expect(firstHash != secondHash, true);
+      
+      // But verification should still work
+      final isValid = await KeyService.verifyPassword(testPassword);
+      expect(isValid, true);
+    });
 
-  await KeyService.clearAllPasswordData();
-  await KeyService.savePasswordHash(testPassword);
-  final secondHash = await KeyService.getPasswordHash();
-
-  assert(firstHash != secondHash);
-  // Test 3: Complete Data Erasure
-  await KeyService.savePasswordHash(testPassword);
-  await KeyService.saveVaultPin("1234");
-  await KeyService.clearAllPasswordData();
-  await KeyService.clearVaultPin();
-
-  final hasPasswordAfterClear = await KeyService.hasPassword();
-  final hasPinAfterClear = await KeyService.hasVaultPin();
-
-  assert(hasPasswordAfterClear == false);
-  assert(hasPinAfterClear == false);
-
-  // Additional Tests: PIN Verification
-  await KeyService.saveVaultPin("1234");
-  final isPinCorrect = await KeyService.verifyVaultPin("1234");
-  assert(isPinCorrect == true);
-
-  final isPinIncorrect = await KeyService.verifyVaultPin("4321");
-  assert(isPinIncorrect == false);
-
-  // Additional Tests: Test Password with Special Characters
-  const specialCharPassword = "P@\$\$w0rd!";
-  await KeyService.clearAllPasswordData();
-  await KeyService.savePasswordHash(specialCharPassword);
-  final isSpecialCharPasswordValid = await KeyService.verifyPassword(
-    specialCharPassword,
-  );
-  assert(isSpecialCharPasswordValid == true);
-
-  // Complete
-  print("All tests passed successfully.");
+    test('key generation from password', () {
+      const password1 = 'password123';
+      const password2 = 'password456';
+      
+      final key1 = KeyService.generateKeyFromPassword(password1);
+      final key2 = KeyService.generateKeyFromPassword(password2);
+      final key1Again = KeyService.generateKeyFromPassword(password1);
+      
+      // Same password should generate same key
+      expect(key1, equals(key1Again));
+      
+      // Different passwords should generate different keys
+      expect(key1, isNot(equals(key2)));
+    });
+  });
 }

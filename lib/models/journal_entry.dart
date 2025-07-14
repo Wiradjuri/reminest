@@ -1,5 +1,3 @@
-import 'dart:io';
-
 class JournalEntry {
   final int? id;
   final String title;
@@ -21,6 +19,7 @@ class JournalEntry {
     this.isInVault = false,
   });
 
+  /// Convert JournalEntry to Map for database storage
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -34,30 +33,72 @@ class JournalEntry {
     };
   }
 
+  /// Create JournalEntry from Map
   factory JournalEntry.fromMap(Map<String, dynamic> map) {
-    int? parseId(dynamic value) {
-      if (value == null) return null;
-      if (value is int) return value;
-      if (value is String) return int.tryParse(value);
-      return null;
-    }
-
-    bool parseBool(dynamic value) {
-      if (value is int) return value == 1;
-      if (value is bool) return value;
-      if (value is String) return value == '1' || value.toLowerCase() == 'true';
-      return false;
-    }
-
     return JournalEntry(
-      id: parseId(map['id']),
-      title: map['title'] as String,
-      body: map['body'] as String,
-      imagePath: map['imagePath'] as String?,
-      createdAt: DateTime.parse(map['createdAt'] as String),
-      reviewDate: DateTime.parse(map['reviewDate'] as String),
-      isReviewed: parseBool(map['isReviewed']),
-      isInVault: parseBool(map['isInVault']),
+      id: map['id'],
+      title: map['title'] ?? '',
+      body: map['body'] ?? '',
+      imagePath: map['imagePath'],
+      createdAt: DateTime.parse(map['createdAt']),
+      reviewDate: DateTime.parse(map['reviewDate']),
+      isReviewed: map['isReviewed'] == 1,
+      isInVault: map['isInVault'] == 1,
     );
+  }
+
+  /// Create a copy of this JournalEntry with some fields replaced
+  JournalEntry copyWith({
+    int? id,
+    String? title,
+    String? body,
+    String? imagePath,
+    DateTime? createdAt,
+    DateTime? reviewDate,
+    bool? isReviewed,
+    bool? isInVault,
+  }) {
+    return JournalEntry(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      imagePath: imagePath ?? this.imagePath,
+      createdAt: createdAt ?? this.createdAt,
+      reviewDate: reviewDate ?? this.reviewDate,
+      isReviewed: isReviewed ?? this.isReviewed,
+      isInVault: isInVault ?? this.isInVault,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'JournalEntry{id: $id, title: $title, body: ${body.length > 50 ? '${body.substring(0, 50)}...' : body}, createdAt: $createdAt, reviewDate: $reviewDate, isReviewed: $isReviewed, isInVault: $isInVault}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    
+    return other is JournalEntry &&
+      other.id == id &&
+      other.title == title &&
+      other.body == body &&
+      other.imagePath == imagePath &&
+      other.createdAt == createdAt &&
+      other.reviewDate == reviewDate &&
+      other.isReviewed == isReviewed &&
+      other.isInVault == isInVault;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+      title.hashCode ^
+      body.hashCode ^
+      imagePath.hashCode ^
+      createdAt.hashCode ^
+      reviewDate.hashCode ^
+      isReviewed.hashCode ^
+      isInVault.hashCode;
   }
 }

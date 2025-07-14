@@ -187,14 +187,14 @@ class _JournalScreenState extends State<JournalScreen> {
                   Icon(
                     Icons.book_outlined,
                     size: 64,
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
                   ),
                   SizedBox(height: 16),
                   Text(
                     'No journal entries yet.',
                     style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
-                        0.7,
+                      color: theme.textTheme.bodyMedium?.color?.withValues(
+                        alpha: 0.7,
                       ),
                       fontSize: 16,
                     ),
@@ -203,7 +203,7 @@ class _JournalScreenState extends State<JournalScreen> {
                   Text(
                     'Start writing to capture your thoughts.',
                     style: TextStyle(
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                       fontSize: 14,
                     ),
                   ),

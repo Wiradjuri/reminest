@@ -17,11 +17,11 @@ class SettingsScreen extends StatefulWidget {
   final VoidCallback? onReset; // Callback when complete reset happens
 
   const SettingsScreen({
-    Key? key,
+    super.key,
     this.themeNotifier,
     this.onLogout,
     this.onReset,
-  }) : super(key: key);
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -103,8 +103,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Clear All Data & Reset Vault PIN"),
-          content: Column(
+          title: const Text("Clear All Data & Reset Vault PIN"),
+          content: const Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -136,7 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -147,7 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Navigator.of(context).pop();
                 await _resetAllData();
               },
-              child: Text("CLEAR ALL DATA"),
+              child: const Text("CLEAR ALL DATA"),
             ),
           ],
         );
@@ -172,34 +172,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await prefs.setString('theme_mode', themeMode);
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "All data cleared successfully. You can now set up the app from scratch.",
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "All data cleared successfully. You can now set up the app from scratch.",
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
+        );
 
-      await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 500));
 
-      // Use the onReset callback to trigger complete app reset
-      if (widget.onReset != null) {
-        widget.onReset!();
-      } else {
-        // Fallback: Force logout to trigger re-authentication flow
-        if (widget.onLogout != null) {
-          widget.onLogout!();
+        // Use the onReset callback to trigger complete app reset
+        if (widget.onReset != null) {
+          widget.onReset!();
+        } else {
+          // Fallback: Force logout to trigger re-authentication flow
+          if (widget.onLogout != null) {
+            widget.onLogout!();
+          }
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error during reset: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error during reset: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -209,8 +213,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Reset Vault PIN"),
-          content: Column(
+          title: const Text("Reset Vault PIN"),
+          content: const Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -242,7 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -250,7 +254,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 foregroundColor: Colors.white,
               ),
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text("RESET VAULT PIN"),
+              child: const Text("RESET VAULT PIN"),
             ),
           ],
         );
@@ -266,35 +270,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // Then clear the vault PIN
       await KeyService.clearVaultPin();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Vault PIN and all vault entries cleared. Please set a new PIN.",
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Vault PIN and all vault entries cleared. Please set a new PIN.",
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
           ),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 3),
-        ),
-      );
+        );
 
-      // Navigate to set new PIN, but keep navigation stack intact
-      await Future.delayed(Duration(milliseconds: 500));
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => SetVaultPinScreen(
-            onComplete: () {
-              // When PIN is set, pop back to settings
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-      );
+        // Navigate to set new PIN, but keep navigation stack intact
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => SetVaultPinScreen(
+                onComplete: () {
+                  // When PIN is set, pop back to settings
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
+          );
+        }
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error resetting vault PIN: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error resetting vault PIN: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -309,8 +319,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final proceed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text("Export Warning"),
-          content: Column(
+          title: const Text("Export Warning"),
+          content: const Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -338,12 +348,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-              child: Text("Export Anyway"),
+              child: const Text("Export Anyway"),
             ),
           ],
         ),
@@ -390,6 +400,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  void _checkForUpdates() async {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        title: Text("Checking for Updates"),
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text("Checking for updates..."),
+          ],
+        ),
+      ),
+    );
+
+    // Simulate checking for updates (replace with actual update check logic)
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Close loading dialog
+    if (mounted) {
+      Navigator.pop(context);
+
+      // Show result dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Update Check"),
+          content: const Text("You are running the latest version of Reminest (1.0.0+1)"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   void _launchHelp() async {
     try {
       const url = 'https://github.com/Wiradjuri/mental_health_vault';
@@ -401,14 +452,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Help & Documentation'),
-            content: SelectableText(
+            title: const Text('Help & Documentation'),
+            content: const SelectableText(
               'Visit: https://github.com/Wiradjuri/mental_health_vault',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text('Close'),
+                child: const Text('Close'),
               ),
             ],
           ),
@@ -420,11 +471,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text("Settings"),
+        title: const Text("Settings"),
         backgroundColor: theme.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -435,11 +485,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             // Theme Switcher
             ListTile(
-              leading: Icon(Icons.brightness_6),
-              title: Text("Theme"),
+              leading: const Icon(Icons.brightness_6),
+              title: const Text("Theme"),
               trailing: DropdownButton<ThemeMode>(
                 value: _themeMode,
-                items: [
+                items: const [
                   DropdownMenuItem(
                     value: ThemeMode.system,
                     child: Text("System"),
@@ -453,88 +503,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: _changeTheme,
               ),
             ),
-            Divider(),
+            const Divider(),
 
             // Export Data
             ListTile(
-              leading: Icon(Icons.file_download),
-              title: Text("Export Data"),
+              leading: const Icon(Icons.file_download),
+              title: const Text("Export Data"),
               trailing: _exporting
-                  ? SizedBox(
+                  ? const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : ElevatedButton(
                       onPressed: _exportData,
-                      child: Text("Export"),
+                      child: const Text("Export"),
                     ),
               subtitle: _exportStatus != null
                   ? Text(
                       _exportStatus!,
-                      style: TextStyle(color: Colors.green, fontSize: 12),
+                      style: const TextStyle(color: Colors.green, fontSize: 12),
                     )
                   : null,
             ),
-            Divider(),
+            const Divider(),
 
             // Reset Vault PIN
             ListTile(
-              leading: Icon(Icons.lock_reset),
-              title: Text("Reset Vault PIN"),
-              subtitle: Text(
+              leading: const Icon(Icons.lock_reset),
+              title: const Text("Reset Vault PIN"),
+              subtitle: const Text(
                 "⚠️ Deletes ALL vault entries and clears PIN (cannot be recovered)",
               ),
               trailing: ElevatedButton(
                 onPressed: _resetVaultPin,
-                child: Text("Reset PIN"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.white,
                 ),
+                child: const Text("Reset PIN"),
               ),
             ),
-            Divider(),
+            const Divider(),
 
             // Clear Data & Reset Vault PIN
             ListTile(
-              leading: Icon(Icons.delete_forever, color: Colors.red),
+              leading: const Icon(Icons.delete_forever, color: Colors.red),
               title: Text(
                 "Clear Data & Reset Vault PIN",
                 style: TextStyle(color: theme.textTheme.bodyMedium?.color),
               ),
               trailing: ElevatedButton(
                 onPressed: _showResetAllDataConfirmation,
-                child: Text("Reset All"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
+                child: const Text("Reset All"),
               ),
-              subtitle: Text(
+              subtitle: const Text(
                 "⚠️ Permanently erases ALL data (vault PIN cannot be recovered)",
                 style: TextStyle(color: Colors.red, fontSize: 12),
               ),
             ),
-            Divider(),
+            const Divider(),
+
+            // Check for Updates
+            ListTile(
+              leading: const Icon(Icons.system_update),
+              title: const Text("Check for Updates"),
+              subtitle: const Text("Version 1.0.0+1"),
+              trailing: ElevatedButton(
+                onPressed: _checkForUpdates,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text("Check"),
+              ),
+            ),
+            const Divider(),
 
             // Help
             ListTile(
-              leading: Icon(Icons.help_outline),
-              title: Text("Help"),
+              leading: const Icon(Icons.help_outline),
+              title: const Text("Help"),
               onTap: _launchHelp,
             ),
-            Divider(),
+            const Divider(),
 
             // Logout
             if (widget.onLogout != null)
               ListTile(
-                leading: Icon(Icons.logout, color: Colors.red),
-                title: Text("Logout", style: TextStyle(color: Colors.red)),
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: const Text("Logout", style: TextStyle(color: Colors.red)),
                 onTap: widget.onLogout,
               ),
           ],

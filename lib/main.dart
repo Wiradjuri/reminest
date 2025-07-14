@@ -47,16 +47,16 @@ void main() {
           iconTheme: IconThemeData(color: Color(0xFF424242)),
           dividerTheme: DividerThemeData(color: Color(0xFFE0E0E0)),
           checkboxTheme: CheckboxThemeData(
-            fillColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.selected)) {
+            fillColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
                 return Color(0xFF9B59B6);
               }
               return Colors.transparent;
             }),
           ),
           radioTheme: RadioThemeData(
-            fillColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.selected)) {
+            fillColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
                 return Color(0xFF9B59B6);
               }
               return Color(0xFF424242);
@@ -91,16 +91,16 @@ void main() {
           iconTheme: IconThemeData(color: Colors.white70),
           dividerTheme: DividerThemeData(color: Colors.white24),
           checkboxTheme: CheckboxThemeData(
-            fillColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.selected)) {
+            fillColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
                 return Color(0xFF9B59B6);
               }
               return Colors.transparent;
             }),
           ),
           radioTheme: RadioThemeData(
-            fillColor: MaterialStateProperty.resolveWith((states) {
-              if (states.contains(MaterialState.selected)) {
+            fillColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
                 return Color(0xFF9B59B6);
               }
               return Colors.white70;
@@ -116,6 +116,8 @@ void main() {
 }
 
 class AuthenticationWrapper extends StatefulWidget {
+  const AuthenticationWrapper({super.key});
+
   @override
   _AuthenticationWrapperState createState() => _AuthenticationWrapperState();
 }
@@ -201,7 +203,7 @@ class MainScaffold extends StatefulWidget {
   final VoidCallback? onLogout;
   final VoidCallback? onReset;
 
-  MainScaffold({
+  const MainScaffold({super.key, 
     required this.isAuthenticated,
     this.onLoginSuccess,
     this.onLogout,

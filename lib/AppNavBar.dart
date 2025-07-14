@@ -9,7 +9,7 @@ import 'screens/add_entry_screen.dart';
 class AppNavBar extends StatefulWidget {
   final ValueNotifier<ThemeMode>? themeNotifier;
 
-  const AppNavBar({Key? key, this.themeNotifier}) : super(key: key);
+  const AppNavBar({super.key, this.themeNotifier});
 
   @override
   State<AppNavBar> createState() => _AppNavBarState();

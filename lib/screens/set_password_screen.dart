@@ -92,7 +92,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
           children: [
             Icon(Icons.key, color: Colors.amber),
             SizedBox(width: 8),
-            Text('Your Recovery Passkey'),
+            Text('Your New Recovery Passkey'),
           ],
         ),
         content: Column(
@@ -174,11 +174,19 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
         actions: [
           ElevatedButton(
             onPressed: () {
-              // First close the dialog
+              // Close the dialog first
               Navigator.of(context).pop();
-              // Then pop the SetPasswordScreen itself to return to the previous screen
-              Navigator.of(context).pop();
-              // Finally call the callback to trigger authentication
+              
+              // Show success message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Password setup complete! You are now logged in.'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              
+              // Call the callback to trigger authentication
               widget.onPasswordSet();
             },
             style: ElevatedButton.styleFrom(
@@ -410,7 +418,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(

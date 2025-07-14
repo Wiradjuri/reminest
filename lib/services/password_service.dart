@@ -6,7 +6,6 @@ import 'dart:math'; // For secure random number generation
 import 'dart:typed_data'; // For handling byte data
 
 // Third-party packages for cryptography and file path management
-import 'package:crypto/crypto.dart'; // For hashing and HMAC
 import 'package:path_provider/path_provider.dart'; // For accessing app-specific directories
 
 class PasswordService {

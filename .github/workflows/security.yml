@@ -1,0 +1,37 @@
+name: Security Scan
+
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+        branches: [ main ]
+    schedule:
+        - cron: '0 3 * * 1' # Runs every Monday at 03:00 UTC
+
+jobs:
+    trivy-scan:
+        name: Run Trivy vulnerability scanner
+        runs-on: ubuntu-latest
+
+        steps:
+              - name: Checkout code
+                uses: actions/checkout@v4
+        
+              - name: Set up Trivy
+                uses: aquasecurity/trivy-action@0.24.0
+        
+              - name: Run Trivy on filesystem
+                run: trivy fs --exit-code 1 --severity CRITICAL,HIGH .
+        
+              - name: Run Trivy on dependencies (if Node.js project)
+                run: |
+                  if [ -f package-lock.json ] || [ -f yarn.lock ]; then
+                    trivy fs --exit-code 1 --severity CRITICAL,HIGH --scanners vuln --ignore-unfixed .
+                  fi
+        
+              - name: Upload Trivy scan results
+                if: failure()
+                uses: actions/upload-artifact@v4
+                with:
+                  name: trivy-report
+                  path: trivy-report.json

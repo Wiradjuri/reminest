@@ -1,38 +1,44 @@
 name: reminest
-description: "Reminest - A secure, encrypted personal journal vault."
+description: A secure mental health journaling app
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.0
+  sdk: '>=3.4.4 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
-  file_picker: ^10.2.0
+  cupertino_icons: ^1.0.6
+  
+  # Database dependencies
+  sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.0+4
   sqlite3: ^2.4.0
-  ffi: ^2.1.0
-  encrypt: ^5.0.3
-  shared_preferences: ^2.2.3
+  
+  # File and path management
+  path: ^1.9.0
+  path_provider: ^2.1.1
+  file_picker: ^5.5.0
+  
+  # Cryptography and security
   crypto: ^3.0.3
-  path_provider: ^2.1.3
-  flutter_secure_storage: ^9.0.0
-  url_launcher: ^6.2.5
-  # Platform-specific packages
-  sqflite: ^2.3.0  # For mobile (Android/iOS)
-  sqflite_common_ffi: ^2.3.0  # For desktop (Windows/Linux/macOS)
-  sqflite_common_ffi_web: ^0.4.0  # For web
+  pointycastle: ^3.7.3
+  convert: ^3.1.1
+  
+  # Data persistence and preferences
+  shared_preferences: ^2.2.2
+  
+  # External app integration
+  url_launcher: ^6.2.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
+  
   assets:
-    - lib/assets/icons/Reminest.png
-    - lib/assets/icons/Reminest.ico
-    - lib/assets/icons/Developer.png
+    - lib/assets/icons/

@@ -74,8 +74,8 @@ class ViewEntryScreen extends StatelessWidget {
                         SizedBox(width: 8),
                         Text(
                           entry.isInVault
-                              ? 'Vault unlock date: ${entry.reviewDate!.toLocal().toString().split(' ')[0]}'
-                              : 'Review date: ${entry.reviewDate!.toLocal().toString().split(' ')[0]}',
+                              ? 'Vault unlock date: ${entry.reviewDate.toLocal().toString().split(' ')[0]}'
+                              : 'Review date: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
                           style: TextStyle(
                             color: theme.textTheme.bodySmall?.color,
                             fontSize: 12,
@@ -164,7 +164,7 @@ class ViewEntryScreen extends StatelessWidget {
                           return Container(
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.2),
+                              color: Colors.grey.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(

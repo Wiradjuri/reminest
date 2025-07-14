@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart'; // Importing Flutter material design package
+import 'package:flutter/material.dart';
+import 'package:reminest/screens/journal_screen.dart';
 
 // Defining a stateless widget for the About Us screen
 class AboutUsScreen extends StatelessWidget {
+  const AboutUsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context); // Getting the current theme
@@ -111,6 +114,41 @@ class AboutUsScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 20), // Spacing below image
+                // Journal navigation button
+                Container(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => JournalScreen()),
+                      );
+                    },
+                    icon: Icon(Icons.book, size: 24),
+                    label: Text(
+                      'Open Journal',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Start writing your mental health journey',
+                  style: TextStyle(
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 24),
                 // About text with border
                 Container(
                   decoration: BoxDecoration(
@@ -146,15 +184,14 @@ class AboutUsScreen extends StatelessWidget {
                     textAlign: TextAlign.left, // Align text to left
                   ),
                 ),
-
                 SizedBox(height: 24), // Spacing below about text
                 // Developer info
                 Text(
                   "Developed by Bradley Murray.\n© 2025", // Developer and copyright info
                   textAlign: TextAlign.center, // Centered text
                   style: TextStyle(
-                    color: theme.textTheme.bodySmall?.color?.withOpacity(
-                      0.7,
+                    color: theme.textTheme.bodySmall?.color?.withValues(
+                      alpha: 0.7,
                     ), // Faded text color from theme
                     fontSize: 16, // Text font size
                   ),
