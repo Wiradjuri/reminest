@@ -1,0 +1,2 @@
+This file ensures the assets directory exists.
+Replace this with actual icon files like Reminest.png and Developer.png

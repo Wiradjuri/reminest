@@ -1,0 +1,110 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flutter: Clean",
+            "type": "shell",
+            "command": "flutter",
+            "args": ["clean"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Get Dependencies",
+            "type": "shell",
+            "command": "flutter",
+            "args": ["pub", "get"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Build Windows Debug",
+            "type": "shell",
+            "command": "flutter",
+            "args": ["build", "windows", "--debug"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOn": ["Flutter: Get Dependencies"],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": ["$flutter"]
+        },
+        {
+            "label": "Flutter: Build Windows Release",
+            "type": "shell",
+            "command": "flutter",
+            "args": ["build", "windows", "--release"],
+            "group": "build",
+            "dependsOn": ["Flutter: Get Dependencies"],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": ["$flutter"]
+        },
+        {
+            "label": "Flutter: Run Tests",
+            "type": "shell",
+            "command": "flutter",
+            "args": ["test", "--coverage"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Flutter: Analyze",
+            "type": "shell",
+            "command": "flutter",
+            "args": ["analyze"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build: Full Clean and Build Windows",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Flutter: Clean",
+                "Flutter: Get Dependencies",
+                "Flutter: Build Windows Debug"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        }
+    ]
+}

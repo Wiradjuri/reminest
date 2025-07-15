@@ -1,0 +1,60 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Windows (Reminest)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "args": [
+                "--debug",
+                "--observatory-port=9999",
+                "--enable-software-rendering"
+            ],
+            "env": {
+                "FLUTTER_ENGINE": "debug"
+            },
+            "deviceId": "windows",
+            "toolArgs": [
+                "--debug",
+                "--target-platform",
+                "windows-x64"
+            ],
+            "console": "debugConsole",
+            "internalConsoleOptions": "openOnSessionStart",
+            "vmServicePort": 9999
+        },
+        {
+            "name": "Release Windows (Reminest)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "args": [
+                "--release"
+            ],
+            "deviceId": "windows",
+            "toolArgs": [
+                "--release",
+                "--target-platform",
+                "windows-x64"
+            ],
+            "console": "debugConsole"
+        },
+        {
+            "name": "Profile Windows (Reminest)",
+            "type": "dart",
+            "request": "launch",
+            "program": "lib/main.dart",
+            "args": [
+                "--profile"
+            ],
+            "deviceId": "windows",
+            "toolArgs": [
+                "--profile",
+                "--target-platform",
+                "windows-x64"
+            ],
+            "console": "debugConsole"
+        }
+    ]
+}
