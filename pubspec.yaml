@@ -22,7 +22,6 @@ dependencies:
   # Storage & Files
   shared_preferences: ^2.2.2
   path_provider: ^2.1.1
-  file_picker: ^5.5.0  # Use older stable version
   path: ^1.8.3
   
   # UI & Navigation
