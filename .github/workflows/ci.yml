@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  FLUTTER_VERSION: '3.19.6'
+
+jobs:
+  build-and-test:
+    name: Build & Test (Matrix)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+          - os: ubuntu-latest
+            platform: web
+          - os: ubuntu-latest
+            platform: android
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build ${{ matrix.platform }} artifact
+        run: |
+          if [ "${{ matrix.platform }}" = "linux" ]; then
+            flutter build linux --release
+          elif [ "${{ matrix.platform }}" = "windows" ]; then
+            flutter build windows --release
+          elif [ "${{ matrix.platform }}" = "web" ]; then
+            flutter build web --release
+          elif [ "${{ matrix.platform }}" = "android" ]; then
+            flutter build apk --release
+          fi
+        shell: bash
+
+      - name: Upload build artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.platform }}
+          path: |
+            build/linux/**/bundle
+            build/windows/**/runner/Release
+            build/web
+            build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: ignore
+
+  release:
+    name: Release
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            Automated release for ${{ github.ref_name }}.
+            See commit: ${{ github.sha }}
+          files: |
+            dist/build-linux/**
+            dist/build-windows/**
+            dist/build-web/**
+            dist/build-android/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
