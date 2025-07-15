@@ -38,11 +38,16 @@ class _JournalScreenState extends State<JournalScreen> {
 
   Widget _buildEntryCard(JournalEntry entry) {
     final theme = Theme.of(context);
+    final now = DateTime.now();
+    final isFutureEntry = entry.reviewDate.isAfter(now);
 
     return Card(
       color: theme.cardColor,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ListTile(
+        leading: isFutureEntry
+            ? Icon(Icons.schedule, color: Colors.blue)
+            : Icon(Icons.book, color: theme.primaryColor),
         title: Text(
           entry.title,
           style: TextStyle(
@@ -67,6 +72,22 @@ class _JournalScreenState extends State<JournalScreen> {
                 fontSize: 12,
               ),
             ),
+            if (isFutureEntry)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Review date: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
           ],
         ),
         trailing: Row(
@@ -187,25 +208,24 @@ class _JournalScreenState extends State<JournalScreen> {
                   Icon(
                     Icons.book_outlined,
                     size: 64,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
                   ),
                   SizedBox(height: 16),
                   Text(
                     'No journal entries yet.',
                     style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color?.withValues(
-                        alpha: 0.7,
-                      ),
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                       fontSize: 16,
                     ),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Start writing to capture your thoughts.',
+                    'Journal entries are always accessible with your main password, even if they have future review dates.',
                     style: TextStyle(
-                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                       fontSize: 14,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),

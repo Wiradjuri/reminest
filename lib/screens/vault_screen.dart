@@ -60,7 +60,7 @@ class _VaultScreenState extends State<VaultScreen> {
             child: Text(
               'Cancel',
               style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
               ),
             ),
           ),
@@ -87,9 +87,11 @@ class _VaultScreenState extends State<VaultScreen> {
   Widget _buildVaultEntryCard(JournalEntry entry) {
     final theme = Theme.of(context);
     final now = DateTime.now();
-    final isUnlocked =
-        entry.reviewDate.isBefore(now) ||
-        entry.reviewDate.isAtSameMomentAs(now);
+    
+    // Vault entries are only unlocked if BOTH conditions are met:
+    // 1. The current date is on or after the review date
+    // 2. User has already entered the correct vault PIN to access this screen
+    final isUnlocked = entry.reviewDate.isBefore(now) || entry.reviewDate.isAtSameMomentAs(now);
 
     return Card(
       color: theme.cardColor,
@@ -121,13 +123,13 @@ class _VaultScreenState extends State<VaultScreen> {
               Container(
                 padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.1),
+                  color: Colors.orange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.lock, color: Colors.orange, size: 16),
+                    Icon(Icons.schedule_outlined, color: Colors.orange, size: 16),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -151,21 +153,35 @@ class _VaultScreenState extends State<VaultScreen> {
               ),
             ),
             if (isUnlocked)
-              Text(
-                'Unlocked: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                style: TextStyle(
-                  color: Colors.green,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Unlocked: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               )
             else
-              Text(
-                'Unlocks: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                style: TextStyle(
-                  color: Colors.orange,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Unlocks: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
           ],
@@ -199,9 +215,14 @@ class _VaultScreenState extends State<VaultScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'This entry is locked until ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
+                      'This vault entry is time-locked until ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
                     ),
                     backgroundColor: Colors.orange,
+                    action: SnackBarAction(
+                      label: 'OK',
+                      textColor: Colors.white,
+                      onPressed: () {},
+                    ),
                   ),
                 );
               },
@@ -299,22 +320,22 @@ class _VaultScreenState extends State<VaultScreen> {
                   Icon(
                     Icons.security,
                     size: 64,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
                   ),
                   SizedBox(height: 16),
                   Text(
                     'No vault entries',
                     style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Create entries and store them in the vault with time-locked access. Entries will automatically unlock on their scheduled date.',
+                    'Vault entries require both the vault PIN and scheduled unlock date to access. Create entries and check "Store in Vault" to add them here.',
                     style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
                       fontSize: 14,
                     ),
                     textAlign: TextAlign.center,

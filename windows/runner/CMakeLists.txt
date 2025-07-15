@@ -27,6 +27,17 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_MINOR=${FLUTT
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_PATCH=${FLUTTER_VERSION_PATCH}")
 target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_BUILD=${FLUTTER_VERSION_BUILD}")
 
+# Add security and debugging flags
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(${BINARY_NAME} PRIVATE "_DEBUG")
+endif()
+
+# Enable security features
+target_compile_definitions(${BINARY_NAME} PRIVATE "UNICODE" "_UNICODE")
+
+# Disable unsecure CRT warnings
+target_compile_definitions(${BINARY_NAME} PRIVATE "_CRT_SECURE_NO_WARNINGS")
+
 # Disable Windows macros that collide with C++ standard library functions.
 target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 
@@ -35,6 +46,9 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
+
+# Include the Flutter C++ headers
+target_include_directories(${BINARY_NAME} PRIVATE "${FLUTTER_MANAGED_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.
 add_dependencies(${BINARY_NAME} flutter_assemble)

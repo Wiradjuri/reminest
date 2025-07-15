@@ -143,7 +143,7 @@ class AboutUsScreen extends StatelessWidget {
                 Text(
                   'Start writing your mental health journey',
                   style: TextStyle(
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                     fontSize: 14,
                   ),
                   textAlign: TextAlign.center,
@@ -187,13 +187,11 @@ class AboutUsScreen extends StatelessWidget {
                 SizedBox(height: 24), // Spacing below about text
                 // Developer info
                 Text(
-                  "Developed by Bradley Murray.\n© 2025", // Developer and copyright info
-                  textAlign: TextAlign.center, // Centered text
+                  "Developed by Bradley Murray.\n© 2025",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: theme.textTheme.bodySmall?.color?.withValues(
-                      alpha: 0.7,
-                    ), // Faded text color from theme
-                    fontSize: 16, // Text font size
+                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                    fontSize: 16,
                   ),
                 ),
               ],

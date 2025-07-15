@@ -952,16 +952,14 @@ class _ResetDataDialogState extends State<_ResetDataDialog> {
                   ),
                 );
 
-                // Navigate back to the initial login screen state
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginScreen(
-                      onLoginSuccess: widget.onSuccessfulReset,
-                    ),
-                  ),
-                  (route) => false, // Remove all previous routes
+                // Navigate back to the root and reset authentication state
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/',
+                  (route) => false,
                 );
+                
+                // Trigger the authentication callback
+                widget.onSuccessfulReset();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,

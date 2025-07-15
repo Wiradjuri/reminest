@@ -267,7 +267,7 @@ class _EditEntryScreenState extends State<EditEntryScreen> {
                                     Icons.broken_image,
                                     size: 50,
                                     color: theme.textTheme.bodyMedium?.color
-                                        ?.withValues(alpha: 0.5),
+                                        ?.withOpacity(0.5),
                                   ),
                                 ),
                         ),

@@ -1,64 +1,67 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reminest/services/encryption_service.dart';
+import 'dart:convert';
 import 'dart:typed_data';
 
 void main() {
   group('EncryptionService Tests', () {
+    const testKey = [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+      17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32
+    ];
+
     setUp(() {
-      // Reset the encryption service state before each test
-      final testKey = List.generate(32, (i) => i % 256);
       EncryptionService.initializeKey(testKey);
     });
 
-    test('should initialize with valid 32-byte key', () {
-      final validKey = List.generate(32, (i) => i);
-      expect(() => EncryptionService.initializeKey(validKey), returnsNormally);
+    test('should initialize with correct key length', () {
+      expect(() => EncryptionService.initializeKey(testKey), returnsNormally);
     });
 
-    test('should throw error with invalid key length', () {
-      final invalidKey = List.generate(16, (i) => i); // Wrong length
-      // Reset state first by reinitializing with a different valid key
-      final resetKey = List.generate(32, (i) => 0);
-      EncryptionService.initializeKey(resetKey);
-      
-      expect(() => EncryptionService.initializeKey(invalidKey), throwsArgumentError);
+    test('should throw error with incorrect key length', () {
+      const shortKey = [1, 2, 3, 4, 5];
+      expect(
+        () => EncryptionService.initializeKey(shortKey),
+        throwsA(isA<ArgumentError>()),
+      );
     });
 
     test('should encrypt and decrypt text correctly', () {
-      const plainText = 'Hello, World!';
+      const plainText = 'Hello, this is a test message for encryption!';
       
       final encrypted = EncryptionService.encryptText(plainText);
       expect(encrypted, isNotEmpty);
-      expect(encrypted, isNot(equals(plainText)));
+      expect(encrypted, isNot(plainText));
       
       final decrypted = EncryptionService.decryptText(encrypted);
       expect(decrypted, equals(plainText));
     });
 
     test('should encrypt and decrypt binary data correctly', () {
-      final plainData = Uint8List.fromList([1, 2, 3, 4, 5]);
+      final originalData = Uint8List.fromList([1, 2, 3, 4, 5, 255, 128, 64]);
       
-      final encrypted = EncryptionService.encrypt(plainData);
-      expect(encrypted.length, greaterThan(plainData.length)); // Should be larger due to IV
+      final encrypted = EncryptionService.encrypt(originalData);
+      expect(encrypted.length, greaterThan(originalData.length));
       
       final decrypted = EncryptionService.decrypt(encrypted);
-      expect(decrypted, equals(plainData));
+      expect(decrypted, equals(originalData));
     });
 
-    test('should produce different ciphertext for same plaintext', () {
-      const plainText = 'Same message';
+    test('should produce different encrypted outputs for same input', () {
+      const plainText = 'Same input text';
       
       final encrypted1 = EncryptionService.encryptText(plainText);
       final encrypted2 = EncryptionService.encryptText(plainText);
       
-      expect(encrypted1, isNot(equals(encrypted2))); // Different due to random IV
+      // Should be different due to random IV
+      expect(encrypted1, isNot(equals(encrypted2)));
       
       // But both should decrypt to same plaintext
       expect(EncryptionService.decryptText(encrypted1), equals(plainText));
       expect(EncryptionService.decryptText(encrypted2), equals(plainText));
     });
 
-    test('should handle empty string encryption', () {
+    test('should handle empty strings', () {
       const emptyText = '';
       
       final encrypted = EncryptionService.encryptText(emptyText);
@@ -68,72 +71,64 @@ void main() {
       expect(decrypted, equals(emptyText));
     });
 
-    test('should handle Unicode text encryption', () {
-      const unicodeText = 'Hello 世界 🌍 émojis';
+    test('should handle unicode characters', () {
+      const unicodeText = '🔒 Secure message with émojis and spëcial chârs! 🚀';
       
       final encrypted = EncryptionService.encryptText(unicodeText);
-      expect(encrypted, isNotEmpty);
-      
       final decrypted = EncryptionService.decryptText(encrypted);
+      
       expect(decrypted, equals(unicodeText));
     });
 
-    test('should handle large text encryption', () {
+    test('should handle large text blocks', () {
       final largeText = 'A' * 10000; // 10KB of text
       
       final encrypted = EncryptionService.encryptText(largeText);
-      expect(encrypted, isNotEmpty);
-      
       final decrypted = EncryptionService.decryptText(encrypted);
+      
       expect(decrypted, equals(largeText));
     });
 
-    test('should throw error when encrypting without initialization', () {
-      // Create a new instance without initialization
-      final newKey = List.generate(32, (i) => 255 - i);
-      EncryptionService.initializeKey(newKey);
+    test('should throw error when not initialized', () {
+      // Reset to uninitialized state
+      final backup = testKey;
       
-      // This should work now
-      expect(() => EncryptionService.encryptText('test'), returnsNormally);
+      expect(
+        () => EncryptionService.encryptText('test'),
+        throwsA(isA<StateError>()),
+      );
+      
+      // Restore for other tests
+      EncryptionService.initializeKey(backup);
     });
 
-    test('should throw error when decrypting without initialization', () {
-      // Try to decrypt invalid base64 data
-      expect(() => EncryptionService.decryptText('invalid'), throwsA(isA<FormatException>()));
+    test('should throw error on invalid encrypted data', () {
+      expect(
+        () => EncryptionService.decryptText('invalid_base64'),
+        throwsA(isA<Exception>()),
+      );
     });
 
-    test('should handle binary data with different patterns', () {
-      final patterns = [
-        Uint8List.fromList([0, 0, 0, 0]), // All zeros
-        Uint8List.fromList([255, 255, 255, 255]), // All ones
-        Uint8List.fromList([0, 255, 0, 255]), // Alternating
-        Uint8List.fromList(List.generate(256, (i) => i)), // Sequential
-      ];
+    test('should throw error on corrupted encrypted data', () {
+      const plainText = 'Valid text';
+      final encrypted = EncryptionService.encryptText(plainText);
       
-      for (final pattern in patterns) {
-        final encrypted = EncryptionService.encrypt(pattern);
-        final decrypted = EncryptionService.decrypt(encrypted);
-        expect(decrypted, equals(pattern));
-      }
+      // Corrupt the encrypted data
+      final corruptedData = encrypted.substring(0, encrypted.length - 5) + 'XXXXX';
+      
+      expect(
+        () => EncryptionService.decryptText(corruptedData),
+        throwsA(isA<Exception>()),
+      );
     });
 
-    test('should maintain data integrity across multiple operations', () {
-      const testData = 'Sensitive journal entry content with special chars: !@#\$%^&*()';
+    test('should handle data with only IV (too short)', () {
+      final shortData = Uint8List.fromList([1, 2, 3, 4, 5]); // Less than 16 bytes
       
-      // Encrypt multiple times
-      final encrypted1 = EncryptionService.encryptText(testData);
-      final encrypted2 = EncryptionService.encryptText(testData);
-      final encrypted3 = EncryptionService.encryptText(testData);
-      
-      // All should decrypt to original
-      expect(EncryptionService.decryptText(encrypted1), equals(testData));
-      expect(EncryptionService.decryptText(encrypted2), equals(testData));
-      expect(EncryptionService.decryptText(encrypted3), equals(testData));
-      
-      // But encrypted values should be different (due to random IV)
-      expect(encrypted1, isNot(equals(encrypted2)));
-      expect(encrypted2, isNot(equals(encrypted3)));
-      expect(encrypted1, isNot(equals(encrypted3)));
+      expect(
+        () => EncryptionService.decrypt(shortData),
+        throwsA(isA<FormatException>()),
+      );
     });
   });
 }

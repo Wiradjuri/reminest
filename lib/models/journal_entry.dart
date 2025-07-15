@@ -36,7 +36,7 @@ class JournalEntry {
   /// Create JournalEntry from Map
   factory JournalEntry.fromMap(Map<String, dynamic> map) {
     return JournalEntry(
-      id: map['id'],
+      id: map['id']?.toInt(),
       title: map['title'] ?? '',
       body: map['body'] ?? '',
       imagePath: map['imagePath'],
@@ -72,33 +72,33 @@ class JournalEntry {
 
   @override
   String toString() {
-    return 'JournalEntry{id: $id, title: $title, body: ${body.length > 50 ? '${body.substring(0, 50)}...' : body}, createdAt: $createdAt, reviewDate: $reviewDate, isReviewed: $isReviewed, isInVault: $isInVault}';
+    return 'JournalEntry{id: $id, title: $title, createdAt: $createdAt, isInVault: $isInVault}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    
+
     return other is JournalEntry &&
-      other.id == id &&
-      other.title == title &&
-      other.body == body &&
-      other.imagePath == imagePath &&
-      other.createdAt == createdAt &&
-      other.reviewDate == reviewDate &&
-      other.isReviewed == isReviewed &&
-      other.isInVault == isInVault;
+        other.id == id &&
+        other.title == title &&
+        other.body == body &&
+        other.imagePath == imagePath &&
+        other.createdAt == createdAt &&
+        other.reviewDate == reviewDate &&
+        other.isReviewed == isReviewed &&
+        other.isInVault == isInVault;
   }
 
   @override
   int get hashCode {
     return id.hashCode ^
-      title.hashCode ^
-      body.hashCode ^
-      imagePath.hashCode ^
-      createdAt.hashCode ^
-      reviewDate.hashCode ^
-      isReviewed.hashCode ^
-      isInVault.hashCode;
+        title.hashCode ^
+        body.hashCode ^
+        imagePath.hashCode ^
+        createdAt.hashCode ^
+        reviewDate.hashCode ^
+        isReviewed.hashCode ^
+        isInVault.hashCode;
   }
 }

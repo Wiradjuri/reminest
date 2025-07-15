@@ -5,11 +5,13 @@ import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
+  final VoidCallback? onPasswordSetupSuccess; // Add new callback
   final bool isAuthenticated;
   final VoidCallback? onNavigateToJournal;
 
   HomeScreen({
     this.onLoginSuccess,
+    this.onPasswordSetupSuccess, // Add to constructor
     this.isAuthenticated = false,
     this.onNavigateToJournal,
   });
@@ -41,16 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (_) => SetPasswordScreen(
           onPasswordSet: () {
-            if (widget.onLoginSuccess != null) {
-              print("[HomeScreen] Calling onLoginSuccess callback from setup");
-              widget.onLoginSuccess!();
+            if (widget.onPasswordSetupSuccess != null) {
+              print("[HomeScreen] Calling onPasswordSetupSuccess callback from setup");
+              widget.onPasswordSetupSuccess!();
             }
           },
         ),
       ),
     );
     print("[HomeScreen] Setup result: $result");
-    // The callback handles authentication, no need for additional logic here
   }
 
   void _login() async {
@@ -283,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     "Access your secure mental health journal",
                     style: TextStyle(
-                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                       fontSize: 12,
                     ),
                     textAlign: TextAlign.center,
@@ -506,7 +507,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               "Get started with your secure mental health journal",
               style: TextStyle(
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                 fontSize: 12,
               ),
               textAlign: TextAlign.center,
@@ -539,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               "Access your secure mental health journal",
               style: TextStyle(
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                 fontSize: 12,
               ),
               textAlign: TextAlign.center,
@@ -572,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               "Start writing your mental health journey",
               style: TextStyle(
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                 fontSize: 12,
               ),
               textAlign: TextAlign.center,

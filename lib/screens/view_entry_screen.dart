@@ -62,28 +62,26 @@ class ViewEntryScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (entry.reviewDate != null) ...[
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.schedule,
-                          size: 16,
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.schedule,
+                        size: 16,
+                        color: theme.textTheme.bodySmall?.color,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        entry.isInVault
+                            ? 'Vault unlock date: ${entry.reviewDate.toLocal().toString().split(' ')[0]}'
+                            : 'Review date: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
+                        style: TextStyle(
                           color: theme.textTheme.bodySmall?.color,
+                          fontSize: 12,
                         ),
-                        SizedBox(width: 8),
-                        Text(
-                          entry.isInVault
-                              ? 'Vault unlock date: ${entry.reviewDate.toLocal().toString().split(' ')[0]}'
-                              : 'Review date: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                          style: TextStyle(
-                            color: theme.textTheme.bodySmall?.color,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                   if (entry.isInVault) ...[
                     SizedBox(height: 4),
                     Row(
@@ -164,7 +162,7 @@ class ViewEntryScreen extends StatelessWidget {
                           return Container(
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.grey.withValues(alpha: 0.2),
+                              color: Colors.grey.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(

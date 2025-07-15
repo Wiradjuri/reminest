@@ -5,8 +5,11 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart' as desktop;
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:logger/logger.dart'; // Ensure this package is added in pubspec.yaml
 import '../models/journal_entry.dart';
 import '../services/encryption_service.dart';
+
+final Logger _logger = Logger();
 
 class PlatformDatabaseService {
   static dynamic _db;
@@ -36,12 +39,9 @@ class PlatformDatabaseService {
 
     try {
       if (kIsWeb) {
-        // For web, use shared_preferences and in-memory storage
         await _loadWebEntries();
         _isInitialized = true;
-        print(
-          "[PlatformDatabaseService] Web storage initialized (using SharedPreferences)",
-        );
+        _logger.i("[PlatformDatabaseService] Web storage initialized (using SharedPreferences)");
         return;
       } else if (Platform.isAndroid || Platform.isIOS) {
         // Mobile platforms (Android/iOS)
@@ -64,13 +64,11 @@ class PlatformDatabaseService {
           ),
         );
       }
-
+      
       _isInitialized = true;
-      print(
-        "[PlatformDatabaseService] Database initialized for ${_getPlatformName()}",
-      );
+      _logger.i("[PlatformDatabaseService] Database initialized for ${_getPlatformName()}");
     } catch (e) {
-      print("[PlatformDatabaseService] Error initializing database: $e");
+      _logger.e("[PlatformDatabaseService] Error initializing database: $e");
       rethrow;
     }
   }
@@ -85,7 +83,7 @@ class PlatformDatabaseService {
         return JournalEntry.fromMap(data);
       }).toList();
     } catch (e) {
-      print("[PlatformDatabaseService] Error loading web entries: $e");
+      _logger.e("[PlatformDatabaseService] Error loading web entries: $e");
       _webEntries = [];
     }
   }
@@ -97,7 +95,7 @@ class PlatformDatabaseService {
       final entriesJson = _webEntries.map((entry) => jsonEncode(entry.toMap())).toList();
       await prefs.setStringList('journal_entries', entriesJson);
     } catch (e) {
-      print("[PlatformDatabaseService] Error saving web entries: $e");
+      _logger.e("[PlatformDatabaseService] Error saving web entries: $e");
     }
   }
 
@@ -162,7 +160,7 @@ class PlatformDatabaseService {
       );
       _webEntries.add(newEntry);
       await _saveWebEntries();
-      print("[PlatformDatabaseService] Entry added to web storage");
+      _logger.i("[PlatformDatabaseService] Entry added to web storage");
       return;
     }
 
@@ -176,9 +174,9 @@ class PlatformDatabaseService {
         'isReviewed': entry.isReviewed ? 1 : 0,
         'isInVault': entry.isInVault ? 1 : 0,
       });
-      print("[PlatformDatabaseService] Entry added successfully");
+      _logger.i("[PlatformDatabaseService] Entry added successfully");
     } catch (e) {
-      print("[PlatformDatabaseService] Error adding entry: $e");
+      _logger.e("[PlatformDatabaseService] Error adding entry: $e");
       rethrow;
     }
   }
@@ -195,7 +193,7 @@ class PlatformDatabaseService {
       final List<Map<String, dynamic>> maps = await _db!.query('entries');
       return maps.map((map) => _mapToJournalEntry(map)).toList();
     } catch (e) {
-      print("[PlatformDatabaseService] Error getting all entries: $e");
+      _logger.e("[PlatformDatabaseService] Error getting all entries: $e");
       return [];
     }
   }
@@ -216,7 +214,7 @@ class PlatformDatabaseService {
       );
       return maps.map((map) => _mapToJournalEntry(map)).toList();
     } catch (e) {
-      print("[PlatformDatabaseService] Error getting regular entries: $e");
+      _logger.e("[PlatformDatabaseService] Error getting regular entries: $e");
       return [];
     }
   }
@@ -237,7 +235,7 @@ class PlatformDatabaseService {
       );
       return maps.map((map) => _mapToJournalEntry(map)).toList();
     } catch (e) {
-      print("[PlatformDatabaseService] Error getting vault entries: $e");
+      _logger.e("[PlatformDatabaseService] Error getting vault entries: $e");
       return [];
     }
   }
@@ -251,7 +249,7 @@ class PlatformDatabaseService {
       if (index != -1) {
         _webEntries[index] = entry;
         await _saveWebEntries();
-        print("[PlatformDatabaseService] Entry updated in web storage");
+        _logger.i("[PlatformDatabaseService] Entry updated in web storage");
       }
       return;
     }
@@ -270,9 +268,9 @@ class PlatformDatabaseService {
         where: 'id = ?',
         whereArgs: [entry.id],
       );
-      print("[PlatformDatabaseService] Entry updated successfully");
+      _logger.i("[PlatformDatabaseService] Entry updated successfully");
     } catch (e) {
-      print("[PlatformDatabaseService] Error updating entry: $e");
+      _logger.e("[PlatformDatabaseService] Error updating entry: $e");
       rethrow;
     }
   }
@@ -284,15 +282,15 @@ class PlatformDatabaseService {
     if (kIsWeb) {
       _webEntries.removeWhere((entry) => entry.id == id);
       await _saveWebEntries();
-      print("[PlatformDatabaseService] Entry deleted from web storage");
+      _logger.i("[PlatformDatabaseService] Entry deleted from web storage");
       return;
     }
 
     try {
       await _db!.delete('entries', where: 'id = ?', whereArgs: [id]);
-      print("[PlatformDatabaseService] Entry deleted successfully");
+      _logger.i("[PlatformDatabaseService] Entry deleted successfully");
     } catch (e) {
-      print("[PlatformDatabaseService] Error deleting entry: $e");
+      _logger.e("[PlatformDatabaseService] Error deleting entry: $e");
       rethrow;
     }
   }
@@ -304,15 +302,15 @@ class PlatformDatabaseService {
     if (kIsWeb) {
       _webEntries.removeWhere((entry) => entry.isInVault);
       await _saveWebEntries();
-      print("[PlatformDatabaseService] Vault data cleared from web storage");
+      _logger.i("[PlatformDatabaseService] Vault data cleared from web storage");
       return;
     }
 
     try {
       await _db!.delete('entries', where: 'isInVault = ?', whereArgs: [1]);
-      print("[PlatformDatabaseService] Vault data cleared successfully");
+      _logger.i("[PlatformDatabaseService] Vault data cleared successfully");
     } catch (e) {
-      print("[PlatformDatabaseService] Error clearing vault data: $e");
+      _logger.e("[PlatformDatabaseService] Error clearing vault data: $e");
       rethrow;
     }
   }
@@ -324,15 +322,15 @@ class PlatformDatabaseService {
     if (kIsWeb) {
       _webEntries.clear();
       await _saveWebEntries();
-      print("[PlatformDatabaseService] All data cleared from web storage");
+      _logger.i("[PlatformDatabaseService] All data cleared from web storage");
       return;
     }
 
     try {
       await _db!.delete('entries');
-      print("[PlatformDatabaseService] All data cleared successfully");
+      _logger.i("[PlatformDatabaseService] All data cleared successfully");
     } catch (e) {
-      print("[PlatformDatabaseService] Error clearing all data: $e");
+      _logger.e("[PlatformDatabaseService] Error clearing all data: $e");
       rethrow;
     }
   }
@@ -355,9 +353,8 @@ class PlatformDatabaseService {
   static Future<void> close() async {
     if (_db != null && !kIsWeb) {
       await _db!.close();
-      _db = null;
+      _logger.i("[PlatformDatabaseService] Database closed");
     }
     _isInitialized = false;
-    print("[PlatformDatabaseService] Database closed");
   }
 }

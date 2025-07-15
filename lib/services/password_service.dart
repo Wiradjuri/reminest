@@ -1,69 +1,71 @@
 import 'package:crypto/crypto.dart';
-// Dart core libraries for file, encoding, randomness, and byte data
-import 'dart:io'; // For file and directory operations
-import 'dart:convert'; // For encoding and decoding JSON/base64
-import 'dart:math'; // For secure random number generation
-import 'dart:typed_data'; // For handling byte data
-
-// Third-party packages for cryptography and file path management
-import 'package:path_provider/path_provider.dart'; // For accessing app-specific directories
+import 'dart:io';
+import 'dart:convert';
+import 'dart:math';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 
 class PasswordService {
   static const String _passwordFileName = 'app_password.sec';
   static const String _passkeyFileName = 'recovery_passkey.sec';
-  static const int _pbkdf2Iterations =
-      100000; // High iteration count for security
+  static const int _pbkdf2Iterations = 100000;
 
-  /// Generate a secure random passkey for password recovery
-  static String generatePasskey() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = Random.secure();
-    return List.generate(
-      16,
-      (index) => chars[random.nextInt(chars.length)],
-    ).join();
+  static Directory? _overrideDirectory;
+
+  /// Allows test injection of a mock directory
+  static void overrideAppDirectory(Directory dir) {
+    _overrideDirectory = dir;
   }
 
-  /// PBKDF2 implementation using HMAC-SHA256
-  static String _pbkdf2(String password, String salt, int iterations) {
-    var hmac = Hmac(sha256, utf8.encode(password));
-    var digest = hmac.convert(utf8.encode(salt));
-
-    for (int i = 1; i < iterations; i++) {
-      digest = hmac.convert(digest.bytes);
-    }
-
-    return digest.toString();
-  }
-
-  /// Generate a cryptographically secure salt
-  static String _generateSalt() {
-    final random = Random.secure();
-    final bytes = List<int>.generate(32, (i) => random.nextInt(256));
-    return base64.encode(bytes);
-  }
-
-  /// Get the application documents directory
+  /// Internal app directory getter
   static Future<Directory> _getAppDirectory() async {
+    if (_overrideDirectory != null) {
+      return _overrideDirectory!;
+    }
+    
+    if (kIsWeb) {
+      throw UnsupportedError('File operations not supported on web');
+    }
+    
     return await getApplicationDocumentsDirectory();
   }
 
-  /// Set the application password (first time setup)
-  static Future<String> setPassword(String password) async {
-    final directory = await _getAppDirectory();
-    final passwordFile = File('${directory.path}/$_passwordFileName');
-    final passkeyFile = File('${directory.path}/$_passkeyFileName');
+  static String generatePasskey() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random.secure();
+    return List.generate(16, (_) => chars[random.nextInt(chars.length)]).join();
+  }
 
-    // Generate cryptographically secure salt and passkey
+  static String _pbkdf2(String password, String salt, int iterations) {
+    final hmac = Hmac(sha256, utf8.encode(password));
+    var digest = hmac.convert(utf8.encode(salt));
+    for (int i = 1; i < iterations; i++) {
+      digest = hmac.convert(digest.bytes);
+    }
+    return digest.toString();
+  }
+
+  static String _generateSalt() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(32, (_) => random.nextInt(256));
+    return base64.encode(bytes);
+  }
+
+  static Future<String> setPassword(String password) async {
+    if (password.isEmpty) {
+      throw ArgumentError('Password cannot be empty');
+    }
+    
+    final dir = await _getAppDirectory();
+    final passwordFile = File('${dir.path}/$_passwordFileName');
+    final passkeyFile = File('${dir.path}/$_passkeyFileName');
+
     final salt = _generateSalt();
     final passkey = generatePasskey();
+    final hash = _pbkdf2(password, salt, _pbkdf2Iterations);
 
-    // Derive strong key from password using PBKDF2 with high iteration count
-    final hashedPassword = _pbkdf2(password, salt, _pbkdf2Iterations);
-
-    // Create password data structure with metadata
     final passwordData = {
-      'hash': hashedPassword,
+      'hash': hash,
       'salt': salt,
       'iterations': _pbkdf2Iterations,
       'created': DateTime.now().toIso8601String(),
@@ -71,208 +73,124 @@ class PasswordService {
       'version': '2.0',
     };
 
-    // Store password data as encrypted JSON
-    final passwordJson = jsonEncode(passwordData);
-    final encryptedPassword = base64.encode(utf8.encode(passwordJson));
-    await passwordFile.writeAsString(encryptedPassword);
-
-    // Store passkey with additional security
-    final passkeyHash = _pbkdf2(passkey, salt, 50000); // Hash the passkey too
+    final passkeyHash = _pbkdf2(passkey, salt, 50000);
     final passkeyData = {
       'passkeyHash': passkeyHash,
-      'passkey': base64.encode(
-        utf8.encode(passkey),
-      ), // Base64 encode the passkey
+      'passkey': base64.encode(utf8.encode(passkey)),
       'salt': salt,
       'created': DateTime.now().toIso8601String(),
       'version': '2.0',
     };
 
-    final passkeyJson = jsonEncode(passkeyData);
-    final encryptedPasskey = base64.encode(utf8.encode(passkeyJson));
-    await passkeyFile.writeAsString(encryptedPasskey);
+    await passwordFile.writeAsString(base64.encode(utf8.encode(jsonEncode(passwordData))));
+    await passkeyFile.writeAsString(base64.encode(utf8.encode(jsonEncode(passkeyData))));
 
     return passkey;
   }
 
-  /// Verify the application password
   static Future<bool> verifyPassword(String password) async {
     try {
-      final directory = await _getAppDirectory();
-      final passwordFile = File('${directory.path}/$_passwordFileName');
+      final file = File('${(await _getAppDirectory()).path}/$_passwordFileName');
+      if (!await file.exists()) return false;
 
-      if (!await passwordFile.exists()) {
-        return false; // No password set
-      }
+      final json = jsonDecode(utf8.decode(base64.decode(await file.readAsString())));
+      final inputHash = _pbkdf2(password, json['salt'], json['iterations'] ?? _pbkdf2Iterations);
 
-      // Decrypt and parse password data
-      final encryptedData = await passwordFile.readAsString();
-      final decryptedData = utf8.decode(base64.decode(encryptedData));
-      final passwordData = jsonDecode(decryptedData);
-
-      final storedHash = passwordData['hash'];
-      final salt = passwordData['salt'];
-      final iterations = passwordData['iterations'] ?? _pbkdf2Iterations;
-
-      // Verify password using same PBKDF2 parameters
-      final inputHash = _pbkdf2(password, salt, iterations);
-      return inputHash == storedHash;
-    } catch (e) {
+      return inputHash == json['hash'];
+    } catch (_) {
       return false;
     }
   }
 
-  /// Check if password is set
   static Future<bool> isPasswordSet() async {
     try {
-      final directory = await _getAppDirectory();
-      final passwordFile = File('${directory.path}/$_passwordFileName');
-      return await passwordFile.exists();
-    } catch (e) {
+      final file = File('${(await _getAppDirectory()).path}/$_passwordFileName');
+      return await file.exists();
+    } catch (_) {
       return false;
     }
   }
 
-  /// Get passkey for recovery (requires verification that this is a legitimate recovery attempt)
   static Future<String?> getRecoveryPasskey() async {
     try {
-      final directory = await _getAppDirectory();
-      final passkeyFile = File('${directory.path}/$_passkeyFileName');
+      final file = File('${(await _getAppDirectory()).path}/$_passkeyFileName');
+      if (!await file.exists()) return null;
 
-      if (!await passkeyFile.exists()) {
-        return null;
-      }
-
-      // Decrypt and parse passkey data
-      final encryptedData = await passkeyFile.readAsString();
-      final decryptedData = utf8.decode(base64.decode(encryptedData));
-      final passkeyData = jsonDecode(decryptedData);
-
-      // Decode the base64 encoded passkey
-      final passkey = utf8.decode(base64.decode(passkeyData['passkey']));
-      return passkey;
-    } catch (e) {
+      final json = jsonDecode(utf8.decode(base64.decode(await file.readAsString())));
+      return utf8.decode(base64.decode(json['passkey']));
+    } catch (_) {
       return null;
     }
   }
 
-  /// Reset password using passkey
-  static Future<bool> resetPasswordWithPasskey(
-    String passkey,
-    String newPassword,
-  ) async {
-    try {
-      final storedPasskey = await getRecoveryPasskey();
-      if (storedPasskey == null || storedPasskey != passkey) {
-        return false; // Invalid passkey
-      }
+  static Future<bool> resetPasswordWithPasskey(String passkey, String newPassword) async {
+    final actual = await getRecoveryPasskey();
+    if (actual == null || actual != passkey) return false;
 
-      // Clear old data and set new password
-      await clearPasswordData();
-      await setPassword(newPassword);
-      return true;
-    } catch (e) {
-      return false;
-    }
+    await clearPasswordData();
+    await setPassword(newPassword);
+    return true;
   }
 
-  /// Clear all password data (for app reset) - Enhanced security
   static Future<void> clearPasswordData() async {
-    try {
-      final directory = await _getAppDirectory();
-      final passwordFile = File('${directory.path}/$_passwordFileName');
-      final passkeyFile = File('${directory.path}/$_passkeyFileName');
+    final dir = await _getAppDirectory();
+    final passwordFile = File('${dir.path}/$_passwordFileName');
+    final passkeyFile = File('${dir.path}/$_passkeyFileName');
 
-      // Securely overwrite files before deletion
-      if (await passwordFile.exists()) {
-        await _secureDelete(passwordFile);
-      }
-      if (await passkeyFile.exists()) {
-        await _secureDelete(passkeyFile);
-      }
-    } catch (e) {
-      // Ignore errors during cleanup
-    }
+    if (await passwordFile.exists()) await _secureDelete(passwordFile);
+    if (await passkeyFile.exists()) await _secureDelete(passkeyFile);
   }
 
-  /// Securely delete a file by overwriting it multiple times
   static Future<void> _secureDelete(File file) async {
     try {
-      final fileSize = await file.length();
+      final size = await file.length();
       final random = Random.secure();
 
-      // Overwrite with random data 3 times
-      for (int pass = 0; pass < 3; pass++) {
-        final randomData = List<int>.generate(
-          fileSize,
-          (i) => random.nextInt(256),
-        );
-        await file.writeAsBytes(randomData);
+      for (int i = 0; i < 3; i++) {
+        await file.writeAsBytes(List<int>.generate(size, (_) => random.nextInt(256)));
       }
 
-      // Final overwrite with zeros
-      final zeroData = List<int>.filled(fileSize, 0);
-      await file.writeAsBytes(zeroData);
-
-      // Delete the file
+      await file.writeAsBytes(List.filled(size, 0));
       await file.delete();
-    } catch (e) {
-      // If secure deletion fails, try normal deletion
+    } catch (_) {
       try {
         await file.delete();
-      } catch (e2) {
-        // Ignore final deletion errors
-      }
+      } catch (_) {}
     }
   }
 
-  /// Get password creation date
   static Future<DateTime?> getPasswordCreationDate() async {
     try {
-      final directory = await _getAppDirectory();
-      final passwordFile = File('${directory.path}/$_passwordFileName');
+      final file = File('${(await _getAppDirectory()).path}/$_passwordFileName');
+      if (!await file.exists()) return null;
 
-      if (!await passwordFile.exists()) {
-        return null;
-      }
-
-      // Decrypt and parse password data
-      final encryptedData = await passwordFile.readAsString();
-      final decryptedData = utf8.decode(base64.decode(encryptedData));
-      final passwordData = jsonDecode(decryptedData);
-
-      return DateTime.parse(passwordData['created']);
-    } catch (e) {
+      final json = jsonDecode(utf8.decode(base64.decode(await file.readAsString())));
+      return DateTime.tryParse(json['created']);
+    } catch (_) {
       return null;
     }
   }
 
-  /// Get security information about the stored password
   static Future<Map<String, dynamic>?> getSecurityInfo() async {
     try {
-      final directory = await _getAppDirectory();
-      final passwordFile = File('${directory.path}/$_passwordFileName');
+      final file = File('${(await _getAppDirectory()).path}/$_passwordFileName');
+      if (!await file.exists()) return null;
 
-      if (!await passwordFile.exists()) {
-        return null;
-      }
-
-      // Decrypt and parse password data
-      final encryptedData = await passwordFile.readAsString();
-      final decryptedData = utf8.decode(base64.decode(encryptedData));
-      final passwordData = jsonDecode(decryptedData);
+      final json = jsonDecode(utf8.decode(base64.decode(await file.readAsString())));
 
       return {
-        'algorithm': passwordData['algorithm'] ?? 'SHA256',
-        'iterations': passwordData['iterations'] ?? 1,
-        'version': passwordData['version'] ?? '1.0',
-        'created': passwordData['created'],
-        'isSecure':
-            (passwordData['iterations'] ?? 1) >=
-            50000, // Consider secure if >= 50k iterations
+        'algorithm': json['algorithm'] ?? 'SHA256',
+        'iterations': json['iterations'] ?? 1,
+        'version': json['version'] ?? '1.0',
+        'created': json['created'],
+        'isSecure': (json['iterations'] ?? 1) >= 50000,
       };
-    } catch (e) {
+    } catch (_) {
       return null;
     }
+  }
+
+  static Future<void> clearPassword() async {
+    await clearPasswordData();
   }
 }

@@ -1,309 +1,99 @@
 // File: lib/main.dart
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
-import 'screens/settings_screen.dart';
-import 'screens/journal_screen.dart';
-import 'screens/vault_screen.dart';
-import 'screens/set_vault_pin_screen.dart';
-import 'screens/about_us_screen.dart';
-import 'services/key_service.dart';
-import 'services/password_service.dart';
-
-final themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.system);
+import 'package:reminest/services/encryption_service.dart';
+import 'package:reminest/services/key_service.dart';
+import 'package:reminest/services/platform_database_service.dart';
+import 'package:reminest/screens/home_screen.dart';
+import 'package:reminest/screens/journal_screen.dart';
+import 'package:reminest/screens/settings_screen.dart';
+import 'package:reminest/screens/about_us_screen.dart';
+import 'package:reminest/screens/vault_screen.dart';
+import 'package:reminest/screens/set_vault_pin_screen.dart';
 
 void main() {
-  runApp(
-    ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeNotifier,
-      builder: (_, mode, __) => MaterialApp(
-        title: 'Reminest',
-        theme: ThemeData.light().copyWith(
-          primaryColor: Color(0xFF9B59B6),
-          scaffoldBackgroundColor: Color(
-            0xFFFAFAFA,
-          ), // VS Code light background
-          appBarTheme: AppBarTheme(
-            backgroundColor: Color(0xFF9B59B6),
-            foregroundColor: Colors.white,
-            elevation: 0,
-          ),
-          cardTheme: CardThemeData(
-            color: Colors.white,
-            elevation: 1,
-            shadowColor: Colors.black12,
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF9B59B6),
-              foregroundColor: Colors.white,
-            ),
-          ),
-          textTheme: TextTheme(
-            bodyLarge: TextStyle(color: Color(0xFF1E1E1E)),
-            bodyMedium: TextStyle(color: Color(0xFF1E1E1E)),
-            titleLarge: TextStyle(color: Color(0xFF1E1E1E)),
-            titleMedium: TextStyle(color: Color(0xFF1E1E1E)),
-          ),
-          iconTheme: IconThemeData(color: Color(0xFF424242)),
-          dividerTheme: DividerThemeData(color: Color(0xFFE0E0E0)),
-          checkboxTheme: CheckboxThemeData(
-            fillColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) {
-                return Color(0xFF9B59B6);
-              }
-              return Colors.transparent;
-            }),
-          ),
-          radioTheme: RadioThemeData(
-            fillColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) {
-                return Color(0xFF9B59B6);
-              }
-              return Color(0xFF424242);
-            }),
-          ),
-        ),
-        darkTheme: ThemeData.dark().copyWith(
-          primaryColor: Color(0xFF9B59B6),
-          scaffoldBackgroundColor: Color(0xFF1E1E1E),
-          appBarTheme: AppBarTheme(
-            backgroundColor: Color(0xFF9B59B6),
-            foregroundColor: Colors.white,
-            elevation: 0,
-          ),
-          cardTheme: CardThemeData(
-            color: Color(0xFF2D2D30),
-            elevation: 1,
-            shadowColor: Colors.black26,
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF9B59B6),
-              foregroundColor: Colors.white,
-            ),
-          ),
-          textTheme: TextTheme(
-            bodyLarge: TextStyle(color: Colors.white),
-            bodyMedium: TextStyle(color: Colors.white),
-            titleLarge: TextStyle(color: Colors.white),
-            titleMedium: TextStyle(color: Colors.white),
-          ),
-          iconTheme: IconThemeData(color: Colors.white70),
-          dividerTheme: DividerThemeData(color: Colors.white24),
-          checkboxTheme: CheckboxThemeData(
-            fillColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) {
-                return Color(0xFF9B59B6);
-              }
-              return Colors.transparent;
-            }),
-          ),
-          radioTheme: RadioThemeData(
-            fillColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) {
-                return Color(0xFF9B59B6);
-              }
-              return Colors.white70;
-            }),
-          ),
-        ),
-        themeMode: mode,
-        debugShowCheckedModeBanner: false,
-        home: AuthenticationWrapper(),
-      ),
-    ),
-  );
+  runApp(ReminestApp());
 }
 
-class AuthenticationWrapper extends StatefulWidget {
-  const AuthenticationWrapper({super.key});
-
+class ReminestApp extends StatefulWidget {
   @override
-  _AuthenticationWrapperState createState() => _AuthenticationWrapperState();
+  State<ReminestApp> createState() => _ReminestAppState();
 }
 
-class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
+class _ReminestAppState extends State<ReminestApp> {
+  final ValueNotifier<ThemeMode> _themeNotifier = ValueNotifier(ThemeMode.system);
   bool _isAuthenticated = false;
-  bool _isLoading = true;
+  int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _checkAuthenticationStatus();
+    _initializeApp();
   }
 
-  Future<void> _checkAuthenticationStatus() async {
-    // Check if a password exists to determine if setup is needed
-    final hasPassword = await PasswordService.isPasswordSet();
-    setState(() {
-      _isAuthenticated =
-          false; // Always start unauthenticated (user must login)
-      _isLoading = false;
-    });
-
-    // If no password exists, we know the user needs to do setup
-    // If password exists, user needs to login
-    print("[AuthenticationWrapper] Password exists: $hasPassword");
+  Future<void> _initializeApp() async {
+    try {
+      await PlatformDatabaseService.initDB();
+      print("[Main] App initialized successfully");
+    } catch (e) {
+      print("[Main] Error initializing app: $e");
+    }
   }
 
-  void _onLoginSuccess() {
-    print("[AuthenticationWrapper] _onLoginSuccess called");
+  void _handleLoginSuccess() {
     setState(() {
       _isAuthenticated = true;
+      _currentIndex = 1; // Navigate to journal after login
     });
-    print("[AuthenticationWrapper] Authentication state set to true");
   }
 
-  void _onLogout() {
+  void _handlePasswordSetupSuccess() {
+    setState(() {
+      _isAuthenticated = true;
+      _currentIndex = 1; // Navigate to journal after setup
+    });
+  }
+
+  void _handleLogout() {
     setState(() {
       _isAuthenticated = false;
+      _currentIndex = 0; // Go back to home
     });
+    EncryptionService.reset();
   }
 
-  void _onReset() {
-    // Complete reset: check authentication status from scratch
+  void _handleCompleteReset() {
     setState(() {
-      _isLoading = true;
       _isAuthenticated = false;
+      _currentIndex = 0;
     });
-    _checkAuthenticationStatus();
+    EncryptionService.reset();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    print(
-      "[AuthenticationWrapper] build called - isLoading: $_isLoading, isAuthenticated: $_isAuthenticated",
-    );
-
-    if (_isLoading) {
-      return Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    // Show different interfaces based on authentication status
-    if (!_isAuthenticated) {
-      print("[AuthenticationWrapper] Showing HomeScreen (unauthenticated)");
-      // Before authentication: Show only Home page (no tabs, no other screens)
-      return Scaffold(body: HomeScreen(onLoginSuccess: _onLoginSuccess));
-    } else {
-      print("[AuthenticationWrapper] Showing MainScaffold (authenticated)");
-      // After authentication: Show full app interface starting with Journal
-      return MainScaffold(
-        isAuthenticated: _isAuthenticated,
-        onLoginSuccess: _onLoginSuccess,
-        onLogout: _onLogout,
-        onReset: _onReset,
-      );
-    }
-  }
-}
-
-class MainScaffold extends StatefulWidget {
-  final bool isAuthenticated;
-  final VoidCallback? onLoginSuccess;
-  final VoidCallback? onLogout;
-  final VoidCallback? onReset;
-
-  const MainScaffold({super.key, 
-    required this.isAuthenticated,
-    this.onLoginSuccess,
-    this.onLogout,
-    this.onReset,
-  });
-
-  @override
-  _MainScaffoldState createState() => _MainScaffoldState();
-}
-
-class _MainScaffoldState extends State<MainScaffold> {
-  int _selectedIndex =
-      0; // Start with first tab (Home when not authenticated, Journal when authenticated)
-
-  @override
-  void initState() {
-    super.initState();
-    // Start with Journal tab (index 0) since MainScaffold only shows when authenticated
-    _selectedIndex = 0;
-  }
-
-  List<Widget> get _screens {
-    // MainScaffold only shows when authenticated, so always show authenticated screens
-    return [
-      HomeScreen(
-        onLoginSuccess: widget.onLoginSuccess,
-        isAuthenticated: true,
-        onNavigateToJournal: () =>
-            _onTabSelected(2), // Navigate to Journal tab (index 2)
-      ),
-      AboutUsScreen(),
-      JournalScreen(),
-      SettingsScreen(
-        themeNotifier: themeNotifier,
-        onLogout: widget.onLogout,
-        onReset: widget.onReset,
-      ),
-    ];
-  }
-
-  List<String> get _navTitles {
-    // MainScaffold only shows when authenticated, so always show authenticated tabs
-    return ['Home', 'About Us', 'Journal', 'Settings'];
-  }
-
-  void _onTabSelected(int index) {
+  void _navigateToJournal() {
     setState(() {
-      _selectedIndex = index;
+      _currentIndex = 1;
     });
-  }
-
-  void _showLogoutConfirmation() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Logout"),
-          content: Text(
-            "Are you sure you want to logout? You'll need to enter your password again to access your journal.",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("Cancel"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (widget.onLogout != null) {
-                  widget.onLogout!();
-                }
-                // Reset to Home tab when logging out (index 0 in unauthenticated state)
-                setState(() {
-                  _selectedIndex = 0;
-                });
-              },
-              child: Text("Logout"),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _openVault() async {
     final hasPin = await KeyService.hasVaultPin();
+    if (!mounted) return;
+
     if (!hasPin) {
-      // Navigate to Set Vault PIN screen
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => SetVaultPinScreen()),
+        MaterialPageRoute(
+          builder: (_) => SetVaultPinScreen(
+            onComplete: () {
+              Navigator.pop(context); // Close SetVaultPinScreen
+              // Use microtask to ensure dialog is shown after navigation
+              Future.microtask(() => _showVaultPinDialog());
+            },
+          ),
+        ),
       );
       return;
     }
-
-    // Show PIN dialog
     _showVaultPinDialog();
   }
 
@@ -318,11 +108,12 @@ class _MainScaffoldState extends State<MainScaffold> {
       }
 
       final isValid = await KeyService.verifyVaultPin(pin);
+      if (!mounted) return;
       if (isValid) {
-        Navigator.pop(context); // Close dialog
+        Navigator.pop(context);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => VaultScreen()),
+          MaterialPageRoute(builder: (_) => const VaultScreen()),
         );
       } else {
         setDialogState(() => pinError = "Incorrect PIN. Try again.");
@@ -333,7 +124,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text("Enter Vault PIN"),
+          title: const Text("Enter Vault PIN"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -342,7 +133,7 @@ class _MainScaffoldState extends State<MainScaffold> {
                 keyboardType: TextInputType.number,
                 maxLength: 6,
                 obscureText: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "4-6 digit PIN",
                   border: OutlineInputBorder(),
                   counterText: "",
@@ -351,10 +142,10 @@ class _MainScaffoldState extends State<MainScaffold> {
                     verifyVaultPin(pinController.text, setDialogState),
               ),
               if (pinError.isNotEmpty) ...[
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   pinError,
-                  style: TextStyle(color: Colors.red, fontSize: 12),
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
                 ),
               ],
             ],
@@ -362,12 +153,12 @@ class _MainScaffoldState extends State<MainScaffold> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
             ),
             ElevatedButton(
               onPressed: () =>
                   verifyVaultPin(pinController.text, setDialogState),
-              child: Text("Open Vault"),
+              child: const Text("Open Vault"),
             ),
           ],
         ),
@@ -377,49 +168,117 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: _themeNotifier,
+      builder: (context, themeMode, child) {
+        return MaterialApp(
+          title: 'Reminest',
+          themeMode: themeMode,
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            primaryColor: Colors.blue,
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            primarySwatch: Colors.blue,
+            primaryColor: Colors.blue,
+            brightness: Brightness.dark,
+            useMaterial3: true,
+          ),
+          home: _isAuthenticated ? _buildMainApp() : _buildHomeScreen(),
+          debugShowCheckedModeBanner: false,
+        );
+      },
+    );
+  }
+
+  Widget _buildHomeScreen() {
+    return HomeScreen(
+      onLoginSuccess: _handleLoginSuccess,
+      onPasswordSetupSuccess: _handlePasswordSetupSuccess,
+      isAuthenticated: _isAuthenticated,
+      onNavigateToJournal: _navigateToJournal,
+    );
+  }
+
+  Widget _buildMainApp() {
+    final screens = [
+      HomeScreen(
+        onLoginSuccess: _handleLoginSuccess,
+        onPasswordSetupSuccess: _handlePasswordSetupSuccess,
+        isAuthenticated: _isAuthenticated,
+        onNavigateToJournal: _navigateToJournal,
+      ),
+      JournalScreen(),
+      SettingsScreen(
+        themeNotifier: _themeNotifier,
+        onLogout: _handleLogout,
+        onReset: _handleCompleteReset,
+      ),
+      const AboutUsScreen(),
+    ];
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: theme.primaryColor.withOpacity(0.1),
+        title: Text(_currentIndex == 0
+            ? 'Home'
+            : _currentIndex == 1
+                ? 'Journal'
+                : _currentIndex == 2
+                    ? 'Settings'
+                    : 'About'),
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
         elevation: 0,
-        title: Row(
-          children: [
-            ...List.generate(_navTitles.length, (index) {
-              return TextButton(
-                onPressed: () => _onTabSelected(index),
-                style: TextButton.styleFrom(
-                  foregroundColor: _selectedIndex == index
-                      ? theme.primaryColor
-                      : theme.textTheme.bodyMedium?.color,
-                  textStyle: TextStyle(
-                    fontWeight: _selectedIndex == index
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    fontSize: 18,
-                  ),
-                ),
-                child: Text(_navTitles[index]),
-              );
-            }),
-          ],
-        ),
         actions: [
-          // Always show vault and logout buttons since MainScaffold only appears when authenticated
           IconButton(
-            icon: Icon(Icons.lock, color: theme.primaryColor),
-            tooltip: "Access Vault",
+            icon: const Icon(Icons.lock, color: Colors.white),
+            tooltip: "Open Vault",
             onPressed: _openVault,
           ),
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.red),
-            tooltip: "Logout",
-            onPressed: _showLogoutConfirmation,
-          ),
-          SizedBox(width: 8),
         ],
       ),
-      body: _screens[_selectedIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: screens,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            label: 'Journal',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.info),
+            label: 'About',
+          ),
+        ],
+      ),
+      floatingActionButton: _currentIndex == 1 ? null : FloatingActionButton(
+        onPressed: _openVault,
+        backgroundColor: Theme.of(context).primaryColor,
+        tooltip: 'Open Vault',
+        child: const Icon(Icons.security, color: Colors.white),
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    _themeNotifier.dispose();
+    super.dispose();
   }
 }

@@ -81,6 +81,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       return;
     }
 
+    // Key logic fix: Vault storage only if checkbox is selected AND date is set
     if (_storeInVault && _lockUntilDate == null) {
       await _selectLockDate(context);
       if (_lockUntilDate == null) {
@@ -95,7 +96,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       }
     }
 
-    final bool shouldStoreInVault = _lockUntilDate != null;
+    // Fixed: Only store in vault if checkbox is explicitly selected
+    final bool shouldStoreInVault = _storeInVault;
 
     await _performSave(
       storeInVault: shouldStoreInVault,
@@ -117,14 +119,11 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     final entry = JournalEntry(
       title: _titleController.text,
       body: _bodyController.text,
-      reviewDate: storeInVault
-          ? (lockUntilDate ??
-                DateTime.now().add(
-                  const Duration(minutes: 1),
-                ))
-          : DateTime.now(),
+      reviewDate: storeInVault && lockUntilDate != null
+          ? lockUntilDate // Vault entries use the lock date
+          : _lockUntilDate ?? DateTime.now(), // Journal entries can have dates but aren't locked
       imagePath: imagePath,
-      isInVault: storeInVault,
+      isInVault: storeInVault, // Only true if checkbox was selected
       createdAt: DateTime.now(),
     );
 
@@ -136,8 +135,10 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
           SnackBar(
             content: Text(
               storeInVault
-                  ? 'Entry saved to vault successfully!'
-                  : 'Entry saved to journal successfully!',
+                  ? 'Entry saved to vault successfully! It will unlock on ${lockUntilDate?.toLocal().toString().split(' ')[0]}'
+                  : _lockUntilDate != null
+                      ? 'Entry saved to journal with future review date: ${_lockUntilDate!.toLocal().toString().split(' ')[0]}'
+                      : 'Entry saved to journal successfully!',
             ),
             backgroundColor: Colors.green,
           ),
@@ -273,12 +274,12 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: _lockUntilDate != null
-                            ? theme.primaryColor.withValues(alpha: 0.1)
-                            : theme.cardColor.withValues(alpha: 0.5),
+                            ? theme.primaryColor.withOpacity(0.1)
+                            : theme.cardColor.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
                           color: _lockUntilDate != null
-                              ? theme.primaryColor.withValues(alpha: 0.3)
+                              ? theme.primaryColor.withOpacity(0.3)
                               : theme.dividerColor,
                         ),
                       ),
@@ -318,7 +319,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                         icon: const Icon(Icons.lock_clock, size: 18),
                         label: const Text('Set Lock Date'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.primaryColor.withValues(alpha: 0.1),
+                          backgroundColor: theme.primaryColor.withOpacity(0.1),
                           foregroundColor: theme.primaryColor,
                           elevation: 0,
                         ),
@@ -330,10 +331,10 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.orange.withValues(alpha: 0.1),
+                                color: Colors.orange.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: Colors.orange.withValues(alpha: 0.3),
+                                  color: Colors.orange.withOpacity(0.3),
                                 ),
                               ),
                               child: Row(
@@ -372,12 +373,12 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: _storeInVault
-                      ? theme.primaryColor.withValues(alpha: 0.1)
+                      ? theme.primaryColor.withOpacity(0.1)
                       : theme.cardColor,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: _storeInVault
-                        ? theme.primaryColor.withValues(alpha: 0.3)
+                        ? theme.primaryColor.withOpacity(0.3)
                         : theme.dividerColor,
                     width: 1,
                   ),
@@ -397,7 +398,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                     CheckboxListTile(
                       title: const Text('Store in Vault'),
                       subtitle: Text(
-                        'Check to store this entry in the vault (requires a lock date for automatic time-based access)',
+                        'Check to store this entry in the vault (requires vault PIN + scheduled unlock date). Unchecked entries go to journal and can be accessed with your main password.',
                         style: TextStyle(
                           fontSize: 12,
                           color: theme.textTheme.bodySmall?.color,
@@ -405,21 +406,92 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                       ),
                       value: _storeInVault,
                       onChanged: (value) async {
-                        if (value == true && _lockUntilDate == null) {
-                          final selectedDate = await _selectLockDate(context);
-                          if (selectedDate != null) {
-                            setState(() {
-                              _storeInVault = true;
-                              _lockUntilDate = selectedDate;
-                            });
-                          }
-                        } else {
-                          setState(() => _storeInVault = value ?? false);
-                        }
+                        setState(() => _storeInVault = value ?? false);
+                        // Don't auto-select date - let user choose separately
                       },
                       activeColor: theme.primaryColor,
                       contentPadding: EdgeInsets.zero,
                     ),
+                    const SizedBox(height: 12),
+                    // Separate section for date selection
+                    Text(
+                      'Review/Lock Date (Optional)',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: theme.textTheme.titleMedium?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _storeInVault
+                          ? 'This date will determine when the vault entry unlocks automatically'
+                          : 'This date can be used for future review reminders in your journal',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.textTheme.bodySmall?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (_lockUntilDate == null)
+                      ElevatedButton.icon(
+                        onPressed: () => _selectLockDate(context),
+                        icon: Icon(_storeInVault ? Icons.lock_clock : Icons.schedule, size: 18),
+                        label: Text(_storeInVault ? 'Set Unlock Date' : 'Set Review Date'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.primaryColor.withOpacity(0.1),
+                          foregroundColor: theme.primaryColor,
+                          elevation: 0,
+                        ),
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: _storeInVault
+                                    ? Colors.orange.withOpacity(0.1)
+                                    : Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: _storeInVault
+                                      ? Colors.orange.withOpacity(0.3)
+                                      : Colors.blue.withOpacity(0.3),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _storeInVault ? Icons.lock_clock : Icons.schedule,
+                                    color: _storeInVault ? Colors.orange : Colors.blue,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _storeInVault
+                                        ? 'Vault unlock: ${_lockUntilDate!.toLocal().toString().split(' ')[0]}'
+                                        : 'Review date: ${_lockUntilDate!.toLocal().toString().split(' ')[0]}',
+                                    style: TextStyle(
+                                      color: _storeInVault
+                                          ? Colors.orange.shade700
+                                          : Colors.blue.shade700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: _clearLockDate,
+                            icon: const Icon(Icons.clear, color: Colors.red),
+                            tooltip: 'Remove date',
+                          ),
+                        ],
+                      ),
                     if (_storeInVault && _lockUntilDate != null) ...[
                       const SizedBox(height: 8),
                       Container(
@@ -428,7 +500,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                           color: Colors.green.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: Colors.green.withValues(alpha: 0.3),
+                            color: Colors.green.withOpacity(0.3),
                           ),
                         ),
                         child: Row(
@@ -488,7 +560,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                         icon: const Icon(Icons.add_photo_alternate, size: 18),
                         label: const Text('Add Photo'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.primaryColor.withValues(alpha: 0.1),
+                          backgroundColor: theme.primaryColor.withOpacity(0.1),
                           foregroundColor: theme.primaryColor,
                           elevation: 0,
                         ),
@@ -500,10 +572,10 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.1),
+                                color: Colors.green.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: Colors.green.withValues(alpha: 0.3),
+                                  color: Colors.green.withOpacity(0.3),
                                 ),
                               ),
                               child: Row(
