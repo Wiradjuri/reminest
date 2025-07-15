@@ -125,5 +125,10 @@ app.*.symbols
 *.pem
 secrets/
 
-#Ignore vscode AI rules
-.github\copilot-instructions.md
+# Ignore VS Code AI rules
+.github/copilot-instructions.md
+
+# Ignore build and workflow scripts
+show-builds.ps1
+start_day.ps1
+end_day.ps1
