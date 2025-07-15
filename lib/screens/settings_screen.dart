@@ -7,9 +7,8 @@ import 'dart:io';
 import 'package:reminest/services/platform_database_service.dart';
 import 'package:reminest/services/key_service.dart';
 import 'package:reminest/services/password_service.dart';
-import 'package:reminest/screens/set_password_screen.dart';
-import 'package:reminest/screens/journal_screen.dart';
 import 'package:reminest/screens/set_vault_pin_screen.dart';
+
 
 class SettingsScreen extends StatefulWidget {
   final ValueNotifier<ThemeMode>? themeNotifier;
@@ -31,7 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ThemeMode _themeMode = ThemeMode.system;
   bool _exporting = false;
   String? _exportStatus;
-  String? _updateStatus;
+  // ...existing code...
 
   @override
   void initState() {

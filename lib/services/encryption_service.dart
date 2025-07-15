@@ -2,19 +2,30 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:pointycastle/export.dart';
 import 'dart:math';
-
+import 'package:encrypt/encrypt.dart' as encrypt;
 class EncryptionService {
+  /// For test: call this before a test that expects uninitialized state
+  static void testPrepareUninitialized() {
+    reset();
+  }
+  /// For test: helper to ensure uninitialized state before test
+  static void testForceUninit() {
+    reset();
+  }
+  /// Ensures the service is uninitialized (for test support)
+  static void ensureUninitialized() {
+    reset();
+  }
   static late Uint8List _key;
   static bool _initialized = false;
 
   /// Initializes the encryption key (must be called before encrypting or decrypting).
   static void initializeKey(List<int> keyBytes) {
     if (keyBytes.length != 32) {
-      throw ArgumentError("Key must be 32 bytes for AES-256 encryption.");
+      throw ArgumentError('Key must be 32 bytes for AES-256.');
     }
     _key = Uint8List.fromList(keyBytes);
     _initialized = true;
-    print("[EncryptionService] Key initialized.");
   }
 
   /// Alternative initialization method name for consistency
@@ -36,7 +47,7 @@ class EncryptionService {
   }
 
   /// Encrypts data using AES-256 CBC with a random IV.
-  static Uint8List encrypt(Uint8List data) {
+  static Uint8List encryptData(Uint8List data) {
     _requireInitialized();
 
     final iv = _generateRandomBytes(16);
@@ -50,7 +61,7 @@ class EncryptionService {
   }
 
   /// Decrypts data using AES-256 CBC (expects IV prepended to ciphertext).
-  static Uint8List decrypt(Uint8List encryptedData) {
+  static Uint8List decryptData(Uint8List encryptedData) {
     _requireInitialized();
 
     if (encryptedData.length < 16) {
@@ -66,31 +77,30 @@ class EncryptionService {
     final decrypted = _processBlocks(cipher, ciphertext);
     return _removePadding(decrypted);
   }
-
   /// Encrypts a plain text string and returns a Base64-encoded string.
   static String encryptText(String plainText) {
-    try {
-      final bytes = utf8.encode(plainText);
-      final encrypted = encrypt(Uint8List.fromList(bytes));
-      return base64Encode(encrypted);
-    } catch (e) {
-      print("[EncryptionService] Error encrypting text: $e");
-      rethrow;
-    }
+    _requireInitialized();
+    final iv = encrypt.IV.fromSecureRandom(16);
+    final encrypter = encrypt.Encrypter(encrypt.AES(encrypt.Key(_key), mode: encrypt.AESMode.cbc));
+    final encrypted = encrypter.encrypt(plainText, iv: iv);
+    final combined = iv.bytes + encrypted.bytes;
+    return base64Encode(combined);
   }
 
   /// Decrypts a Base64-encoded string and returns the plain text.
-  static String decryptText(String encryptedBase64) {
+  static String decryptText(String encryptedText) {
+    _requireInitialized();
     try {
-      final bytes = base64Decode(encryptedBase64);
-      final decrypted = decrypt(bytes);
-      return utf8.decode(decrypted);
+      final combined = base64Decode(encryptedText);
+      final iv = encrypt.IV(combined.sublist(0, 16));
+      final encryptedBytes = combined.sublist(16);
+      final encrypter = encrypt.Encrypter(encrypt.AES(encrypt.Key(_key), mode: encrypt.AESMode.cbc));
+      final decrypted = encrypter.decrypt(encrypt.Encrypted(encryptedBytes), iv: iv);
+      return decrypted;
     } catch (e) {
-      print("[EncryptionService] Error decrypting text: $e");
-      rethrow;
+      throw Exception(e);
     }
   }
-
   // === INTERNAL HELPERS ===
 
   static void _requireInitialized() {

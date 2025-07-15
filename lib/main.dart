@@ -11,10 +11,12 @@ import 'package:reminest/screens/vault_screen.dart';
 import 'package:reminest/screens/set_vault_pin_screen.dart';
 
 void main() {
-  runApp(ReminestApp());
+  runApp(const ReminestApp());
 }
 
 class ReminestApp extends StatefulWidget {
+  const ReminestApp({Key? key}) : super(key: key);
+
   @override
   State<ReminestApp> createState() => _ReminestAppState();
 }
@@ -33,30 +35,29 @@ class _ReminestAppState extends State<ReminestApp> {
   Future<void> _initializeApp() async {
     try {
       await PlatformDatabaseService.initDB();
-      print("[Main] App initialized successfully");
     } catch (e) {
-      print("[Main] Error initializing app: $e");
+      // Handle initialization errors (log or show a message if needed)
     }
   }
 
   void _handleLoginSuccess() {
     setState(() {
       _isAuthenticated = true;
-      _currentIndex = 1; // Navigate to journal after login
+      _currentIndex = 1; // Journal
     });
   }
 
   void _handlePasswordSetupSuccess() {
     setState(() {
       _isAuthenticated = true;
-      _currentIndex = 1; // Navigate to journal after setup
+      _currentIndex = 1; // Journal
     });
   }
 
   void _handleLogout() {
     setState(() {
       _isAuthenticated = false;
-      _currentIndex = 0; // Go back to home
+      _currentIndex = 0; // Home
     });
     EncryptionService.reset();
   }
@@ -86,7 +87,6 @@ class _ReminestAppState extends State<ReminestApp> {
           builder: (_) => SetVaultPinScreen(
             onComplete: () {
               Navigator.pop(context); // Close SetVaultPinScreen
-              // Use microtask to ensure dialog is shown after navigation
               Future.microtask(() => _showVaultPinDialog());
             },
           ),
@@ -220,13 +220,15 @@ class _ReminestAppState extends State<ReminestApp> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_currentIndex == 0
-            ? 'Home'
-            : _currentIndex == 1
-                ? 'Journal'
-                : _currentIndex == 2
-                    ? 'Settings'
-                    : 'About'),
+        title: Text(
+          _currentIndex == 0
+              ? 'Home'
+              : _currentIndex == 1
+                  ? 'Journal'
+                  : _currentIndex == 2
+                      ? 'Settings'
+                      : 'About Us',
+        ),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -263,16 +265,18 @@ class _ReminestAppState extends State<ReminestApp> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.info),
-            label: 'About',
+            label: 'About Us',
           ),
         ],
       ),
-      floatingActionButton: _currentIndex == 1 ? null : FloatingActionButton(
-        onPressed: _openVault,
-        backgroundColor: Theme.of(context).primaryColor,
-        tooltip: 'Open Vault',
-        child: const Icon(Icons.security, color: Colors.white),
-      ),
+      floatingActionButton: _currentIndex == 1
+          ? null
+          : FloatingActionButton(
+              onPressed: _openVault,
+              backgroundColor: Theme.of(context).primaryColor,
+              tooltip: 'Open Vault',
+              child: const Icon(Icons.security, color: Colors.white),
+            ),
     );
   }
 

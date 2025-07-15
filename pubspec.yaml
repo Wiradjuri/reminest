@@ -17,12 +17,12 @@ dependencies:
   
   # Encryption & Security
   pointycastle: ^3.7.3
-  crypto: ^3.0.3
+  encrypt: ^5.0.3
   
   # Storage & Files
   shared_preferences: ^2.2.2
   path_provider: ^2.1.1
-  file_picker: ^5.5.0  # Use older stable version
+  file_picker: ^10.2.0  # Use older stable version
   path: ^1.8.3
   
   # UI & Navigation

@@ -1,3 +1,5 @@
+// File: lib/screens/set_password_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/key_service.dart';
@@ -5,10 +7,10 @@ import '../services/encryption_service.dart';
 import '../services/password_service.dart';
 
 class SetPasswordScreen extends StatefulWidget {
-  final VoidCallback onPasswordSet; // Now REQUIRED
+  final VoidCallback onPasswordSet; // REQUIRED
 
   const SetPasswordScreen({Key? key, required this.onPasswordSet})
-    : super(key: key);
+      : super(key: key);
 
   @override
   State<SetPasswordScreen> createState() => _SetPasswordScreenState();
@@ -39,9 +41,9 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     if (_isLoading) return;
 
     if (_passwordController.text != _confirmController.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
       return;
     }
 
@@ -55,24 +57,20 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final passkey = await PasswordService.setPassword(
-        _passwordController.text,
-      );
+      final passkey = await PasswordService.setPassword(_passwordController.text);
       await KeyService.savePassword(_passwordController.text);
       await KeyService.setPasswordSetFlag();
-      final keyBytes = KeyService.generateKeyFromPassword(
-        _passwordController.text,
-      );
+      final keyBytes = KeyService.generateKeyFromPassword(_passwordController.text);
       EncryptionService.initializeKey(keyBytes);
 
       if (mounted) {
-        _showPasskeyDialog(passkey);
+        _showPasskeyDialog(passkey, context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to set password: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to set password: $e')),
+        );
       }
     } finally {
       if (mounted) {
@@ -81,13 +79,13 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     }
   }
 
-  void _showPasskeyDialog(String passkey) {
+  void _showPasskeyDialog(String passkey, BuildContext rootContext) {
     final theme = Theme.of(context);
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Row(
           children: [
             Icon(Icons.key, color: Colors.amber),
@@ -155,7 +153,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                   ElevatedButton.icon(
                     onPressed: () {
                       Clipboard.setData(ClipboardData(text: passkey));
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
                         const SnackBar(content: Text('Passkey copied to clipboard!')),
                       );
                     },
@@ -174,12 +172,12 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
         actions: [
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-              widget.onPasswordSet();
+              Navigator.of(dialogContext).pop(); // Close dialog
+              Navigator.of(rootContext).popUntil((route) => route.isFirst); // Go to main/root
+              widget.onPasswordSet(); // Notify parent
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
+              backgroundColor: theme.primaryColor,
               foregroundColor: Colors.white,
             ),
             child: const Text('I have saved my passkey'),
@@ -192,7 +190,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -259,7 +257,6 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                       ),
                     ),
                     const SizedBox(height: 30),
-
                     // Password input section
                     Text(
                       'Create Password',
@@ -270,7 +267,6 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-
                     // Password field
                     TextField(
                       controller: _passwordController,
@@ -307,7 +303,6 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-
                     // Confirm password field
                     TextField(
                       controller: _confirmController,
@@ -344,15 +339,12 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                         ),
                       ),
                     ),
-
                     // Password strength indicator
                     const SizedBox(height: 16),
                     _buildPasswordStrengthIndicator(theme),
-
                     // Password requirements
                     const SizedBox(height: 20),
                     _buildPasswordRequirements(theme),
-
                     // Match indicator
                     if (_confirmController.text.isNotEmpty) ...[
                       const SizedBox(height: 16),
@@ -400,7 +392,6 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 ),
               ),
             ),
-
             // Create password button
             const SizedBox(height: 24),
             SizedBox(
@@ -452,7 +443,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
   Widget _buildPasswordStrengthIndicator(ThemeData theme) {
     final password = _passwordController.text;
     int strength = 0;
-    
+
     if (password.length >= 8) strength++;
     if (password.contains(RegExp(r'[A-Z]'))) strength++;
     if (password.contains(RegExp(r'[a-z]'))) strength++;
@@ -494,7 +485,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
 
   Widget _buildPasswordRequirements(ThemeData theme) {
     final password = _passwordController.text;
-    
+
     final requirements = [
       {'text': 'At least 8 characters', 'met': password.length >= 8},
       {'text': 'Contains uppercase letter', 'met': password.contains(RegExp(r'[A-Z]'))},
@@ -523,29 +514,27 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
           ),
           const SizedBox(height: 8),
           ...requirements.map((req) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(
-              children: [
-                Icon(
-                  req['met'] as bool ? Icons.check_circle : Icons.radio_button_unchecked,
-                  size: 16,
-                  color: req['met'] as bool ? Colors.green : theme.textTheme.bodySmall?.color,
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    Icon(
+                      req['met'] as bool ? Icons.check_circle : Icons.radio_button_unchecked,
+                      size: 16,
+                      color: req['met'] as bool ? Colors.green : theme.textTheme.bodySmall?.color,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      req['text'] as String,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: req['met'] as bool ? Colors.green : theme.textTheme.bodySmall?.color,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  req['text'] as String,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: req['met'] as bool 
-                        ? Colors.green 
-                        : theme.textTheme.bodySmall?.color,
-                  ),
-                ),
-              ],
-            ),
-          )).toList(),
+              )),
         ],
       ),
     );
   }
-  }
+}

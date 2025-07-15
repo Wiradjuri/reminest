@@ -59,7 +59,7 @@ class AboutUsScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 10), // Spacing between title and emoji
-                    Text(
+                    const Text(
                       "🧠",
                       style: TextStyle(fontSize: 32),
                     ), // Emoji after title
@@ -82,7 +82,7 @@ class AboutUsScreen extends StatelessWidget {
                           0.3,
                         ), // Shadow color
                         blurRadius: 10, // Shadow blur
-                        offset: Offset(0, 4), // Shadow offset
+                        offset: const Offset(0, 4), // Shadow offset
                       ),
                     ],
                   ),

@@ -132,3 +132,7 @@ secrets/
 show-builds.ps1
 start_day.ps1
 end_day.ps1
+
+
+#Ignore vscode AI rules
+.github\copilot-instructions.md

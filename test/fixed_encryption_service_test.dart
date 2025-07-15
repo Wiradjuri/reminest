@@ -38,10 +38,10 @@ void main() {
     test('should encrypt and decrypt binary data correctly', () {
       final plainData = Uint8List.fromList([1, 2, 3, 4, 5]);
       
-      final encrypted = EncryptionService.encrypt(plainData);
+      final encrypted = EncryptionService.encryptData(plainData);
       expect(encrypted.length, greaterThan(plainData.length)); // Should be larger due to IV
       
-      final decrypted = EncryptionService.decrypt(encrypted);
+      final decrypted = EncryptionService.decryptData(encrypted);
       expect(decrypted, equals(plainData));
     });
 
@@ -111,8 +111,8 @@ void main() {
       ];
       
       for (final pattern in patterns) {
-        final encrypted = EncryptionService.encrypt(pattern);
-        final decrypted = EncryptionService.decrypt(encrypted);
+        final encrypted = EncryptionService.encryptData(pattern);
+        final decrypted = EncryptionService.decryptData(encrypted);
         expect(decrypted, equals(pattern));
       }
     });

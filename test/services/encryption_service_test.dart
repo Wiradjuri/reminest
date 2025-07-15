@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reminest/services/encryption_service.dart';
-import 'dart:convert';
 import 'dart:typed_data';
 
 void main() {
@@ -40,10 +39,10 @@ void main() {
     test('should encrypt and decrypt binary data correctly', () {
       final originalData = Uint8List.fromList([1, 2, 3, 4, 5, 255, 128, 64]);
       
-      final encrypted = EncryptionService.encrypt(originalData);
+      final encrypted = EncryptionService.encryptData(originalData);
       expect(encrypted.length, greaterThan(originalData.length));
       
-      final decrypted = EncryptionService.decrypt(encrypted);
+      final decrypted = EncryptionService.decryptData(encrypted);
       expect(decrypted, equals(originalData));
     });
 
@@ -91,7 +90,7 @@ void main() {
 
     test('should throw error when not initialized', () {
       // Reset to uninitialized state
-      final backup = testKey;
+      const backup = testKey;
       
       expect(
         () => EncryptionService.encryptText('test'),
@@ -126,7 +125,7 @@ void main() {
       final shortData = Uint8List.fromList([1, 2, 3, 4, 5]); // Less than 16 bytes
       
       expect(
-        () => EncryptionService.decrypt(shortData),
+        () => EncryptionService.decryptData(shortData),
         throwsA(isA<FormatException>()),
       );
     });
