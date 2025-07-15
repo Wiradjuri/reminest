@@ -174,7 +174,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
         actions: [
           ElevatedButton(
             onPressed: () {
-              // Close the dialog first
+              // Close the passkey dialog
               Navigator.of(context).pop();
               
               // Show success message
@@ -186,7 +186,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 ),
               );
               
-              // Call the callback to trigger authentication
+              // Call the callback to trigger authentication - this should handle navigation
               widget.onPasswordSet();
             },
             style: ElevatedButton.styleFrom(
