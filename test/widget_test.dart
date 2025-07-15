@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Basic test runner for Reminest app components
-/// 
+///
 /// This test suite focuses on testing individual UI components
 /// rather than the full app to avoid complex service dependencies.
 void main() {
@@ -122,10 +122,10 @@ void main() {
         );
 
         expect(find.text('Navigate'), findsOneWidget);
-        
+
         await tester.tap(find.text('Navigate'));
         await tester.pumpAndSettle();
-        
+
         expect(find.text('Second Page'), findsOneWidget);
       });
     });
@@ -177,7 +177,7 @@ void main() {
     group('Form Validation Tests', () {
       testWidgets('Should validate text input', (WidgetTester tester) async {
         final formKey = GlobalKey<FormState>();
-        
+
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -288,22 +288,23 @@ void main() {
         expect(find.text('Enter text'), findsOneWidget);
         expect(find.byType(ElevatedButton), findsOneWidget);
         expect(find.byType(TextField), findsOneWidget);
-        
+
         // Simple semantic test - just ensure semantics are enabled
         final SemanticsHandle handle = tester.ensureSemantics();
-        
+
         // Test that semantic nodes exist (without complex matchers)
         final semantics = tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!;
         expect(semantics, isNotNull);
-        
+
         handle.dispose();
       });
     });
 
     group('Layout Tests', () {
       testWidgets('Should handle different screen sizes', (WidgetTester tester) async {
-        tester.binding.window.physicalSizeTestValue = const Size(800, 600);
-        tester.binding.window.devicePixelRatioTestValue = 1.0;
+        // Use recommended WidgetTester APIs for setting physical size and device pixel ratio
+        await tester.view.setPhysicalSize(const Size(800, 600));
+        await tester.view.setDevicePixelRatio(1.0);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -322,10 +323,12 @@ void main() {
         );
 
         expect(find.text('Wide Screen'), findsOneWidget);
-        
-        // Reset to default size
-        addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
-        addTearDown(tester.binding.window.clearDevicePixelRatioTestValue);
+
+        // Reset to default size using recommended APIs
+        addTearDown(() async {
+          await tester.view.resetPhysicalSize();
+          await tester.view.resetDevicePixelRatio();
+        });
       });
     });
   });
