@@ -8,37 +8,52 @@ on:
 
 jobs:
   run-tests:
-    name: Run Flutter Tests
+    name: Run Flutter Checks
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-    - name: 💻 Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.22.1' # Use your Reminest version
-        channel: 'stable'
+      - name: 💾 Restore Flutter cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+            build
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
 
-    - name: 🧩 Install dependencies
-      run: flutter pub get
+      - name: 💻 Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.1'
+          channel: stable
 
-    - name: 🎯 Verify formatting
-      run: dart format .
+      - name: 🧩 Install dependencies
+        run: flutter pub get
 
-    - name: 🧪 Analyze code
-      run: flutter analyze
+      - name: 🔍 Format Dart code
+        run: dart format . # format but do not fail the pipeline
 
-    - name: 🧪 Run unit and widget tests with coverage
-      run: flutter test --coverage
+      - name: 📊 Check outdated dependencies (non-blocking)
+        continue-on-error: true
+        run: flutter pub outdated
 
-    - name: 📤 Upload coverage to Codecov
-      if: always()  # Always attempt even if tests fail
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: coverage/lcov.info
-        flags: unittests
-        name: reminest-flutter-tests
-        fail_ci_if_error: false
+      - name: 🧪 Analyze code
+        run: flutter analyze
+
+      - name: 🧪 Run tests with coverage
+        run: flutter test --coverage
+
+      - name: 📤 Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: coverage/lcov.info
+          flags: unittests
+          name: reminest-flutter-tests
+          fail_ci_if_error: false
