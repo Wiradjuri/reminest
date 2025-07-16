@@ -1,0 +1,387 @@
+diff --git a/.github/copilot-instructions.md b/.github/copilot-instructions.md
+--- a/.github/copilot-instructions.md
++++ b/.github/copilot-instructions.md
+@@ -61,1 +61,1 @@
+-## Project Overview
++## Project Overview
+
+@@ -66,1 +66,1 @@
+-### Core Services
++### Core Services
+
+@@ -67,1 +67,1 @@
+-- **PlatformDatabaseService**: Cross-platform database handling (SQLite for desktop/mobile, SharedPreferences for web)
++
+- **PlatformDatabaseService**: Cross-platform database handling (SQLite for desktop/mobile, SharedPreferences for web)
+@@ -72,1 +72,1 @@
+-### Key Models
++### Key Models
+
+@@ -73,1 +73,1 @@
+-- **JournalEntry**: Main data model with encryption support, vault flags, and time-locking
++
+- **JournalEntry**: Main data model with encryption support, vault flags, and time-locking
+@@ -76,1 +76,1 @@
+-### Platform Support
++### Platform Support
+
+@@ -77,1 +77,1 @@
+-- **Mobile**: Android, iOS (using sqflite)
++
+- **Mobile**: Android, iOS (using sqflite)
+@@ -83,1 +83,1 @@
+-### Encryption Standards
++### Encryption Standards
+
+@@ -84,1 +84,1 @@
+-- Use AES-256-CBC encryption for all sensitive data
++
+- Use AES-256-CBC encryption for all sensitive data
+@@ -89,1 +89,1 @@
+-### Authentication Flow
++### Authentication Flow
+
+@@ -90,1 +90,1 @@
+-1. Check if password is set via PasswordService.isPasswordSet()
++
+1. Check if password is set via PasswordService.isPasswordSet()
+@@ -95,1 +95,1 @@
+-### Vault Security
++### Vault Security
+
+@@ -96,1 +96,1 @@
+-- Vault entries are encrypted journal entries with time-locks
++
+- Vault entries are encrypted journal entries with time-locks
+@@ -103,1 +103,1 @@
+-### File Structure
++### File Structure
+
+@@ -113,1 +113,1 @@
+-### Error Handling
++### Error Handling
+
+@@ -114,1 +114,1 @@
+-- Always wrap database operations in try-catch blocks
++
+- Always wrap database operations in try-catch blocks
+@@ -119,1 +119,1 @@
+-### State Management
++### State Management
+
+@@ -120,1 +120,1 @@
+-- Use StatefulWidget for local state
++
+- Use StatefulWidget for local state
+@@ -125,1 +125,1 @@
+-### Platform-Specific Code
++### Platform-Specific Code
+
+@@ -136,1 +136,1 @@
+-### Database Patterns
++### Database Patterns
+
+@@ -137,1 +137,1 @@
+-- Always call PlatformDatabaseService.initDB() before operations
++
+- Always call PlatformDatabaseService.initDB() before operations
+@@ -144,1 +144,1 @@
+-### Theme Support
++### Theme Support
+
+@@ -145,1 +145,1 @@
+-- Support both light and dark themes
++
+- Support both light and dark themes
+@@ -150,1 +150,1 @@
+-### Navigation Patterns
++### Navigation Patterns
+
+@@ -151,1 +151,1 @@
+-- Use Navigator.push/pop for screen transitions
++
+- Use Navigator.push/pop for screen transitions
+@@ -155,1 +155,1 @@
+-### Form Validation
++### Form Validation
+
+@@ -156,1 +156,1 @@
+-- Real-time validation feedback with colored containers
++
+- Real-time validation feedback with colored containers
+@@ -161,1 +161,1 @@
+-### Mental Health Considerations
++### Mental Health Considerations
+
+@@ -162,1 +162,1 @@
+-- Include crisis support resources prominently
++
+- Include crisis support resources prominently
+@@ -169,1 +169,1 @@
+-### Unit Test Patterns
++### Unit Test Patterns
+
+@@ -170,1 +170,1 @@
+-- Mock external dependencies (file system, database)
++
+- Mock external dependencies (file system, database)
+@@ -175,1 +175,1 @@
+-### Widget Test Patterns
++### Widget Test Patterns
+
+@@ -176,1 +176,1 @@
+-- Test form validation and user interactions
++
+- Test form validation and user interactions
+@@ -183,1 +183,1 @@
+-### Core Dependencies
++### Core Dependencies
+
+@@ -196,1 +196,1 @@
+-### Platform Channels
++### Platform Channels
+
+@@ -197,1 +197,1 @@
+-- Avoid platform channels unless absolutely necessary
++
+- Avoid platform channels unless absolutely necessary
+@@ -203,1 +203,1 @@
+-### Building & Testing
++### Building & Testing
+
+@@ -204,1 +204,1 @@
+-- Test on all target platforms before release
++
+- Test on all target platforms before release
+@@ -209,1 +209,1 @@
+-### Performance Considerations
++### Performance Considerations
+
+@@ -210,1 +210,1 @@
+-- Lazy load journal entries for large datasets
++
+- Lazy load journal entries for large datasets
+@@ -215,1 +215,1 @@
+-### Privacy & Legal
++### Privacy & Legal
+
+@@ -216,1 +216,1 @@
+-- No analytics or crash reporting by default
++
+- No analytics or crash reporting by default
+@@ -223,1 +223,1 @@
+-### Service Initialization
++### Service Initialization
+
+@@ -236,1 +236,1 @@
+-### Secure Data Handling
++### Secure Data Handling
+
+@@ -245,1 +245,1 @@
+-### Cross-Platform File Handling
++### Cross-Platform File Handling
+
+diff --git a/README.md b/README.md
+--- a/README.md
++++ b/README.md
+@@ -85,1 +85,1 @@
+-### For Windows
++### For Windows
+
+@@ -90,1 +90,1 @@
+-### For Android
++### For Android
+
+@@ -97,1 +97,1 @@
+-### For Web
++### For Web
+
+@@ -111,1 +111,1 @@
+-### Important Note
++### Important Note
+
+@@ -116,1 +116,1 @@
+-### Project Structure
++### Project Structure
+
+@@ -127,1 +127,1 @@
+-### Key Services
++### Key Services
+
+@@ -128,1 +128,1 @@
+-- **PlatformDatabaseService:** Cross-platform SQLite database management
++
+- **PlatformDatabaseService:** Cross-platform SQLite database management
+@@ -133,1 +133,1 @@
+-### Testing
++### Testing
+
+@@ -175,1 +175,1 @@
+-If you discover a security vulnerability, please email bmuzza1992@gmail.com with details. We take security seriously and will respond promptly to legitimate security concerns.
++If you discover a security vulnerability, please email <bmuzza1992@gmail.com> with details. We take security seriously and will respond promptly to legitimate security concerns.
+@@ -180,1 +180,1 @@
+-- Open an issue on GitHub
++
+- Open an issue on GitHub
+@@ -181,1 +181,1 @@
+-- Email: bmuzza1992@gmail.com
++- Email: <bmuzza1992@gmail.com>
+diff --git a/pseudocode/project_flow.md b/pseudocode/project_flow.md
+--- a/pseudocode/project_flow.md
++++ b/pseudocode/project_flow.md
+@@ -5,1 +5,1 @@
+-### Purpose
++### Purpose
+
+@@ -8,1 +8,1 @@
+-### Key Features
++### Key Features
+
+@@ -9,1 +9,1 @@
+-- Secure journal entries with encryption
++
+- Secure journal entries with encryption
+@@ -17,1 +17,1 @@
+-### Phase 1: Planning & Design
++### Phase 1: Planning & Design
+
+@@ -18,1 +18,1 @@
+-- Define project scope and features
++
+- Define project scope and features
+@@ -23,1 +23,1 @@
+-### Phase 2: Development
++### Phase 2: Development
+
+@@ -24,1 +24,1 @@
+-- Implement core features (authentication, journal entries, vault)
++
+- Implement core features (authentication, journal entries, vault)
+@@ -29,1 +29,1 @@
+-### Phase 3: Testing
++### Phase 3: Testing
+
+@@ -30,1 +30,1 @@
+-- Conduct unit testing for individual components
++
+- Conduct unit testing for individual components
+@@ -35,1 +35,1 @@
+-### Phase 4: Deployment
++### Phase 4: Deployment
+
+@@ -36,1 +36,1 @@
+-- Prepare app for submission to app stores
++
+- Prepare app for submission to app stores
+@@ -40,1 +40,1 @@
+-### Phase 5: Maintenance & Updates
++### Phase 5: Maintenance & Updates
+
+@@ -41,1 +41,1 @@
+-- Address user feedback and bug reports
++
+- Address user feedback and bug reports
+@@ -48,1 +48,1 @@
+-### Frontend
++### Frontend
+
+@@ -49,1 +49,1 @@
+-- Framework: Flutter
++
+- Framework: Flutter
+@@ -53,1 +53,1 @@
+-### Backend
++### Backend
+
+@@ -54,1 +54,1 @@
+-- Database: SQLite for local storage
++
+- Database: SQLite for local storage
+@@ -58,1 +58,1 @@
+-### Tools
++### Tools
+
+@@ -59,1 +59,1 @@
+-- Version Control: Git
++
+- Version Control: Git
+@@ -66,1 +66,1 @@
+-### Roles
++### Roles
+
+@@ -67,1 +67,1 @@
+-- Project Manager: Oversees project timeline and milestones
++
+- Project Manager: Oversees project timeline and milestones
+@@ -73,1 +73,1 @@
+-### Communication
++### Communication
+
+@@ -74,1 +74,1 @@
+-- Daily stand-ups and weekly progress meetings
++
+- Daily stand-ups and weekly progress meetings
+@@ -80,1 +80,1 @@
+-### Estimated Duration
++### Estimated Duration
+
+@@ -81,1 +81,1 @@
+-- Planning & Design: 2 weeks
++
+- Planning & Design: 2 weeks
+@@ -87,1 +87,1 @@
+-### Milestones
++### Milestones
+
+@@ -88,1 +88,1 @@
+-- Completion of wireframes and design approval
++
+- Completion of wireframes and design approval
+@@ -96,1 +96,1 @@
+-### Potential Risks
++### Potential Risks
+
+@@ -97,1 +97,1 @@
+-- Delays in feature implementation
++
+- Delays in feature implementation
+@@ -101,1 +101,1 @@
+-### Mitigation Strategies
++### Mitigation Strategies
+
+@@ -102,1 +102,1 @@
+-- Regular progress tracking and adjustments
++
+- Regular progress tracking and adjustments
+@@ -108,1 +108,1 @@
+-### Key Performance Indicators (KPIs)
++### Key Performance Indicators (KPIs)
+
+@@ -109,1 +109,1 @@
+-- Number of active users
++
+- Number of active users
+@@ -115,1 +115,1 @@
+-### Goals
++### Goals
+
+@@ -116,1 +116,1 @@
+-- Achieve 10,000 active users within the first year
++
+- Achieve 10,000 active users within the first year
+@@ -122,1 +122,1 @@
+-### Planned Features
++### Planned Features
+
+@@ -123,1 +123,1 @@
+-- Cloud sync and backup
++
+- Cloud sync and backup
+@@ -128,1 +128,1 @@
+-### Roadmap
++### Roadmap
+
+@@ -129,1 +129,1 @@
+-- Regular updates based on user feedback
++
+- Regular updates based on user feedback
