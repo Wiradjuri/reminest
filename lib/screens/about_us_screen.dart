@@ -10,16 +10,6 @@ class AboutUsScreen extends StatelessWidget {
     final theme = Theme.of(context); // Getting the current theme
 
     return Scaffold(
-      // Main scaffold for the screen
-      backgroundColor:
-          theme.scaffoldBackgroundColor, // Setting background color from theme
-      appBar: AppBar(
-        // App bar at the top
-        title: Text("About Us"), // Title of the app bar
-        backgroundColor: theme.primaryColor, // App bar background color
-        foregroundColor: Colors.white, // App bar text/icon color
-        elevation: 0, // No shadow under the app bar
-      ),
       body: Center(
         // Centering the body content
         child: SingleChildScrollView(

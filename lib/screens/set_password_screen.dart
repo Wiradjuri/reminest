@@ -4,9 +4,15 @@ import '../services/key_service.dart';
 import '../services/encryption_service.dart';
 import '../services/password_service.dart';
 
+/// A screen that allows the user to set a new application password for the journal.
+/// This widget guides the user through password creation, confirmation, and displays a recovery passkey for future password recovery.
 class SetPasswordScreen extends StatefulWidget {
   final VoidCallback onPasswordSet; // Now REQUIRED
 
+  /// Creates a SetPasswordScreen.
+  /// 
+  /// Args:
+  ///   onPasswordSet: Callback invoked when the password has been successfully set.
   const SetPasswordScreen({Key? key, required this.onPasswordSet})
     : super(key: key);
 
@@ -15,6 +21,8 @@ class SetPasswordScreen extends StatefulWidget {
 }
 
 class _SetPasswordScreenState extends State<SetPasswordScreen> {
+  /// State for SetPasswordScreen, managing password input, validation, and passkey dialog.
+  /// Handles user interactions for password creation and recovery passkey display.
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
   bool _obscurePassword = true;
@@ -35,6 +43,12 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     super.dispose();
   }
 
+    /// Attempts to set the user's password and display the recovery passkey dialog.
+  ///
+  /// Validates password and confirmation, enforces minimum length, and saves the password securely.
+  ///
+  /// Raises:
+  ///   Shows a SnackBar if passwords do not match, are too short, or if an error occurs during saving.
   void _setPassword() async {
     if (_isLoading) return;
 
@@ -81,6 +95,12 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
     }
   }
 
+  /// Displays a dialog showing the user's recovery passkey after password setup.
+  ///
+  /// The dialog allows the user to copy the passkey and proceed to the home screen after confirming they have saved it.
+  ///
+  /// Args:
+  ///   passkey: The generated recovery passkey to display to the user.
   void _showPasskeyDialog(String passkey) {
     final theme = Theme.of(context);
 
@@ -172,11 +192,10 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
           ],
         ),
         actions: [
-          ElevatedButton(
+    ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
               widget.onPasswordSet();
+              Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,

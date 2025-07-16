@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:reminest/services/encryption_service.dart';
 import 'package:reminest/services/key_service.dart';
 import 'package:reminest/services/platform_database_service.dart';
-import 'package:reminest/screens/home_screen.dart';
+import 'screens/set_password_screen.dart';
+import 'screens/home_screen.dart';
 import 'package:reminest/screens/journal_screen.dart';
 import 'package:reminest/screens/settings_screen.dart';
 import 'package:reminest/screens/about_us_screen.dart';
@@ -42,21 +43,21 @@ class _ReminestAppState extends State<ReminestApp> {
   void _handleLoginSuccess() {
     setState(() {
       _isAuthenticated = true;
-      _currentIndex = 1; // Navigate to journal after login
+      _currentIndex = 1;
     });
   }
 
   void _handlePasswordSetupSuccess() {
     setState(() {
       _isAuthenticated = true;
-      _currentIndex = 1; // Navigate to journal after setup
+      _currentIndex = 1;
     });
   }
 
   void _handleLogout() {
     setState(() {
       _isAuthenticated = false;
-      _currentIndex = 0; // Go back to home
+      _currentIndex = 0;
     });
     EncryptionService.reset();
   }
@@ -75,7 +76,7 @@ class _ReminestAppState extends State<ReminestApp> {
     });
   }
 
-  void _openVault() async {
+  void _openVault(BuildContext context) async {
     final hasPin = await KeyService.hasVaultPin();
     if (!mounted) return;
 
@@ -85,29 +86,34 @@ class _ReminestAppState extends State<ReminestApp> {
         MaterialPageRoute(
           builder: (_) => SetVaultPinScreen(
             onComplete: () {
-              Navigator.pop(context); // Close SetVaultPinScreen
-              // Use microtask to ensure dialog is shown after navigation
-              Future.microtask(() => _showVaultPinDialog());
+              Navigator.pop(context);
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) {
+                  _showVaultPinDialog(context);
+                }
+              });
             },
           ),
         ),
       );
       return;
     }
-    _showVaultPinDialog();
+    _showVaultPinDialog(context);
   }
 
-  void _showVaultPinDialog() {
+  void _showVaultPinDialog(BuildContext context) {
     final pinController = TextEditingController();
     String pinError = '';
 
     void verifyVaultPin(String pin, StateSetter setDialogState) async {
       if (pin.length < 4 || pin.length > 6 || !RegExp(r'^\d+$').hasMatch(pin)) {
         setDialogState(() => pinError = "PIN must be 4-6 digits");
+        print("PIN entered: $pin");
         return;
       }
 
       final isValid = await KeyService.verifyVaultPin(pin);
+      print("Vault PIN valid? $isValid");
       if (!mounted) return;
       if (isValid) {
         Navigator.pop(context);
@@ -138,8 +144,7 @@ class _ReminestAppState extends State<ReminestApp> {
                   border: OutlineInputBorder(),
                   counterText: "",
                 ),
-                onSubmitted: (_) =>
-                    verifyVaultPin(pinController.text, setDialogState),
+                onSubmitted: (_) => verifyVaultPin(pinController.text, setDialogState),
               ),
               if (pinError.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -156,8 +161,7 @@ class _ReminestAppState extends State<ReminestApp> {
               child: const Text("Cancel"),
             ),
             ElevatedButton(
-              onPressed: () =>
-                  verifyVaultPin(pinController.text, setDialogState),
+              onPressed: () => verifyVaultPin(pinController.text, setDialogState),
               child: const Text("Open Vault"),
             ),
           ],
@@ -170,10 +174,9 @@ class _ReminestAppState extends State<ReminestApp> {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: _themeNotifier,
-      builder: (context, themeMode, child) {
+      builder: (context, themeMode, _) {
         return MaterialApp(
           title: 'Reminest',
-          themeMode: themeMode,
           theme: ThemeData(
             primarySwatch: Colors.blue,
             primaryColor: Colors.blue,
@@ -185,19 +188,24 @@ class _ReminestAppState extends State<ReminestApp> {
             brightness: Brightness.dark,
             useMaterial3: true,
           ),
-          home: _isAuthenticated ? _buildMainApp() : _buildHomeScreen(),
+          themeMode: themeMode,
+          initialRoute: '/',
+          routes: {
+            '/': (context) => _isAuthenticated
+                ? _buildMainApp()
+                : SetPasswordScreen(
+                    onPasswordSet: () {
+                      setState(() {
+                        _isAuthenticated = true;
+                      });
+                      Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+                    },
+                  ),
+            '/home': (context) => _buildMainApp(),
+          },
           debugShowCheckedModeBanner: false,
         );
       },
-    );
-  }
-
-  Widget _buildHomeScreen() {
-    return HomeScreen(
-      onLoginSuccess: _handleLoginSuccess,
-      onPasswordSetupSuccess: _handlePasswordSetupSuccess,
-      isAuthenticated: _isAuthenticated,
-      onNavigateToJournal: _navigateToJournal,
     );
   }
 
@@ -220,21 +228,29 @@ class _ReminestAppState extends State<ReminestApp> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_currentIndex == 0
-            ? 'Home'
-            : _currentIndex == 1
-                ? 'Journal'
-                : _currentIndex == 2
-                    ? 'Settings'
-                    : 'About'),
+        title: const Text('Reminest'),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          Builder(
+            builder: (innerContext) => IconButton(
+              tooltip: 'Open Vault',
+              icon: const Icon(Icons.lock),
+              onPressed: () => _openVault(innerContext),
+            ),
+          ),
           IconButton(
-            icon: const Icon(Icons.lock, color: Colors.white),
-            tooltip: "Open Vault",
-            onPressed: _openVault,
+            tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {});
+            },
+          ),
+          IconButton(
+            tooltip: 'Logout',
+            icon: const Icon(Icons.logout),
+            onPressed: _handleLogout,
           ),
         ],
       ),
@@ -245,7 +261,11 @@ class _ReminestAppState extends State<ReminestApp> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
         selectedItemColor: Theme.of(context).primaryColor,
         unselectedItemColor: Colors.grey,
         items: const [
@@ -266,12 +286,6 @@ class _ReminestAppState extends State<ReminestApp> {
             label: 'About',
           ),
         ],
-      ),
-      floatingActionButton: _currentIndex == 1 ? null : FloatingActionButton(
-        onPressed: _openVault,
-        backgroundColor: Theme.of(context).primaryColor,
-        tooltip: 'Open Vault',
-        child: const Icon(Icons.security, color: Colors.white),
       ),
     );
   }

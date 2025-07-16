@@ -2,24 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Basic test runner for Reminest app components
+/// Comprehensive widget tests for Reminest app components
 ///
-/// This test suite focuses on testing individual UI components
-/// rather than the full app to avoid complex service dependencies.
+/// Uses the arrange-act-assert pattern for each test.
+
 void main() {
   group('Reminest Widget Tests', () {
     setUp(() async {
+      // Arrange
       // Initialize SharedPreferences mock for all tests
       SharedPreferences.setMockInitialValues({});
     });
 
     tearDown(() {
+      // Arrange
       // Clean up after each test
       SharedPreferences.setMockInitialValues({});
     });
 
     group('Basic UI Components', () {
       testWidgets('Should render basic buttons', (WidgetTester tester) async {
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -39,6 +42,7 @@ void main() {
           ),
         );
 
+        // Assert
         expect(find.text('Test Button'), findsOneWidget);
         expect(find.text('Text Button'), findsOneWidget);
         expect(find.byType(ElevatedButton), findsOneWidget);
@@ -46,6 +50,7 @@ void main() {
       });
 
       testWidgets('Should render text fields', (WidgetTester tester) async {
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -64,6 +69,7 @@ void main() {
           ),
         );
 
+        // Assert
         expect(find.byType(TextField), findsNWidgets(2));
         expect(find.text('Enter text'), findsOneWidget);
         expect(find.text('Label'), findsOneWidget);
@@ -72,6 +78,7 @@ void main() {
 
     group('Theme Tests', () {
       testWidgets('Light theme should render correctly', (WidgetTester tester) async {
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
@@ -81,10 +88,12 @@ void main() {
           ),
         );
 
+        // Assert
         expect(find.text('Test'), findsOneWidget);
       });
 
       testWidgets('Dark theme should render correctly', (WidgetTester tester) async {
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
@@ -94,12 +103,14 @@ void main() {
           ),
         );
 
+        // Assert
         expect(find.text('Test'), findsOneWidget);
       });
     });
 
     group('Navigation Tests', () {
       testWidgets('Should handle basic navigation', (WidgetTester tester) async {
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -121,17 +132,21 @@ void main() {
           ),
         );
 
+        // Assert
         expect(find.text('Navigate'), findsOneWidget);
 
+        // Act
         await tester.tap(find.text('Navigate'));
         await tester.pumpAndSettle();
 
+        // Assert
         expect(find.text('Second Page'), findsOneWidget);
       });
     });
 
     group('Dialog Tests', () {
       testWidgets('Should show and dismiss dialogs', (WidgetTester tester) async {
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -161,23 +176,29 @@ void main() {
           ),
         );
 
+        // Act
         await tester.tap(find.text('Show Dialog'));
         await tester.pumpAndSettle();
 
+        // Assert
         expect(find.text('Test Dialog'), findsOneWidget);
         expect(find.text('Dialog content'), findsOneWidget);
 
+        // Act
         await tester.tap(find.text('OK'));
         await tester.pumpAndSettle();
 
+        // Assert
         expect(find.text('Test Dialog'), findsNothing);
       });
     });
 
     group('Form Validation Tests', () {
       testWidgets('Should validate text input', (WidgetTester tester) async {
+        // Arrange
         final formKey = GlobalKey<FormState>();
 
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -207,21 +228,26 @@ void main() {
           ),
         );
 
+        // Act
         await tester.tap(find.text('Validate'));
         await tester.pumpAndSettle();
 
+        // Assert
         expect(find.text('Please enter some text'), findsOneWidget);
 
+        // Act
         await tester.enterText(find.byType(TextFormField), 'Valid input');
         await tester.tap(find.text('Validate'));
         await tester.pumpAndSettle();
 
+        // Assert
         expect(find.text('Please enter some text'), findsNothing);
       });
     });
 
     group('Error Handling', () {
       testWidgets('Should handle widget errors gracefully', (WidgetTester tester) async {
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -234,11 +260,13 @@ void main() {
           ),
         );
 
+        // Assert
         expect(find.text('No errors'), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
 
       testWidgets('Should handle empty states', (WidgetTester tester) async {
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -250,6 +278,7 @@ void main() {
           ),
         );
 
+        // Assert
         expect(find.byType(ListView), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
@@ -257,6 +286,7 @@ void main() {
 
     group('Accessibility Tests', () {
       testWidgets('Should have proper semantics', (WidgetTester tester) async {
+        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -283,28 +313,33 @@ void main() {
           ),
         );
 
-        // Test that the widgets are rendered correctly
+        // Assert
         expect(find.text('Click me'), findsOneWidget);
         expect(find.text('Enter text'), findsOneWidget);
         expect(find.byType(ElevatedButton), findsOneWidget);
         expect(find.byType(TextField), findsOneWidget);
 
-        // Simple semantic test - just ensure semantics are enabled
+        // Act
         final SemanticsHandle handle = tester.ensureSemantics();
 
-        // Test that semantic nodes exist (without complex matchers)
+        // Assert
         final semantics = tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!;
         expect(semantics, isNotNull);
 
+        // Act
         handle.dispose();
       });
     });
 
     group('Layout Tests', () {
       testWidgets('Should handle different screen sizes', (WidgetTester tester) async {
-        // Use recommended WidgetTester APIs for setting physical size and device pixel ratio
-        await tester.view.setPhysicalSize(const Size(800, 600));
-        await tester.view.setDevicePixelRatio(1.0);
+        // Arrange
+        final originalSize = tester.binding.window.physicalSize;
+        final originalDevicePixelRatio = tester.binding.window.devicePixelRatio;
+
+        // Act
+        tester.binding.window.physicalSizeTestValue = const Size(800, 600);
+        tester.binding.window.devicePixelRatioTestValue = 1.0;
 
         await tester.pumpWidget(
           MaterialApp(
@@ -322,13 +357,81 @@ void main() {
           ),
         );
 
+        // Assert
         expect(find.text('Wide Screen'), findsOneWidget);
 
-        // Reset to default size using recommended APIs
-        addTearDown(() async {
-          await tester.view.resetPhysicalSize();
-          await tester.view.resetDevicePixelRatio();
+        // Act & Assert: Reset to default size
+        addTearDown(() {
+          tester.binding.window.physicalSizeTestValue = originalSize;
+          tester.binding.window.devicePixelRatioTestValue = originalDevicePixelRatio;
         });
+      });
+    });
+
+    group('Edge Cases', () {
+      testWidgets('Should handle null onPressed for buttons', (WidgetTester tester) async {
+        // Act
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: null,
+                    child: const Text('Disabled'),
+                  ),
+                  TextButton(
+                    onPressed: null,
+                    child: const Text('Disabled Text'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        // Assert
+        expect(find.text('Disabled'), findsOneWidget);
+        expect(find.text('Disabled Text'), findsOneWidget);
+        expect(tester.widget<ElevatedButton>(find.byType(ElevatedButton)).onPressed, isNull);
+        expect(tester.widget<TextButton>(find.byType(TextButton)).onPressed, isNull);
+      });
+
+      testWidgets('Should handle obscureText toggle', (WidgetTester tester) async {
+        // Arrange
+        bool obscure = true;
+
+        // Act
+        await tester.pumpWidget(
+          MaterialApp(
+            home: StatefulBuilder(
+              builder: (context, setState) => Scaffold(
+                body: Column(
+                  children: [
+                    TextField(
+                      obscureText: obscure,
+                      key: const Key('obscureField'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => setState(() => obscure = !obscure),
+                      child: const Text('Toggle'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Assert
+        expect((tester.widget(find.byKey(const Key('obscureField'))) as TextField).obscureText, isTrue);
+
+        // Act
+        await tester.tap(find.text('Toggle'));
+        await tester.pump();
+
+        // Assert
+        expect((tester.widget(find.byKey(const Key('obscureField'))) as TextField).obscureText, isFalse);
       });
     });
   });

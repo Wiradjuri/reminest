@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:reminest/services/platform_database_service.dart';
 import 'package:reminest/models/journal_entry.dart';
 
+
 class VaultScreen extends StatefulWidget {
   const VaultScreen({super.key});
 

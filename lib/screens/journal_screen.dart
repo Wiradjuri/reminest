@@ -24,6 +24,7 @@ class _JournalScreenState extends State<JournalScreen> {
     setState(() => _isLoading = true);
     try {
       final allEntries = await PlatformDatabaseService.getAllEntries();
+      if (!mounted) return;
       setState(() {
         entries = allEntries.where((entry) => !entry.isInVault).toList();
       });
@@ -181,26 +182,10 @@ class _JournalScreenState extends State<JournalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text('Journal'),
-        backgroundColor: theme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadEntries,
-            tooltip: 'Refresh',
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
-          : entries.isEmpty
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      // No AppBar or BottomNavigationBar here; handled globally in main.dart
+      body: entries.isEmpty && !_isLoading
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -208,13 +193,13 @@ class _JournalScreenState extends State<JournalScreen> {
                   Icon(
                     Icons.book_outlined,
                     size: 64,
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5),
                   ),
                   SizedBox(height: 16),
                   Text(
                     'No journal entries yet.',
                     style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                       fontSize: 16,
                     ),
                   ),
@@ -222,7 +207,7 @@ class _JournalScreenState extends State<JournalScreen> {
                   Text(
                     'Journal entries are always accessible with your main password, even if they have future review dates.',
                     style: TextStyle(
-                      color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
                       fontSize: 14,
                     ),
                     textAlign: TextAlign.center,
@@ -247,7 +232,7 @@ class _JournalScreenState extends State<JournalScreen> {
             _loadEntries(); // Refresh entries if a new one was added
           }
         },
-        backgroundColor: theme.primaryColor,
+        backgroundColor: Theme.of(context).primaryColor,
         child: Icon(Icons.add, color: Colors.white),
         tooltip: 'Add new entry',
       ),

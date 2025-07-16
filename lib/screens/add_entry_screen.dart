@@ -128,9 +128,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     );
 
     try {
-      await PlatformDatabaseService.addEntry(entry);
+    await PlatformDatabaseService.addEntry(entry);
       if (mounted) {
-        Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -143,6 +142,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        // Delay pop to allow SnackBar to show
+        await Future.delayed(const Duration(milliseconds: 500));
+        Navigator.pop(context, true);
       }
     } catch (e, stack) {
       debugPrint('Failed to save entry: $e\n$stack');

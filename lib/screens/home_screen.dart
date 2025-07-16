@@ -9,7 +9,7 @@ class HomeScreen extends StatefulWidget {
   final bool isAuthenticated;
   final VoidCallback? onNavigateToJournal;
 
-  HomeScreen({
+  const HomeScreen({super.key, 
     this.onLoginSuccess,
     this.onPasswordSetupSuccess, // Add to constructor
     this.isAuthenticated = false,
@@ -81,11 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildWideLayout(ThemeData theme) {
     return SingleChildScrollView(
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             _buildEmergencyNotice(theme),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -94,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     flex: 3,
                     child: Container(
-                      margin: EdgeInsets.only(right: 24),
+                      margin: const EdgeInsets.only(right: 24),
                       child: _buildSupportTable(theme),
                     ),
                   ),
@@ -112,13 +112,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNarrowLayout(ThemeData theme) {
     return SingleChildScrollView(
       child: Container(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             _buildEmergencyNotice(theme),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             _buildMainContent(theme),
-            SizedBox(height: 32),
+            const SizedBox(height: 32),
             _buildSupportTable(theme),
           ],
         ),
@@ -137,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Border.all(color: Colors.grey.shade200)
             : null,
       ),
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -149,13 +149,13 @@ class _HomeScreenState extends State<HomeScreen> {
               color: theme.textTheme.titleLarge?.color,
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           // Welcome back message (only show when authenticated)
           if (widget.isAuthenticated) ...[
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: theme.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -168,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: theme.primaryColor,
                     size: 24,
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       "Welcome back! You're successfully logged in to your secure journal.",
@@ -182,18 +182,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
 
           // Action buttons positioned between title and app icon
           _buildActionButtons(theme),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           // App logo - enlarged and centered
           Image.asset('lib/assets/icons/Reminest.png', height: 200, width: 200),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
               "Your private, secure mental health journal.\nReflect, grow, and heal in your own safe space.",
               textAlign: TextAlign.center,
@@ -203,17 +203,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          SizedBox(height: 30),
+          const SizedBox(height: 30),
           // Add some additional content to balance the height
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.security, color: theme.primaryColor, size: 24),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       "Secure & Private",
                       style: TextStyle(
@@ -223,12 +223,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.psychology, color: theme.primaryColor, size: 24),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       "Mental Wellness",
                       style: TextStyle(
@@ -238,12 +238,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.insights, color: theme.primaryColor, size: 24),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       "Track Progress",
                       style: TextStyle(
@@ -253,16 +253,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
                 // Login Button (only show if password is already set AND not authenticated)
                 if (_hasPassword && !widget.isAuthenticated) ...[
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: _login,
-                      icon: Icon(Icons.login, size: 20),
-                      label: Text(
+                      icon: const Icon(Icons.login, size: 20),
+                      label: const Text(
                         "Login",
                         style: TextStyle(
                           fontSize: 16,
@@ -272,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.primaryColor,
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -280,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Text(
                     "Access your secure mental health journal",
                     style: TextStyle(
@@ -344,14 +344,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ? Border.all(color: Colors.grey.shade200)
             : null,
       ),
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Icon(Icons.support_agent, color: theme.primaryColor, size: 28),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   "Mental Health Support Resources",
@@ -364,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Expanded(
             child: SingleChildScrollView(
               child: Container(
@@ -381,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           BoxShadow(
                             color: Colors.grey.shade200,
                             blurRadius: 4,
-                            offset: Offset(0, 2),
+                            offset: const Offset(0, 2),
                           ),
                         ]
                       : null,
@@ -389,7 +389,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
-                    headingRowColor: MaterialStateProperty.all(
+                    headingRowColor: WidgetStateProperty.all(
                       theme.primaryColor.withOpacity(0.1),
                     ),
                     dataRowMaxHeight: 56,
@@ -442,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -451,7 +451,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildEmergencyNotice(ThemeData theme) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.red.shade50,
         border: Border.all(color: Colors.red.shade200),
@@ -460,7 +460,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         children: [
           Icon(Icons.emergency, color: Colors.red.shade600, size: 24),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               "In the case of an emergency, call 000 (Australia) or your local emergency number",
@@ -477,25 +477,25 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildActionButtons(ThemeData theme) {
-    return Container(
+    return SizedBox(
       height: 100, // Fixed height to prevent layout shifts
       child: Column(
         children: [
           // Begin Setup Button (only show if no password is set AND not authenticated)
           if (!_hasPassword && !widget.isAuthenticated) ...[
-            Container(
+            SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _beginSetup,
-                icon: Icon(Icons.play_arrow, size: 20),
-                label: Text(
+                icon: const Icon(Icons.play_arrow, size: 20),
+                label: const Text(
                   "Begin Setup",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.primaryColor,
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -503,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               "Get started with your secure mental health journal",
               style: TextStyle(
@@ -516,19 +516,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Login Button (only show if password is set AND not authenticated)
           if (_hasPassword && !widget.isAuthenticated) ...[
-            Container(
+            SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _login,
-                icon: Icon(Icons.login, size: 20),
-                label: Text(
+                icon: const Icon(Icons.login, size: 20),
+                label: const Text(
                   "Login",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.primaryColor,
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -536,7 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               "Access your secure mental health journal",
               style: TextStyle(
@@ -549,19 +549,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // Open Journal Button (only show when authenticated)
           if (widget.isAuthenticated) ...[
-            Container(
+            SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: widget.onNavigateToJournal,
-                icon: Icon(Icons.book, size: 20),
-                label: Text(
+                icon: const Icon(Icons.book, size: 20),
+                label: const Text(
                   "Open Journal",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.primaryColor,
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -569,7 +569,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               "Start writing your mental health journey",
               style: TextStyle(
