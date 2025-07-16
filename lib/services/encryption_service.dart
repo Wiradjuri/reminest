@@ -54,7 +54,7 @@ class EncryptionService {
     _requireInitialized();
 
     if (encryptedData.length < 16) {
-      throw FormatException("Invalid data: too short to contain IV.");
+      throw const FormatException("Invalid data: too short to contain IV.");
     }
 
     final iv = encryptedData.sublist(0, 16);
@@ -114,7 +114,7 @@ class EncryptionService {
   static Uint8List _removePadding(Uint8List data) {
     final padLength = data.last;
     if (padLength < 1 || padLength > 16) {
-      throw FormatException("Invalid padding length.");
+      throw const FormatException("Invalid padding length.");
     }
     return data.sublist(0, data.length - padLength);
   }

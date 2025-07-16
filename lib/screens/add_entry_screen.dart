@@ -629,10 +629,10 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   ),
                   onPressed: _isSaving ? null : _saveEntry,
                   child: _isSaving
-                      ? Row(
+                      ? const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const SizedBox(
+                            SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
@@ -642,8 +642,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            const Text('Saving...'),
+                            SizedBox(width: 12),
+                            Text('Saving...'),
                           ],
                         )
                       : const Text(

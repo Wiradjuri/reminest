@@ -5,7 +5,7 @@ import '../models/journal_entry.dart';
 class ViewEntryScreen extends StatelessWidget {
   final JournalEntry entry;
 
-  const ViewEntryScreen({Key? key, required this.entry}) : super(key: key);
+  const ViewEntryScreen({super.key, required this.entry});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class ViewEntryScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('View Entry'),
+        title: const Text('View Entry'),
         backgroundColor: theme.primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -33,11 +33,11 @@ class ViewEntryScreen extends StatelessWidget {
                 color: theme.textTheme.titleLarge?.color,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Entry metadata
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: theme.cardColor,
                 borderRadius: BorderRadius.circular(8),
@@ -52,7 +52,7 @@ class ViewEntryScreen extends StatelessWidget {
                         size: 16,
                         color: theme.textTheme.bodySmall?.color,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Created: ${entry.createdAt.toLocal().toString().split(' ')[0]}',
                         style: TextStyle(
@@ -62,7 +62,7 @@ class ViewEntryScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Icon(
@@ -70,7 +70,7 @@ class ViewEntryScreen extends StatelessWidget {
                         size: 16,
                         color: theme.textTheme.bodySmall?.color,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         entry.isInVault
                             ? 'Vault unlock date: ${entry.reviewDate.toLocal().toString().split(' ')[0]}'
@@ -83,8 +83,8 @@ class ViewEntryScreen extends StatelessWidget {
                     ],
                   ),
                   if (entry.isInVault) ...[
-                    SizedBox(height: 4),
-                    Row(
+                    const SizedBox(height: 4),
+                    const Row(
                       children: [
                         Icon(Icons.lock, size: 16, color: Colors.orange),
                         SizedBox(width: 8),
@@ -102,12 +102,12 @@ class ViewEntryScreen extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
             // Entry body
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: theme.cardColor,
                 borderRadius: BorderRadius.circular(8),
@@ -125,10 +125,10 @@ class ViewEntryScreen extends StatelessWidget {
 
             // Image attachment if present
             if (entry.imagePath != null) ...[
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: theme.cardColor,
                   borderRadius: BorderRadius.circular(8),
@@ -140,7 +140,7 @@ class ViewEntryScreen extends StatelessWidget {
                     Row(
                       children: [
                         Icon(Icons.photo, color: theme.primaryColor),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           'Photo Attachment',
                           style: TextStyle(
@@ -151,7 +151,7 @@ class ViewEntryScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.file(
@@ -160,12 +160,12 @@ class ViewEntryScreen extends StatelessWidget {
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            padding: EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: Colors.grey.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Row(
+                            child: const Row(
                               children: [
                                 Icon(Icons.broken_image, color: Colors.grey),
                                 SizedBox(width: 8),
@@ -184,7 +184,7 @@ class ViewEntryScreen extends StatelessWidget {
               ),
             ],
 
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
           ],
         ),
       ),

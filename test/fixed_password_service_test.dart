@@ -84,7 +84,7 @@ void main() {
 
     test('getRecoveryPasskey returns correct passkey after setPassword', () async {
       // Arrange
-      final password = 'TestPassword!';
+      const password = 'TestPassword!';
       final passkey = await PasswordService.setPassword(password);
 
       // Act
@@ -104,8 +104,8 @@ void main() {
 
     test('resetPasswordWithPasskey works for correct passkey', () async {
       // Arrange
-      final password = 'oldPass';
-      final newPassword = 'newPass';
+      const password = 'oldPass';
+      const newPassword = 'newPass';
       final passkey = await PasswordService.setPassword(password);
 
       // Act

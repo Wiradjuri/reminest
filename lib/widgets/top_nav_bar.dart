@@ -4,7 +4,7 @@ class TopNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTabSelected;
 
-  TopNavBar({required this.selectedIndex, required this.onTabSelected});
+  TopNavBar({super.key, required this.selectedIndex, required this.onTabSelected});
 
   final List<String> titles = ['Homepage', 'About Us', 'Settings', 'Login'];
 

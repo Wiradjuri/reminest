@@ -16,6 +16,8 @@ void main() {
 }
 
 class ReminestApp extends StatefulWidget {
+  const ReminestApp({super.key});
+
   @override
   State<ReminestApp> createState() => _ReminestAppState();
 }

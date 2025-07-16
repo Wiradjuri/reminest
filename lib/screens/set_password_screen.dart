@@ -13,8 +13,7 @@ class SetPasswordScreen extends StatefulWidget {
   /// 
   /// Args:
   ///   onPasswordSet: Callback invoked when the password has been successfully set.
-  const SetPasswordScreen({Key? key, required this.onPasswordSet})
-    : super(key: key);
+  const SetPasswordScreen({super.key, required this.onPasswordSet});
 
   @override
   State<SetPasswordScreen> createState() => _SetPasswordScreenState();
@@ -562,7 +561,7 @@ class _SetPasswordScreenState extends State<SetPasswordScreen> {
                 ),
               ],
             ),
-          )).toList(),
+          )),
         ],
       ),
     );

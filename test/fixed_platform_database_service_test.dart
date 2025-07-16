@@ -32,7 +32,7 @@ void main() {
       final entry = JournalEntry(
         title: 'Test Entry',
         body: 'This is a test entry body.',
-        reviewDate: DateTime.now().add(Duration(days: 1)),
+        reviewDate: DateTime.now().add(const Duration(days: 1)),
         createdAt: DateTime.now(),
         isInVault: false,
       );
@@ -58,7 +58,7 @@ void main() {
       final vaultEntry = JournalEntry(
         title: 'Vault Entry',
         body: 'Vault entry body.',
-        reviewDate: DateTime.now().add(Duration(days: 1)),
+        reviewDate: DateTime.now().add(const Duration(days: 1)),
         createdAt: DateTime.now(),
         isInVault: true,
       );
@@ -84,7 +84,7 @@ void main() {
       final vaultEntry = JournalEntry(
         title: 'Vault Entry',
         body: 'Vault entry body.',
-        reviewDate: DateTime.now().add(Duration(days: 1)),
+        reviewDate: DateTime.now().add(const Duration(days: 1)),
         createdAt: DateTime.now(),
         isInVault: true,
       );
@@ -161,7 +161,7 @@ void main() {
       final vaultEntry = JournalEntry(
         title: 'Vault Entry',
         body: 'Vault entry body.',
-        reviewDate: DateTime.now().add(Duration(days: 1)),
+        reviewDate: DateTime.now().add(const Duration(days: 1)),
         createdAt: DateTime.now(),
         isInVault: true,
       );

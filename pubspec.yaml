@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  file_picker: ^6.1.1
+  file_picker: ^10.2.0
   
   # Database
   sqflite: ^2.3.0
@@ -28,7 +28,7 @@ dependencies:
   # UI & Navigation
   url_launcher: ^6.2.1
   logger: ^2.6.0
-  flutter_secure_storage: ^4.2.1
+  flutter_secure_storage: ^8.0.0
 
 dev_dependencies:
   flutter_test:

@@ -52,7 +52,7 @@ void main() {
       testWidgets('Should render text fields', (WidgetTester tester) async {
         // Act
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Column(
                 children: [
@@ -372,17 +372,17 @@ void main() {
       testWidgets('Should handle null onPressed for buttons', (WidgetTester tester) async {
         // Act
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Column(
                 children: [
                   ElevatedButton(
                     onPressed: null,
-                    child: const Text('Disabled'),
+                    child: Text('Disabled'),
                   ),
                   TextButton(
                     onPressed: null,
-                    child: const Text('Disabled Text'),
+                    child: Text('Disabled Text'),
                   ),
                 ],
               ),

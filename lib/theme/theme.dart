@@ -57,10 +57,10 @@ class AppTheme {
       ),
 
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color>(
+        fillColor: WidgetStateProperty.resolveWith<Color>(
           (states) => const Color(0xFF9B59B6),
         ),
-        checkColor: MaterialStateProperty.resolveWith<Color>(
+        checkColor: WidgetStateProperty.resolveWith<Color>(
           (states) => Colors.white,
         ),
       ),
@@ -121,10 +121,10 @@ class AppTheme {
       ),
 
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color>(
+        fillColor: WidgetStateProperty.resolveWith<Color>(
           (states) => const Color(0xFF9B59B6),
         ),
-        checkColor: MaterialStateProperty.resolveWith<Color>(
+        checkColor: WidgetStateProperty.resolveWith<Color>(
           (states) => Colors.white,
         ),
       ),

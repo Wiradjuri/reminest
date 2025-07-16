@@ -67,7 +67,7 @@ class _VaultScreenState extends State<VaultScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -122,7 +122,7 @@ class _VaultScreenState extends State<VaultScreen> {
               )
             else
               Container(
-                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 decoration: BoxDecoration(
                   color: Colors.orange.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(4),
@@ -130,8 +130,8 @@ class _VaultScreenState extends State<VaultScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.schedule_outlined, color: Colors.orange, size: 16),
-                    SizedBox(width: 8),
+                    const Icon(Icons.schedule_outlined, color: Colors.orange, size: 16),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Content locked until unlock date',
@@ -145,7 +145,7 @@ class _VaultScreenState extends State<VaultScreen> {
                   ],
                 ),
               ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               'Created: ${entry.createdAt.toLocal().toString().split(' ')[0]}',
               style: TextStyle(
@@ -162,7 +162,7 @@ class _VaultScreenState extends State<VaultScreen> {
                 ),
                 child: Text(
                   'Unlocked: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.green,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -178,7 +178,7 @@ class _VaultScreenState extends State<VaultScreen> {
                 ),
                 child: Text(
                   'Unlocks: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.orange,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -194,7 +194,7 @@ class _VaultScreenState extends State<VaultScreen> {
             }
           },
           itemBuilder: (context) => [
-            PopupMenuItem(
+            const PopupMenuItem(
               value: 'delete',
               child: Row(
                 children: [
@@ -251,7 +251,7 @@ class _VaultScreenState extends State<VaultScreen> {
                 entry.body,
                 style: TextStyle(color: theme.textTheme.bodyMedium?.color),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 'Created: ${entry.createdAt.toLocal().toString().split(' ')[0]}',
                 style: TextStyle(
@@ -261,14 +261,14 @@ class _VaultScreenState extends State<VaultScreen> {
               ),
               Text(
                 'Unlocked: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.green,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               if (entry.imagePath != null) ...[
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   'Attachment: ${entry.imagePath!.split('/').last}',
                   style: TextStyle(
@@ -323,7 +323,7 @@ class _VaultScreenState extends State<VaultScreen> {
                     size: 64,
                     color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     'No vault entries',
                     style: TextStyle(
@@ -332,7 +332,7 @@ class _VaultScreenState extends State<VaultScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'Vault entries require both the vault PIN and scheduled unlock date to access. Create entries and check "Store in Vault" to add them here.',
                     style: TextStyle(

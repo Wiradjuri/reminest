@@ -100,7 +100,7 @@ void main() {
 
     test('should fail if a required dependency is missing', () {
       // Arrange
-      final brokenYaml = '''
+      const brokenYaml = '''
 name: reminest
 dependencies:
   flutter:
@@ -118,7 +118,7 @@ dependencies:
 
     test('should handle missing flutter section gracefully', () {
       // Arrange
-      final brokenYaml = '''
+      const brokenYaml = '''
 name: reminest
 dependencies:
   flutter:
@@ -132,7 +132,7 @@ dependencies:
 
     test('should handle missing dev_dependencies gracefully', () {
       // Arrange
-      final brokenYaml = '''
+      const brokenYaml = '''
 name: reminest
 dependencies:
   flutter:
@@ -146,7 +146,7 @@ dependencies:
 
     test('should handle missing environment gracefully', () {
       // Arrange
-      final brokenYaml = '''
+      const brokenYaml = '''
 name: reminest
 dependencies:
   flutter:
@@ -160,7 +160,7 @@ dependencies:
 
     test('should handle missing version gracefully', () {
       // Arrange
-      final brokenYaml = '''
+      const brokenYaml = '''
 name: reminest
 dependencies:
   flutter:
@@ -174,7 +174,7 @@ dependencies:
 
     test('should handle missing publish_to gracefully', () {
       // Arrange
-      final brokenYaml = '''
+      const brokenYaml = '''
 name: reminest
 dependencies:
   flutter:
@@ -188,7 +188,7 @@ dependencies:
 
     test('should handle missing description gracefully', () {
       // Arrange
-      final brokenYaml = '''
+      const brokenYaml = '''
 name: reminest
 dependencies:
   flutter:

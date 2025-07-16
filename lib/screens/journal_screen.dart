@@ -6,6 +6,8 @@ import 'package:reminest/screens/edit_entry_screen.dart';
 import 'package:reminest/screens/view_entry_screen.dart';
 
 class JournalScreen extends StatefulWidget {
+  const JournalScreen({super.key});
+
   @override
   State<JournalScreen> createState() => _JournalScreenState();
 }
@@ -47,7 +49,7 @@ class _JournalScreenState extends State<JournalScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: ListTile(
         leading: isFutureEntry
-            ? Icon(Icons.schedule, color: Colors.blue)
+            ? const Icon(Icons.schedule, color: Colors.blue)
             : Icon(Icons.book, color: theme.primaryColor),
         title: Text(
           entry.title,
@@ -65,7 +67,7 @@ class _JournalScreenState extends State<JournalScreen> {
                   : entry.body,
               style: TextStyle(color: theme.textTheme.bodyMedium?.color),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               'Created: ${entry.createdAt.toLocal().toString().split(' ')[0]}',
               style: TextStyle(
@@ -82,7 +84,7 @@ class _JournalScreenState extends State<JournalScreen> {
                 ),
                 child: Text(
                   'Review date: ${entry.reviewDate.toLocal().toString().split(' ')[0]}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.blue,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -95,7 +97,7 @@ class _JournalScreenState extends State<JournalScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(Icons.visibility, color: Colors.blue),
+              icon: const Icon(Icons.visibility, color: Colors.blue),
               onPressed: () => _viewEntry(entry),
               tooltip: 'View entry',
             ),
@@ -105,7 +107,7 @@ class _JournalScreenState extends State<JournalScreen> {
               tooltip: 'Edit entry',
             ),
             IconButton(
-              icon: Icon(Icons.delete, color: Colors.red),
+              icon: const Icon(Icons.delete, color: Colors.red),
               onPressed: () => _deleteEntry(entry),
               tooltip: 'Delete entry',
             ),
@@ -138,14 +140,14 @@ class _JournalScreenState extends State<JournalScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Entry'),
+        title: const Text('Delete Entry'),
         content: Text(
           'Are you sure you want to delete "${entry.title}"? This action cannot be undone.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel'),
+            child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -153,7 +155,7 @@ class _JournalScreenState extends State<JournalScreen> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: Text('Delete'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -163,7 +165,7 @@ class _JournalScreenState extends State<JournalScreen> {
       try {
         await PlatformDatabaseService.deleteEntry(entry.id!);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Entry deleted successfully'),
             backgroundColor: Colors.green,
           ),
@@ -195,7 +197,7 @@ class _JournalScreenState extends State<JournalScreen> {
                     size: 64,
                     color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     'No journal entries yet.',
                     style: TextStyle(
@@ -203,7 +205,7 @@ class _JournalScreenState extends State<JournalScreen> {
                       fontSize: 16,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'Journal entries are always accessible with your main password, even if they have future review dates.',
                     style: TextStyle(
@@ -226,15 +228,15 @@ class _JournalScreenState extends State<JournalScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => AddEntryScreen()),
+            MaterialPageRoute(builder: (_) => const AddEntryScreen()),
           );
           if (result == true) {
             _loadEntries(); // Refresh entries if a new one was added
           }
         },
         backgroundColor: Theme.of(context).primaryColor,
-        child: Icon(Icons.add, color: Colors.white),
         tooltip: 'Add new entry',
+        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }

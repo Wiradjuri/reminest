@@ -141,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!hasPin) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => SetVaultPinScreen()),
+        MaterialPageRoute(builder: (_) => const SetVaultPinScreen()),
       );
       return;
     }
@@ -163,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pop(context);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => VaultScreen()),
+          MaterialPageRoute(builder: (_) => const VaultScreen()),
         );
       } else {
         setDialogState(() => pinError = "Incorrect PIN. Try again.");

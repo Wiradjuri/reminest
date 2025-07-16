@@ -19,10 +19,10 @@ class _AppNavBarState extends State<AppNavBar> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    HomeScreen(),
+    const HomeScreen(),
     JournalScreen(),
-    VaultScreen(),
-    AboutUsScreen(),
+    const VaultScreen(),
+    const AboutUsScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -46,7 +46,7 @@ class _AppNavBarState extends State<AppNavBar> {
         ),
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        items: [
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Journal'),
           BottomNavigationBarItem(icon: Icon(Icons.lock), label: 'Vault'),
@@ -62,10 +62,10 @@ class _AppNavBarState extends State<AppNavBar> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AddEntryScreen()),
+                  MaterialPageRoute(builder: (context) => const AddEntryScreen()),
                 );
               },
-              child: Icon(Icons.add),
+              child: const Icon(Icons.add),
             )
           : null,
       drawer: Drawer(
@@ -75,7 +75,7 @@ class _AppNavBarState extends State<AppNavBar> {
           children: [
             DrawerHeader(
               decoration: BoxDecoration(color: theme.primaryColor),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(

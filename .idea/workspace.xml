@@ -1,23 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AndroidLayouts">
+    <shared>
+      <config />
+    </shared>
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="83f1e4f1-da26-4ed9-af9e-94fd90deb615" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.github/workflows/security.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/security.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.metadata" beforeDir="false" afterPath="$PROJECT_DIR$/.metadata" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/AppNavBar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/AppNavBar.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/models/journal_entry.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/models/journal_entry.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/about_us_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/about_us_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/add_entry_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/add_entry_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/home_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/home_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/journal_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/journal_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/login_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/login_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/set_password_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/set_password_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/settings_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/settings_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/vault_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/vault_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/view_entry_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/view_entry_screen.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/services/encryption_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/encryption_service.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/theme/theme.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/theme/theme.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/widgets/top_nav_bar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widgets/top_nav_bar.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/fixed_database_service_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/fixed_database_service_test.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/fixed_password_service_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/fixed_password_service_test.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/fixed_platform_database_service_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/fixed_platform_database_service_test.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/pubspec_yaml_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/pubspec_yaml_test.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/widget_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/widget_test.dart" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,6 +76,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {}
@@ -100,6 +117,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Android App.android.app.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
@@ -110,14 +128,16 @@
     "cidr.known.project.marker": "true",
     "com.google.services.firebase.aqiPopupShown": "true",
     "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "inital",
+    "git-widget-placeholder": "dev-20250716",
+    "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/bradm/Desktop/Reminest",
-    "project.structure.last.edited": "SDK Location",
+    "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.2",
+    "recommended.upgrade.last.time.stamp": "1752663669314",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "AndroidSdkUpdater",
+    "settings.editor.selected.configurable": "configurable.group.appearance",
     "show.migrate.to.gradle.popup": "false"
   }
 }]]></component>

@@ -7,9 +7,8 @@ import 'dart:io';
 import 'package:reminest/services/platform_database_service.dart';
 import 'package:reminest/services/key_service.dart';
 import 'package:reminest/services/password_service.dart';
-import 'package:reminest/screens/set_password_screen.dart';
-import 'package:reminest/screens/journal_screen.dart';
 import 'package:reminest/screens/set_vault_pin_screen.dart';
+
 
 class SettingsScreen extends StatefulWidget {
   final ValueNotifier<ThemeMode>? themeNotifier;
@@ -31,7 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ThemeMode _themeMode = ThemeMode.system;
   bool _exporting = false;
   String? _exportStatus;
-  String? _updateStatus;
+  // ...existing code...
 
   @override
   void initState() {
@@ -443,7 +442,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _launchHelp() async {
     try {
-      const url = 'https://github.com/Wiradjuri/mental_health_vault';
+      const url = 'https://github.com/Wiradjuri/reminest';
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (e) {
       print('Error opening help page: $e');
@@ -454,7 +453,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Help & Documentation'),
             content: const SelectableText(
-              'Visit: https://github.com/Wiradjuri/mental_health_vault',
+              'Visit: https://github.com/Wiradjuri/reminest',
             ),
             actions: [
               TextButton(
@@ -473,6 +472,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text("Settings"),
+        backgroundColor: theme.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: ListView(
@@ -570,7 +575,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               leading: const Icon(Icons.system_update),
               title: const Text("Check for Updates"),
-              subtitle: const Text("Version 1.0.0+1"),
+              subtitle: const Text("Version 1.0.0"),
               trailing: ElevatedButton(
                 onPressed: _checkForUpdates,
                 style: ElevatedButton.styleFrom(
