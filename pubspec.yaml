@@ -10,20 +10,21 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Database
   sqflite: ^2.3.0
   sqflite_common_ffi: ^2.3.0
-  
+
   # Encryption & Security
   pointycastle: ^3.7.3
   crypto: ^3.0.3
-  
+
   # Storage & Files
   shared_preferences: ^2.2.2
   path_provider: ^2.1.1
   path: ^1.8.3
-  
+  file_picker: ^6.1.1 # ✅ ADDED to fix import errors
+
   # UI & Navigation
   url_launcher: ^6.2.1
   logger: ^2.6.0
@@ -38,6 +39,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
+
   assets:
     - lib/assets/icons/
