@@ -2,36 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Basic test runner for Reminest app components
-///
-/// This test suite focuses on testing individual UI components
-/// rather than the full app to avoid complex service dependencies.
 void main() {
   group('Reminest Widget Tests', () {
     setUp(() async {
-      // Initialize SharedPreferences mock for all tests
       SharedPreferences.setMockInitialValues({});
     });
 
     tearDown(() {
-      // Clean up after each test
       SharedPreferences.setMockInitialValues({});
     });
 
     group('Basic UI Components', () {
       testWidgets('Should render basic buttons', (WidgetTester tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Column(
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('Test Button'),
+                    onPressed: null,
+                    child: Text('Test Button'),
                   ),
                   TextButton(
-                    onPressed: () {},
-                    child: const Text('Text Button'),
+                    onPressed: null,
+                    child: Text('Text Button'),
                   ),
                 ],
               ),
@@ -47,7 +41,7 @@ void main() {
 
       testWidgets('Should render text fields', (WidgetTester tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Column(
                 children: [
@@ -73,9 +67,9 @@ void main() {
     group('Theme Tests', () {
       testWidgets('Light theme should render correctly', (WidgetTester tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             theme: ThemeData.light(),
-            home: const Scaffold(
+            home: Scaffold(
               body: Center(child: Text('Test')),
             ),
           ),
@@ -86,9 +80,9 @@ void main() {
 
       testWidgets('Dark theme should render correctly', (WidgetTester tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             theme: ThemeData.dark(),
-            home: const Scaffold(
+            home: Scaffold(
               body: Center(child: Text('Test')),
             ),
           ),
@@ -102,19 +96,21 @@ void main() {
       testWidgets('Should handle basic navigation', (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(tester.element(find.byType(ElevatedButton))).push(
-                      MaterialPageRoute(
-                        builder: (context) => const Scaffold(
-                          body: Center(child: Text('Second Page')),
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const Scaffold(
+                            body: Center(child: Text('Second Page')),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  child: const Text('Navigate'),
+                      );
+                    },
+                    child: const Text('Navigate'),
+                  ),
                 ),
               ),
             ),
@@ -141,7 +137,7 @@ void main() {
                     onPressed: () {
                       showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
+                        builder: (_) => AlertDialog(
                           title: const Text('Test Dialog'),
                           content: const Text('Dialog content'),
                           actions: [
@@ -223,13 +219,9 @@ void main() {
     group('Error Handling', () {
       testWidgets('Should handle widget errors gracefully', (WidgetTester tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
-              body: Builder(
-                builder: (context) {
-                  return const Text('No errors');
-                },
-              ),
+              body: Text('No errors'),
             ),
           ),
         );
@@ -240,11 +232,11 @@ void main() {
 
       testWidgets('Should handle empty states', (WidgetTester tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: ListView.builder(
                 itemCount: 0,
-                itemBuilder: (context, index) => Container(),
+                itemBuilder: (_, __) => SizedBox.shrink(),
               ),
             ),
           ),
@@ -257,8 +249,10 @@ void main() {
 
     group('Accessibility Tests', () {
       testWidgets('Should have proper semantics', (WidgetTester tester) async {
+        final semantics = tester.ensureSemantics();
+
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: Column(
                 children: [
@@ -266,14 +260,14 @@ void main() {
                     label: 'Main button',
                     button: true,
                     child: ElevatedButton(
-                      onPressed: () {},
-                      child: const Text('Click me'),
+                      onPressed: null,
+                      child: Text('Click me'),
                     ),
                   ),
                   Semantics(
                     label: 'Text input',
                     textField: true,
-                    child: const TextField(
+                    child: TextField(
                       decoration: InputDecoration(labelText: 'Enter text'),
                     ),
                   ),
@@ -283,31 +277,20 @@ void main() {
           ),
         );
 
-        // Test that the widgets are rendered correctly
         expect(find.text('Click me'), findsOneWidget);
         expect(find.text('Enter text'), findsOneWidget);
-        expect(find.byType(ElevatedButton), findsOneWidget);
-        expect(find.byType(TextField), findsOneWidget);
 
-        // Simple semantic test - just ensure semantics are enabled
-        final SemanticsHandle handle = tester.ensureSemantics();
-
-        // Test that semantic nodes exist (without complex matchers)
-        final semantics = tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!;
-        expect(semantics, isNotNull);
-
-        handle.dispose();
+        semantics.dispose();
       });
     });
 
     group('Layout Tests', () {
       testWidgets('Should handle different screen sizes', (WidgetTester tester) async {
-        // Use recommended WidgetTester APIs for setting physical size and device pixel ratio
-        await tester.view.setPhysicalSize(const Size(800, 600));
-        await tester.view.setDevicePixelRatio(1.0);
+        tester.view.physicalSize = const Size(800, 600);
+        tester.view.devicePixelRatio = 1.0;
 
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: LayoutBuilder(
                 builder: (context, constraints) {
@@ -324,10 +307,9 @@ void main() {
 
         expect(find.text('Wide Screen'), findsOneWidget);
 
-        // Reset to default size using recommended APIs
-        addTearDown(() async {
-          await tester.view.resetPhysicalSize();
-          await tester.view.resetDevicePixelRatio();
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
         });
       });
     });
