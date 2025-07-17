@@ -1,3 +1,4 @@
+// lib/services/password_service.dart
 import 'package:crypto/crypto.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -12,21 +13,13 @@ class PasswordService {
 
   static Directory? _overrideDirectory;
 
-  /// Allows test injection of a mock directory
   static void overrideAppDirectory(Directory dir) {
     _overrideDirectory = dir;
   }
 
-  /// Internal app directory getter
   static Future<Directory> _getAppDirectory() async {
-    if (_overrideDirectory != null) {
-      return _overrideDirectory!;
-    }
-    
-    if (kIsWeb) {
-      throw UnsupportedError('File operations not supported on web');
-    }
-    
+    if (_overrideDirectory != null) return _overrideDirectory!;
+    if (kIsWeb) throw UnsupportedError('File operations not supported on web');
     return await getApplicationDocumentsDirectory();
   }
 
@@ -52,10 +45,7 @@ class PasswordService {
   }
 
   static Future<String> setPassword(String password) async {
-    if (password.isEmpty) {
-      throw ArgumentError('Password cannot be empty');
-    }
-    
+    if (password.isEmpty) throw ArgumentError('Password cannot be empty');
     final dir = await _getAppDirectory();
     final passwordFile = File('${dir.path}/$_passwordFileName');
     final passkeyFile = File('${dir.path}/$_passkeyFileName');
@@ -63,6 +53,7 @@ class PasswordService {
     final salt = _generateSalt();
     final passkey = generatePasskey();
     final hash = _pbkdf2(password, salt, _pbkdf2Iterations);
+    final passkeyHash = _pbkdf2(passkey, salt, 50000);
 
     final passwordData = {
       'hash': hash,
@@ -73,10 +64,8 @@ class PasswordService {
       'version': '2.0',
     };
 
-    final passkeyHash = _pbkdf2(passkey, salt, 50000);
     final passkeyData = {
       'passkeyHash': passkeyHash,
-      'passkey': base64.encode(utf8.encode(passkey)),
       'salt': salt,
       'created': DateTime.now().toIso8601String(),
       'version': '2.0',
@@ -84,7 +73,6 @@ class PasswordService {
 
     await passwordFile.writeAsString(base64.encode(utf8.encode(jsonEncode(passwordData))));
     await passkeyFile.writeAsString(base64.encode(utf8.encode(jsonEncode(passkeyData))));
-
     return passkey;
   }
 
@@ -116,20 +104,31 @@ class PasswordService {
       final file = File('${(await _getAppDirectory()).path}/$_passkeyFileName');
       if (!await file.exists()) return null;
 
-      final json = jsonDecode(utf8.decode(base64.decode(await file.readAsString())));
-      return utf8.decode(base64.decode(json['passkey']));
+      // NOT returning the raw passkey — for security
+      return null;
     } catch (_) {
       return null;
     }
   }
 
   static Future<bool> resetPasswordWithPasskey(String passkey, String newPassword) async {
-    final actual = await getRecoveryPasskey();
-    if (actual == null || actual != passkey) return false;
+    try {
+      final file = File('${(await _getAppDirectory()).path}/$_passkeyFileName');
+      if (!await file.exists()) return false;
 
-    await clearPasswordData();
-    await setPassword(newPassword);
-    return true;
+      final json = jsonDecode(utf8.decode(base64.decode(await file.readAsString())));
+      final passkeyHash = json['passkeyHash'];
+      final salt = json['salt'];
+
+      final inputHash = _pbkdf2(passkey, salt, 50000);
+      if (inputHash != passkeyHash) return false;
+
+      await clearPasswordData();
+      await setPassword(newPassword);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<void> clearPasswordData() async {
