@@ -1,0 +1,24 @@
+name: Flutter Integration Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  integration_test:
+    name: Run Integration Tests
+    runs-on: macos-latest
+
+    steps:
+      - name: 🔽 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+
+      - name: 📦 Install dependencies
+        run: flutter pub get
+
+      - name: 🧪 Run integration tests
+        run: flutter test integration_test
