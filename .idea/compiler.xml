@@ -2,8 +2,8 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
-      <module name="android.file_picker" target="23" />
-      <module name="android.flutter_secure_storage" target="23" />
+      <module name="com.it_nomads.fluttersecurestorage.android.flutter_secure_storage" target="23" />
+      <module name="com.mr.flutter.plugin.filepicker.android.file_picker" target="23" />
     </bytecodeTargetLevel>
   </component>
 </project>

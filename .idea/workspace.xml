@@ -10,30 +10,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="83f1e4f1-da26-4ed9-af9e-94fd90deb615" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/copilot-instructions.md" beforeDir="false" afterPath="$PROJECT_DIR$/.github/copilot-instructions.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Dart_Packages.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/Flutter_Plugins.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/AppNavBar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/AppNavBar.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SECURITY_IMPLEMENTATION.md" beforeDir="false" afterPath="$PROJECT_DIR$/SECURITY_IMPLEMENTATION.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/AppNavBar.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/screens/about_us_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/about_us_screen.dart" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/screens/add_entry_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/add_entry_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/journal_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/journal_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/login_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/login_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/set_password_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/set_password_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/settings_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/settings_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/vault_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/vault_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/screens/view_entry_screen.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/screens/view_entry_screen.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/services/encryption_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/services/encryption_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/theme/theme.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/theme/theme.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/widgets/top_nav_bar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/lib/widgets/top_nav_bar.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pubspec.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/fixed_database_service_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/fixed_database_service_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/fixed_password_service_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/fixed_password_service_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/fixed_platform_database_service_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/fixed_platform_database_service_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/pubspec_yaml_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/pubspec_yaml_test.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/widget_test.dart" beforeDir="false" afterPath="$PROJECT_DIR$/test/widget_test.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pseudocode/project_flow.md" beforeDir="false" afterPath="$PROJECT_DIR$/pseudocode/project_flow.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -128,7 +115,7 @@
     "cidr.known.project.marker": "true",
     "com.google.services.firebase.aqiPopupShown": "true",
     "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "dev-20250716",
+    "git-widget-placeholder": "dev-20250717",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/bradm/Desktop/Reminest",

@@ -2,20 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Comprehensive widget tests for Reminest app components
+/// Basic test runner for Reminest app components
 ///
-/// Uses the arrange-act-assert pattern for each test.
-
+/// This test suite focuses on testing individual UI components
+/// rather than the full app to avoid complex service dependencies.
 void main() {
   group('Reminest Widget Tests', () {
     setUp(() async {
-      // Arrange
       // Initialize SharedPreferences mock for all tests
       SharedPreferences.setMockInitialValues({});
     });
 
     tearDown(() {
-      // Arrange
       // Clean up after each test
       SharedPreferences.setMockInitialValues({});
     });
@@ -27,14 +25,14 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Column(
-                children: [
+                children: const [
                   ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('Test Button'),
+                    onPressed: null,
+                    child: Text('Test Button'),
                   ),
                   TextButton(
-                    onPressed: () {},
-                    child: const Text('Text Button'),
+                    onPressed: null,
+                    child: Text('Text Button'),
                   ),
                 ],
               ),
@@ -55,7 +53,7 @@ void main() {
           const MaterialApp(
             home: Scaffold(
               body: Column(
-                children: [
+                children: const [
                   TextField(
                     decoration: InputDecoration(hintText: 'Enter text'),
                   ),
@@ -113,26 +111,27 @@ void main() {
         // Act
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(tester.element(find.byType(ElevatedButton))).push(
-                      MaterialPageRoute(
-                        builder: (context) => const Scaffold(
-                          body: Center(child: Text('Second Page')),
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const Scaffold(
+                            body: Center(child: Text('Second Page')),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  child: const Text('Navigate'),
+                      );
+                    },
+                    child: const Text('Navigate'),
+                  ),
                 ),
               ),
             ),
           ),
         );
 
-        // Assert
         expect(find.text('Navigate'), findsOneWidget);
 
         // Act
@@ -156,7 +155,7 @@ void main() {
                     onPressed: () {
                       showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
+                        builder: (_) => AlertDialog(
                           title: const Text('Test Dialog'),
                           content: const Text('Dialog content'),
                           actions: [
@@ -247,7 +246,6 @@ void main() {
 
     group('Error Handling', () {
       testWidgets('Should handle widget errors gracefully', (WidgetTester tester) async {
-        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -260,13 +258,11 @@ void main() {
           ),
         );
 
-        // Assert
         expect(find.text('No errors'), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
 
       testWidgets('Should handle empty states', (WidgetTester tester) async {
-        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -278,7 +274,6 @@ void main() {
           ),
         );
 
-        // Assert
         expect(find.byType(ListView), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
@@ -286,7 +281,6 @@ void main() {
 
     group('Accessibility Tests', () {
       testWidgets('Should have proper semantics', (WidgetTester tester) async {
-        // Act
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -313,33 +307,28 @@ void main() {
           ),
         );
 
-        // Assert
+        // Test that the widgets are rendered correctly
         expect(find.text('Click me'), findsOneWidget);
         expect(find.text('Enter text'), findsOneWidget);
         expect(find.byType(ElevatedButton), findsOneWidget);
         expect(find.byType(TextField), findsOneWidget);
 
-        // Act
+        // Simple semantic test - just ensure semantics are enabled
         final SemanticsHandle handle = tester.ensureSemantics();
 
-        // Assert
+        // Test that semantic nodes exist (without complex matchers)
         final semantics = tester.binding.pipelineOwner.semanticsOwner!.rootSemanticsNode!;
         expect(semantics, isNotNull);
 
-        // Act
         handle.dispose();
       });
     });
 
     group('Layout Tests', () {
       testWidgets('Should handle different screen sizes', (WidgetTester tester) async {
-        // Arrange
-        final originalSize = tester.binding.window.physicalSize;
-        final originalDevicePixelRatio = tester.binding.window.devicePixelRatio;
-
-        // Act
-        tester.binding.window.physicalSizeTestValue = const Size(800, 600);
-        tester.binding.window.devicePixelRatioTestValue = 1.0;
+        // Use recommended WidgetTester APIs for setting physical size and device pixel ratio
+        await tester.view.setPhysicalSize(const Size(800, 600));
+        await tester.view.setDevicePixelRatio(1.0);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -360,10 +349,10 @@ void main() {
         // Assert
         expect(find.text('Wide Screen'), findsOneWidget);
 
-        // Act & Assert: Reset to default size
-        addTearDown(() {
-          tester.binding.window.physicalSizeTestValue = originalSize;
-          tester.binding.window.devicePixelRatioTestValue = originalDevicePixelRatio;
+        // Reset to default size using recommended APIs
+        addTearDown(() async {
+          await tester.view.resetPhysicalSize();
+          await tester.view.resetDevicePixelRatio();
         });
       });
     });

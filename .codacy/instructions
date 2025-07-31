@@ -1,0 +1,7 @@
+{
+  "tool": "codacy_cli_analyze",
+  "parameters": {
+    "rootPath": "c:\\Users\\bradm\\Desktop\\Reminest", 
+    "file": "lib/services/key_service.dart"
+  }
+}

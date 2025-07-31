@@ -1,0 +1,72 @@
+---
+# Codacy AI Project Automation Rules
+
+## When code issues are found
+- For **any detected code issue** (lint, bug, style, or security) with a suggested quick fix:
+  - Propose the fix to the user, and automatically apply it if possible.
+  - Always show the before/after of the fix, and summarize what was changed and why.
+  # For Dart/Flutter projects:
+# - Prefer `dart format` and `flutter analyze` for code style and static analysis.
+# - Always use null safety features where possible.
+- If the issue is not fixable automatically:
+  - Report the issue to the user with a clear explanation.
+  - Suggest possible manual fixes or improvements.
+## When running tests
+- If tests are run and fail:
+  - Immediately report the failure to the user.
+  - Provide a summary of the failure, including the test name and error message.
+  - Suggest possible fixes or improvements based on the failure.
+- If tests pass:
+  - Report success to the user. 
+  - Provide a summary of the test results, including the number of tests run and passed.
+## When running security analysis
+- If security vulnerabilities are detected:
+
+  - Immediately report the vulnerabilities to the user.
+  - Provide a summary of the vulnerabilities, including severity and affected packages.
+  - Suggest or apply possible fixes (e.g., updating/downgrading/removing packages).
+  - Only continue after issues are addressed.
+
+## When running code analysis
+- If code analysis detects issues:
+  - Immediately report the issues to the user.
+  - Provide a summary of the issues, including severity and affected files.
+  - Suggest or apply possible fixes (e.g., refactoring, style changes).
+  - Only continue after issues are addressed.
+
+## When running code formatting
+- If code formatting is run and changes are made:
+  - Immediately report the changes to the user.
+  - Provide a summary of the changes, including files modified and types of changes made.
+  - Suggest or apply possible fixes (e.g., applying consistent style).  
+
+- If no changes are made, report that the code is already formatted correctly.  
+## When running code complexity analysis
+- If code complexity analysis is run and issues are found:
+  - Immediately report the issues to the user.
+  - Provide a summary of the issues, including affected files and complexity metrics.       
+
+## When dependencies or packages are added/changed
+- If you run **npm/yarn/pnpm install**, or update package/dependency files:
+  - Immediately run security analysis using Codacy's trivy integration.
+  - If vulnerabilities are detected:
+    - Stop, report the issues to the user, and suggest or apply possible fixes (for example, updating/downgrading/removing packages).
+    - Only continue after issues are addressed.
+
+## After editing any file
+- For each file changed:
+  - Immediately run Codacy's code analysis.
+  - Report any new issues and propose fixes.
+  - Apply fixes automatically if they are safe and do not require major refactor.
+
+## 404 or missing repo errors
+- If a command fails with a "404 Not Found" due to missing repository/organization:
+  - Prompt the user: "Would you like me to add your repository to Codacy now?"
+  - Only proceed with setup if the user says yes.
+
+## General
+- Always explain why a change or fix is being suggested.
+- When possible, follow project style guides (if available).
+- Never install Codacy CLI tools manually; always use the pre-installed versions from the Codacy server.
+- Never run code complexity or coverage analysis unless explicitly requested by the user.
+---

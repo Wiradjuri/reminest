@@ -1,0 +1,40 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run Tests and Upload Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔽 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'  # Use your actual version here
+
+      - name: 📦 Install dependencies
+        run: flutter pub get
+
+      - name: 🧪 Run tests with coverage
+        run: flutter test --coverage
+
+      - name: 🔍 Check coverage file exists
+        run: test -f coverage/lcov.info
+
+      - name: 📤 Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/lcov.info
+          flags: unittests
+          name: reminest-flutter-tests
+          fail_ci_if_error: false

@@ -1,49 +1,98 @@
----
-# Codacy Rules
-Configuration for AI behavior when interacting with Codacy's MCP Server
+# =============================================================================
+# Reminest Copilot Instructions
+# This file contains instructions for the Copilot to assist in code development.
+# AUTHOR: Brad
+# ROLE: Programming Student & Software Developer
+# LANGUAGES: [List: Python, C#, JavaScript, etc.]
+#
+# 1. PURPOSE & OVERVIEW:
+#    - Summarize what this file/module/class does.
+#    - (Example: Handles user authentication, encrypts data, etc.)
+#    - If the code is a library, explain its main purpose and how it fits in the
+#      larger project.
+#    - If the code is a script, explain its main function and how it should be
+#      executed.
 
-## After ANY successful `edit_file` or `reapply` operation
-- YOU MUST IMMEDIATELY run the `codacy_cli_analyze` tool from Codacy's MCP Server for each file that was edited, with:
- - `rootPath`: set to the workspace path
- - `file`: set to the path of the edited file
- - `tool`: leave empty or unset
-- If any issues are found in the new edits, propose and apply fixes for them.
-- > NOTE: Failure to follow this rule is considered a critical error.
+#
+# 2. RUNTIME & WORKFLOW:
+#    - On file start, guide me through what will happen, in plain English.
+#    - Show the program flow: initialization, key processes, exit points.
+#    - If the code is a script, explain how to run it, what inputs it expects,
+#      and what outputs it produces.
 
-## CRITICAL: Dependencies and Security Checks
-- IMMEDIATELY after ANY of these actions:
- - Running npm/yarn/pnpm install
- - Adding dependencies to package.json
- - Adding requirements to requirements.txt
- - Adding dependencies to pom.xml
- - Adding dependencies to build.gradle
- - Any other package manager operations
-- You MUST run the `codacy_cli_analyze` tool with:
- - `rootPath`: set to the workspace path
- - `tool`: set to "trivy"
- - `file`: leave empty or unset
-- If any vulnerabilities are found because of the newly added packages:
- - Stop all other operations
- - Propose and apply fixes for the security issues
- - Only continue with the original task after security issues are resolved
-- EXAMPLE:
- - After: npm install react-markdown
- - Do: Run codacy_cli_analyze with trivy
- - Before: Continuing with any other tasks
+#
+# 3. CORRECTNESS & BEST PRACTICES:
+#    - If any code is non-idiomatic, deprecated, or not best practice,
+#      automatically point it out and suggest the modern, correct approach.
+#    - For every function/class, explain if something could be done safer,
+#      faster, or more readably, and tell me *why*.
+#    - If you see a mistake or anti-pattern, comment: [!! IMPROVEMENT] and explain.
+#    - When I add new code, analyze it for errors, inefficiency, or
+#      insecure practices, and give direct, constructive feedback.
+#    - If I ask for a code review, provide a detailed analysis of the code,
+#      including:
+#      - Correctness: Does it do what it’s supposed to?
+#      - Efficiency: Is it optimized for performance?
+#      - Readability: Is it clear and maintainable?
+#      - Security: Are there any vulnerabilities?
+#      - Best Practices: Does it follow coding standards?
+#    - If I ask for a code refactor, provide a step-by-step plan to
+#      improve the code, including:
+#      - Identifying areas for improvement
+#      - Suggesting specific changes
+#      - Explaining the benefits of the refactor
+#    - If I ask for a code optimization, analyze the code for performance
+#      bottlenecks and suggest improvements, including:
+#      - Identifying slow or inefficient code
+#      - Suggesting algorithms or data structures that could improve performance
+#      - Explaining the expected performance gains
+#    - If I ask for a code security review, analyze the code for security
+#      vulnerabilities and suggest improvements, including:
+#      - Identifying potential security risks
+#      - Suggesting secure coding practices
+#      - Explaining how to mitigate security risks
+#    - If I ask for a code documentation review, analyze the code comments and
+#      documentation for clarity and completeness, including:
+#      - Identifying missing or unclear comments
+#      - Suggesting improvements to documentation
+#      - Explaining the importance of clear documentation
+#
+# 4. LEARNING & DEBUGGING:
+#    - If an error is likely, comment above with:
+#      [!! POTENTIAL BUG] - explain the risk and how to fix or debug it.
+#    - Suggest tools or commands to debug the code or test correctness.
+#    - When an exception could occur, explain why and how to handle it.
+#    - For unclear logic, prompt: [?? EXPLAIN THIS SECTION]
+#    - If I ask for help understanding a section, explain it in simple terms.
+#    - If I ask for a code example, provide a clear, concise example that
+#      demonstrates the concept or functionality.
+#    - If I ask for a code snippet, provide a complete, runnable example that
+#      can be easily integrated into the existing codebase.
+#
+# 5. CI/CD PIPELINE (GITHUB ACTIONS):
+#    - At the bottom (or on request), generate a sample GitHub Actions workflow
+#      (e.g., .github/workflows/ci.yml) for this project and explain:
+#        - What steps it includes (lint, test, build, deploy, etc.)
+#        - How to add custom checks for this codebase
+#        - How to run it locally or in the cloud
+#        - Whenever dependencies are added, remind me to update the CI pipeline.
+#        - Make sure there are not errors in the CI pipeline.
+#        - Make sure the CI pipeline is secure and does not expose sensitive data.
+# 6. TRANSLATIONS (IF APPLICABLE):
+#    - When code comments or error messages are in another language, always
+#      provide: Deutsch = English (or as needed)
+#
+# 7. [YOUR LEARNING NOTES]:
+#    - Leave blank lines marked [YOUR NOTE HERE] for me to add comments.
+#    - Prompt me to reflect: “What did you learn from this function/class?”
+#    - Encourage me to write down any insights or improvements I discover.
+#    - If I ask for help with a concept, provide a clear, concise explanation
+#      and examples to help me understand.
+#    - If I ask for a code example, provide a clear, concise example that
+#      demonstrates the concept or functionality.
+#    - If I ask for a code snippet, provide a complete, runnable example that
+#      can be easily integrated into the existing codebase.
+#
+# =============================================================================
 
-## General
-- Repeat the relevant steps for each modified file.
-- "Propose fixes" means to both suggest and, if possible, automatically apply the fixes.
-- You MUST NOT wait for the user to ask for analysis or remind you to run the tool.
-- Do not run `codacy_cli_analyze` looking for changes in duplicated code or code complexity metrics.
-- Do not run `codacy_cli_analyze` looking for changes in code coverage.
-- Do not try to manually install Codacy CLI using either brew, npm, npx, or any other package manager.
-- If the Codacy CLI is not installed, just run the `codacy_cli_analyze` tool from Codacy's MCP Server.
-- When calling `codacy_cli_analyze`, only send provider, organization and repository if the project is a git repository.
-
-## Whenever a call to a Codacy tool that uses `repository` or `organization` as a parameter returns a 404 error
-- Offer to run the `codacy_setup_repository` tool to add the repository to Codacy
-- If the user accepts, run the `codacy_setup_repository` tool
-- Do not ever try to run the `codacy_setup_repository` tool on your own
-- After setup, immediately retry the action that failed (only retry once)
----
+# [CODE STARTS BELOW]
